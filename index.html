@@ -674,7 +674,7 @@
 
 <div id="help">
   WASD 이동 · 마우스 조준 · 좌클릭/Space 발사<br>
-  1 AP · 2 APCR · 3 HE · 4 연막 · F 수리<br>
+  1 AP · 2 APCR · 3 HE · 4 연막 · F 수리 · Q 항공지원<br>
   Shift 조준 확대 · M 메뉴 · R 재시작 · F2 오류 패널 · 조준점 위 적 정보 표시
 </div>
 
@@ -2888,6 +2888,40 @@ function updateOperationBattle(dt) {
   if (final && Math.hypot(p.x-final.x, p.y-final.y) < final.r) op.finalReached = true;
 }
 
+function requestPlayerAirSupport() {
+  if (!game || game.state !== "play" || !game.player.alive) return;
+  if ((game.airSupportCooldown || 0) > 0) {
+    if (!game.lastAirCooldownLog || game.time - game.lastAirCooldownLog > 3.0) {
+      addLog(`항공지원 재사용 대기 ${Math.ceil(game.airSupportCooldown)}초`, "neutral");
+      game.lastAirCooldownLog = game.time;
+    }
+    return;
+  }
+
+  const aim = screenToWorld(mouse.x, mouse.y);
+  const target = {
+    x:clamp(aim.x, 80, WORLD_W-80),
+    y:clamp(aim.y, 80, WORLD_H-80)
+  };
+  const kind = game.mode === "operation" ? "rocket" : "strafe";
+  callAirStrike("ally", target, kind);
+  game.airSupportCooldown = game.airSupportCooldownMax || 55;
+  game.playerAirRequests = (game.playerAirRequests || 0) + 1;
+  addRadio(`항공지원 요청 접수. ${kind === "rocket" ? "로켓 공격" : "기총소사"} 진입.`, "good");
+}
+
+function updatePlayerAirSupport(dt) {
+  if (!game) return;
+  game.airSupportCooldown = Math.max(0, (game.airSupportCooldown || 0) - dt);
+  if (game.state !== "play") return;
+  if (keys["q"]) {
+    if (!game.airSupportKeyDown) requestPlayerAirSupport();
+    game.airSupportKeyDown = true;
+  } else {
+    game.airSupportKeyDown = false;
+  }
+}
+
 function callAirStrike(team, target, kind="bomb") {
   if (!game) return;
   const delay = kind === "strafe" ? 2.2 : kind === "rocket" ? 2.8 : 3.4;
@@ -3317,6 +3351,10 @@ function startBattle() {
     briefingUntil:0,
     operation:null,
     airstrikes:[],
+    airSupportCooldown:0,
+    airSupportCooldownMax:operationMode ? 42 : 55,
+    airSupportKeyDown:false,
+    playerAirRequests:0,
     operationRespawnsLeft: operationMode ? 3 : 0,
     operationDeaths:0
   };
@@ -3330,6 +3368,7 @@ function startBattle() {
     addRadio("교전 개시. 적 전차를 제압하십시오.", "neutral");
   }
   if (operationMode) setupOperationBattle();
+  assignAIMissions();
   showStartBriefing(activeCampaignMission);
 
   menu.classList.add("hidden");
@@ -4028,15 +4067,116 @@ function updateTankPlayer(tank, dt) {
   if ((mouse.down || keys[" "]) && !repairing) fireShell(tank);
 }
 
+function initAIMission(tank, index=0) {
+  if (!tank || tank.team === "player") return tank;
+  tank.aiGroupIndex = index;
+  tank.aiLane = (index % 5) - 2;
+  tank.aiRouteBias = tank.aiLane < 0 ? -1 : 1;
+  tank.aiPersonalOffset = (tank.aiLane || 0) * 0.10 + rand(-0.12, 0.12);
+  tank.aiMissionOffset = rand(0, TAU);
+  return tank;
+}
+
+function assignAIMissions() {
+  if (!game) return;
+  game.allies.forEach((t,i) => initAIMission(t, i));
+  game.enemies.forEach((t,i) => initAIMission(t, i));
+}
+
+function formationSeparationVector(tank) {
+  if (!game || !tank) return {x:0,y:0,power:0};
+  const same = isFriendlyTeam(tank.team)
+    ? [game.player, ...game.allies].filter(t => t !== tank && t.alive)
+    : game.enemies.filter(t => t !== tank && t.alive);
+  const radius = game.mode === "operation" ? 340 : 260;
+  let vx = 0, vy = 0, power = 0;
+  for (const o of same) {
+    const dx = tank.x - o.x, dy = tank.y - o.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 1 || d > radius) continue;
+    const w = (radius - d) / radius;
+    vx += dx / d * w;
+    vy += dy / d * w;
+    power += w;
+  }
+  return {x:vx, y:vy, power};
+}
+
+function spreadGoalForTank(tank, goal, focus=null) {
+  if (!goal || !Number.isFinite(goal.x) || !Number.isFinite(goal.y)) return goal;
+  let gx = goal.x, gy = goal.y;
+  const sep = formationSeparationVector(tank);
+  if (sep.power > 0) {
+    const scale = game.mode === "operation" ? 420 : 310;
+    gx += sep.x * scale;
+    gy += sep.y * scale;
+  }
+
+  const ref = focus || fallbackObjectiveFor(tank);
+  if (ref) {
+    const a = angleTo(tank, ref) + Math.PI/2;
+    const lane = tank.aiLane ?? 0;
+    const laneScale = game.mode === "operation" ? 125 : 82;
+    gx += Math.cos(a) * lane * laneScale;
+    gy += Math.sin(a) * lane * laneScale;
+  }
+
+  return {x:clamp(gx, 70, WORLD_W-70), y:clamp(gy, 70, WORLD_H-70)};
+}
+
+function assignedOperationObjectiveFor(tank) {
+  if (!game || game.mode !== "operation") return null;
+  const zones = game.map.operationZones || [];
+  if (!zones.length) return null;
+  const stage = Math.max(0, game.operation?.stage || 0);
+  const lane = tank.aiLane ?? 0;
+  const role = tank.t?.cls || "";
+
+  if (isFriendlyTeam(tank.team)) {
+    let idx = stage;
+    if (role === "경전차") idx += 1;
+    if (role === "중형전차" && lane >= 1) idx += 1;
+    if (role === "구축전차" || role === "자주포") idx = Math.max(0, stage);
+    idx = clamp(idx, 0, zones.length - 1);
+    const base = zones[idx];
+    return {
+      ...base,
+      x:base.x,
+      y:clamp(base.y + lane * 260, 140, WORLD_H-140),
+      r:base.r || 220
+    };
+  }
+
+  const enemyIdx = clamp(stage + (lane > 0 ? 1 : 0), 0, zones.length - 1);
+  const base = zones[enemyIdx] || game.map.player;
+  return {
+    ...base,
+    x:base.x + 180,
+    y:clamp(base.y + lane * 240, 140, WORLD_H-140),
+    r:base.r || 220
+  };
+}
+
 function fallbackObjectiveFor(tank) {
   if (!game) return null;
   const friendly = isFriendlyTeam(tank.team);
-  if (game.mode === "capture" || game.mode === "assault") {
-    const obj = objectiveTargetFor(tank);
+
+  if (game.mode === "operation") {
+    const obj = assignedOperationObjectiveFor(tank);
     if (obj) return obj;
   }
-  if (friendly) return game.map.enemySpawn || {x:WORLD_W-240,y:WORLD_H/2,r:220};
-  return game.map.player || {x:260,y:WORLD_H/2,r:220};
+
+  if (game.mode === "capture" || game.mode === "assault") {
+    const obj = objectiveTargetFor(tank);
+    if (obj) {
+      const lane = tank.aiLane ?? 0;
+      return {...obj, y:clamp(obj.y + lane * 90, 90, WORLD_H-90)};
+    }
+  }
+
+  const base = friendly ? (game.map.enemySpawn || {x:WORLD_W-240,y:WORLD_H/2,r:220}) : (game.map.player || {x:260,y:WORLD_H/2,r:220});
+  const lane = tank.aiLane ?? 0;
+  return {...base, y:clamp(base.y + lane * (game.mode === "operation" ? 260 : 140), 90, WORLD_H-90)};
 }
 
 function desiredEngagementRange(role, mapName) {
@@ -4227,8 +4367,9 @@ function updateTankAI(tank, dt) {
       }
     }
 
-    tank.targetX = clamp(tank.targetX, 70, WORLD_W-70);
-    tank.targetY = clamp(tank.targetY, 70, WORLD_H-70);
+    const spreadGoal = spreadGoalForTank(tank, {x:tank.targetX, y:tank.targetY}, target);
+    tank.targetX = clamp(spreadGoal.x, 70, WORLD_W-70);
+    tank.targetY = clamp(spreadGoal.y, 70, WORLD_H-70);
   }
 
   const moveTarget = {x:tank.targetX, y:tank.targetY};
@@ -4515,6 +4656,7 @@ function update(dt) {
   if (game.state === "play") {
     updateCampaignEvents(dt);
     updateOperationBattle(dt);
+    updatePlayerAirSupport(dt);
     updateAirstrikes(dt);
     updateRadioAdvisor(dt);
     updateVisibility(dt);
@@ -5249,11 +5391,13 @@ function drawHUD() {
   const aliveAllies = game.allies.filter(a=>a.alive).length;
   const ammo = ammoTypes[game.currentAmmo] || ammoTypes.AP;
   const repairInfo = p.repairing > 0 ? ` · 수리 중 ${p.repairing.toFixed(1)}초` : canRepair(p) ? " · F 수리 가능" : "";
+  const airInfo = game.airSupportCooldown <= 0 ? "Q 항공지원 준비" : `Q 항공지원 ${Math.ceil(game.airSupportCooldown)}초`;
   topLeft.innerHTML = `
     <b>${p.t.name} ${p.t.tierRoman || tierRoman[p.t.tier] || ""}</b> · ${p.t.nation} ${p.t.cls}<br>
     지형: ${terr.name} · 속도: ${Math.round(Math.hypot(p.vx,p.vy))}<br>
     장갑 전/측/후: ${p.t.armor.front}/${p.t.armor.side}/${p.t.armor.rear} · 관통력: ${p.t.pen}<br>
     탄종: ${ammo.label} (${game.currentAmmo}) · 수리키트 ${p.repairKits}${repairInfo}<br>
+    지원: ${airInfo}<br>
     부위: ${game.damageMode === "module" ? moduleSummary(p) : "체력바 모드"}
   `;
   const capText = objectiveStatusText() + campaignObjectiveStatusText() + operationStatusText() + secondaryObjectivesStatusText();
