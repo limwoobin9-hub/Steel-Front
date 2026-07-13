@@ -361,6 +361,290 @@
     .startBar { flex-direction:column; align-items:stretch; }
     #startBtn { width:100%; }
   }
+
+  /* 새 로비 UI */
+  #menu.lobbyMenu {
+    position:fixed;
+    inset:0;
+    width:auto;
+    height:auto;
+    max-width:none;
+    overflow:hidden;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:
+      radial-gradient(circle at 50% 58%, rgba(92,89,75,.26), transparent 34%),
+      linear-gradient(180deg, rgba(18,20,22,.94), rgba(9,10,12,.96));
+    box-shadow:none;
+  }
+  .lobbyTopBar {
+    position:absolute;
+    left:0; right:0; top:0;
+    height:74px;
+    display:grid;
+    grid-template-columns: 220px minmax(360px,1fr) 260px;
+    align-items:center;
+    gap:14px;
+    padding:12px 18px;
+    background:linear-gradient(180deg, rgba(0,0,0,.72), rgba(0,0,0,.20));
+    border-bottom:1px solid rgba(255,255,255,.10);
+    z-index:5;
+  }
+  .lobbySettingsBtn {
+    justify-self:start;
+    min-width:118px;
+    height:42px;
+    border:1px solid rgba(232,213,156,.35);
+    background:rgba(30,30,27,.82);
+    color:#f1e1ad;
+    font-weight:800;
+    border-radius:10px;
+  }
+  .battleTabs {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+  }
+  .battleTab {
+    min-width:142px;
+    height:44px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,.13);
+    background:rgba(255,255,255,.05);
+    color:#ded8c8;
+    font-weight:800;
+    letter-spacing:.2px;
+  }
+  .battleTab.selected {
+    border-color:rgba(232,213,156,.72);
+    background:linear-gradient(180deg, rgba(109,92,45,.92), rgba(54,46,28,.92));
+    color:#fff0b7;
+    box-shadow:0 0 18px rgba(232,213,156,.12);
+  }
+  .lobbyRightTools {
+    justify-self:end;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#bcb6a7;
+    font-size:12px;
+  }
+  .lobbyRightTools select {
+    background:#151515;
+    color:#eee;
+    border:1px solid #555;
+    border-radius:8px;
+    padding:7px 8px;
+  }
+  .lobbyStage {
+    position:absolute;
+    left:0; right:0; top:74px; bottom:172px;
+    display:grid;
+    grid-template-columns: 320px minmax(420px,1fr) 330px;
+    align-items:stretch;
+    gap:18px;
+    padding:24px 26px 14px;
+  }
+  .lobbySidePanel {
+    align-self:start;
+    min-height:180px;
+    padding:14px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:16px;
+    background:linear-gradient(180deg, rgba(20,20,18,.58), rgba(0,0,0,.24));
+    backdrop-filter: blur(2px);
+  }
+  .lobbySidePanel h3 {
+    margin:0 0 10px;
+    color:#f1e7c8;
+    font-size:17px;
+  }
+  .lobbyTankName {
+    font-size:24px;
+    color:#fff3bd;
+    font-weight:900;
+    margin-bottom:6px;
+  }
+  .lobbyTankMeta, .lobbyTankStats {
+    color:#c9c2af;
+    line-height:1.5;
+    font-size:13px;
+  }
+  .lobbyCanvasWrap {
+    align-self:center;
+    justify-self:center;
+    width:min(760px, 52vw);
+    height:min(420px, 44vh);
+    position:relative;
+  }
+  #lobbyTankCanvas {
+    width:100%;
+    height:100%;
+    display:block;
+    border-radius:22px;
+    background:
+      radial-gradient(circle at 50% 65%, rgba(255,255,255,.08), transparent 28%),
+      linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.08));
+  }
+  .lobbyBottomBar {
+    position:absolute;
+    left:0; right:0; bottom:0;
+    height:172px;
+    display:grid;
+    grid-template-columns: 190px minmax(420px,1fr) 210px;
+    gap:14px;
+    padding:12px 18px 16px;
+    background:linear-gradient(180deg, rgba(7,8,9,.12), rgba(0,0,0,.80));
+    border-top:1px solid rgba(255,255,255,.12);
+    z-index:5;
+  }
+  .nationDock {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .nationDockTitle, .tankDockTitle {
+    color:#bcb6a7;
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.4px;
+  }
+  #nationButtons {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  #nationButtons button {
+    height:42px;
+    border-radius:10px;
+    font-weight:800;
+  }
+  .tankDock {
+    min-width:0;
+    position:relative;
+  }
+  #tankGrid {
+    display:flex;
+    gap:10px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:4px 2px 10px;
+    height:128px;
+  }
+  #tankGrid .tankCard {
+    flex:0 0 250px;
+    height:108px;
+    overflow:hidden;
+    padding:10px;
+  }
+  #tankGrid .tankCard .small:nth-of-type(n+4),
+  #tankGrid .tankCard .statbar {
+    display:none;
+  }
+  .lobbyStartPanel {
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    justify-content:end;
+  }
+  #startBtn {
+    width:100%;
+    height:54px;
+    border-radius:13px;
+    border-color:#d6c48a;
+    background:linear-gradient(180deg, #5a4c29, #2b2517);
+    color:#fff2be;
+    font-weight:900;
+    font-size:16px;
+  }
+  .lobbyHiddenLegacy {
+    display:none !important;
+  }
+
+  .lobbyOverlay {
+    position:fixed;
+    inset:0;
+    z-index:720;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:22px;
+    background:rgba(0,0,0,.70);
+  }
+  .lobbyOverlay.hidden { display:none; }
+  .lobbyOverlayPanel {
+    width:min(1060px, 96vw);
+    max-height:92vh;
+    overflow:auto;
+    border:1px solid rgba(232,213,156,.32);
+    border-radius:18px;
+    background:linear-gradient(180deg, rgba(28,28,25,.98), rgba(13,13,12,.98));
+    box-shadow:0 22px 80px rgba(0,0,0,.86);
+    padding:18px;
+  }
+  .lobbyOverlayTop {
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:14px;
+    margin-bottom:14px;
+    padding-bottom:12px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .lobbyOverlayTop h2 { margin:0; color:#f2ead5; }
+  .setupPanel.hidden { display:none; }
+  .setupGrid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap:10px;
+  }
+  .setupSection {
+    margin-top:12px;
+    padding:12px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:13px;
+    background:rgba(0,0,0,.18);
+  }
+  .setupSection h3 {
+    margin:0 0 10px;
+    color:#f2ead5;
+    font-size:16px;
+  }
+  .setupActions {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid rgba(255,255,255,.12);
+  }
+  #setupStartBtn {
+    min-width:160px;
+    border-color:#d6c48a;
+    background:linear-gradient(180deg, #5a4c29, #2b2517);
+    color:#fff2be;
+    font-weight:900;
+  }
+  #garagePanel.lobbyGarage {
+    font-size:12px;
+  }
+  #garagePanel.lobbyGarage .moduleCard,
+  #garagePanel.lobbyGarage .economy button,
+  #garagePanel.lobbyGarage .branch {
+    display:none;
+  }
+  @media (max-width: 960px) {
+    .lobbyTopBar { grid-template-columns:1fr; height:auto; position:absolute; }
+    .battleTabs { justify-content:flex-start; overflow-x:auto; }
+    .lobbyStage { top:140px; bottom:210px; grid-template-columns:1fr; overflow:auto; }
+    .lobbySidePanel:nth-child(3) { display:none; }
+    .lobbyCanvasWrap { width:92vw; height:280px; }
+    .lobbyBottomBar { height:210px; grid-template-columns:1fr; overflow:auto; }
+  }
+
+
   #combatLog {
     position: fixed;
     left: 14px;
@@ -723,110 +1007,109 @@
 <body>
 <canvas id="game"></canvas>
 
-<div id="menu" class="panel">
-  <div class="menuHeader">
-    <div>
-      <h1>Steel Front 1944</h1>
-      <div class="menuSummary">
-        2차대전 전차전 프로토타입. 전차를 선택하고 전멸전, 거점 점령, 진지 포탑전, 대형 작전전을 플레이한다.
+<div id="menu" class="lobbyMenu">
+  <div class="lobbyTopBar">
+    <button id="settingsBtn" class="lobbySettingsBtn" type="button">설정</button>
+    <div id="battleTypeButtons" class="battleTabs">
+      <button class="battleTab selected" data-scope="free" type="button">자유 전투</button>
+      <button class="battleTab" data-scope="campaign" type="button">역사적 캠페인</button>
+      <button class="battleTab" data-scope="custom" type="button">커스텀 전투</button>
+    </div>
+    <div class="lobbyRightTools">
+      <span>로비 배경</span>
+      <select id="lobbyBgInput">
+        <option value="평지" selected>평지</option>
+        <option value="사막">사막</option>
+        <option value="언덕">언덕</option>
+        <option value="산악">산악</option>
+        <option value="늪지">늪지</option>
+        <option value="시가전">시가전</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="lobbyStage">
+    <div class="lobbySidePanel">
+      <h3>선택 전차</h3>
+      <div id="lobbyTankName" class="lobbyTankName">전차</div>
+      <div id="lobbyTankMeta" class="lobbyTankMeta"></div>
+      <div id="lobbyTankStats" class="lobbyTankStats" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="lobbyCanvasWrap">
+      <canvas id="lobbyTankCanvas" width="900" height="480"></canvas>
+    </div>
+
+    <div class="lobbySidePanel">
+      <h3>전차 상세</h3>
+      <div id="garagePanel" class="garagePanel lobbyGarage"></div>
+    </div>
+  </div>
+
+  <div class="lobbyBottomBar">
+    <div class="nationDock">
+      <div class="nationDockTitle">국가 선택</div>
+      <div id="nationButtons"></div>
+    </div>
+
+    <div class="tankDock">
+      <div class="tankDockTitle">전차 선택</div>
+      <div class="filterBar" style="display:none;">
+        <select id="classFilterInput">
+          <option value="전체" selected>전체</option>
+          <option value="경전차">경전차</option>
+          <option value="중형전차">중형전차</option>
+          <option value="중전차">중전차</option>
+          <option value="구축전차">구축전차</option>
+          <option value="자주포">자주포</option>
+        </select>
+        <select id="tierFilterInput">
+          <option value="전체" selected>전체</option>
+          <option value="1">I</option>
+          <option value="2">II</option>
+          <option value="3">III</option>
+        </select>
+        <select id="unlockFilterInput">
+          <option value="전체" selected>전체</option>
+          <option value="해금">해금됨</option>
+          <option value="잠김">잠김</option>
+        </select>
       </div>
+      <div id="tankGrid" class="tankGrid"></div>
     </div>
-    <div class="menuBadge">단일 HTML · 저장 지원</div>
+
+    <div class="lobbyStartPanel">
+      <button id="startBtn" type="button">전투 시작</button>
+      <div class="small">전투 시작 후 세부 조건을 설정합니다.</div>
+    </div>
   </div>
 
-  <div class="menuSection">
-    <div class="menuSectionHeader">
-      <h3>1. 국가와 전장</h3>
-      <div class="sectionNote">플레이 국가와 전투 지형을 먼저 고릅니다.</div>
-    </div>
-    <div class="choiceBlock">
-      <div class="small" style="margin-bottom:6px;">국가 선택</div>
-      <div id="nationButtons" class="row"></div>
-    </div>
-    <div class="choiceBlock">
-      <div class="small" style="margin-bottom:6px;">맵 선택</div>
-      <div id="mapButtons" class="row"></div>
-    </div>
-    <div id="mapTactic" class="wideBox small"></div>
+  <div class="lobbyHiddenLegacy">
+    <select id="battleScopeInput">
+      <option value="free" selected>자유 전투</option>
+      <option value="campaign">역사 캠페인</option>
+      <option value="custom">커스텀 전투</option>
+    </select>
+    <div id="mapButtons"></div>
+    <div id="mapTactic"></div>
   </div>
+</div>
 
-  <div class="menuSection">
-    <div class="menuSectionHeader">
-      <h3>2. 전투 설정</h3>
-      <div class="sectionNote">전투 규모, 적 세력, 난이도, 모드를 설정합니다.</div>
+<div id="lobbySettingsOverlay" class="lobbyOverlay hidden">
+  <div class="lobbyOverlayPanel">
+    <div class="lobbyOverlayTop">
+      <div>
+        <h2>세부 규칙</h2>
+      </div>
+      <button id="settingsCloseBtn" type="button">닫기</button>
     </div>
-    <div class="settingsGrid">
-      <label class="settingCard"><span>아군 AI 수</span>
-        <select id="allyCountInput">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2" selected>2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-          <option value="11">11</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>적 AI 수</span>
-        <select id="enemyCountInput">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5" selected>5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-          <option value="11">11</option>
-          <option value="12">12</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>적 국가</span>
-        <select id="enemyNationInput">
-          <option value="랜덤" selected>랜덤</option>
-          <option value="독일">독일</option>
-          <option value="영국">영국</option>
-          <option value="소련">소련</option>
-          <option value="미국">미국</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>난이도</span>
-        <select id="difficultyInput">
-          <option value="쉬움">쉬움</option>
-          <option value="보통" selected>보통</option>
-          <option value="어려움">어려움</option>
-        </select>
-      </label>
+    <div class="setupGrid">
       <label class="settingCard"><span>피해 시스템</span>
         <select id="damageModeInput">
           <option value="hp">체력바</option>
           <option value="module" selected>부위 피해</option>
         </select>
       </label>
-      <label class="settingCard"><span>전투 모드</span>
-        <select id="battleModeInput">
-          <option value="annihilation" selected>전멸전</option>
-          <option value="capture">거점 점령</option>
-          <option value="assault">진지 포탑전</option>
-          <option value="operation">대형 작전전</option>
-        </select>
-      </label>
-    </div>
-  </div>
-
-  <div class="menuSection">
-    <div class="menuSectionHeader">
-      <h3>3. 세부 규칙</h3>
-      <div class="sectionNote">시야, 오인 사격, 시간 제한, 보상 등 전투 규칙입니다.</div>
-    </div>
-    <div class="settingsGrid">
       <label class="settingCard"><span>시야 시스템</span>
         <select id="visionInput">
           <option value="on" selected>켜기</option>
@@ -878,150 +1161,126 @@
       </label>
     </div>
   </div>
-
-  <div class="menuSection campaignBox">
-    <div class="menuSectionHeader">
-      <h3>4. 캠페인</h3>
-      <div class="sectionNote">자유 전투 또는 역사 캠페인을 선택합니다.</div>
-    </div>
-    <div class="settingsGrid">
-      <label class="settingCard"><span>전투 방식</span>
-        <select id="battleScopeInput">
-          <option value="free" selected>자유 전투</option>
-          <option value="campaign">역사 캠페인</option>
-          <option value="custom">커스텀 전투</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>캠페인 국가</span>
-        <select id="campaignNationInput">
-          <option value="독일" selected>독일</option>
-          <option value="소련">소련</option>
-          <option value="미국">미국</option>
-          <option value="영국">영국</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>캠페인 임무</span>
-        <select id="campaignMissionInput"></select>
-      </label>
-      <label class="settingCard"><span>캠페인 보급 한도</span>
-        <select id="campaignSupplyLimitInput">
-          <option value="basic">기본</option>
-          <option value="expanded" selected>확장</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>전투 후 자동 보급</span>
-        <select id="campaignAutoRefillInput">
-          <option value="off" selected>끄기</option>
-          <option value="on">켜기</option>
-        </select>
-      </label>
-    </div>
-    <div id="campaignPanel" class="briefing small panelSoft" style="margin-top:10px;"></div>
-  </div>
-
-  <div class="menuSection">
-    <div class="menuSectionHeader">
-      <h3>5. 전차 선택</h3>
-      <div class="sectionNote">병과, 티어, 해금 상태로 전차 목록을 정리합니다.</div>
-    </div>
-    <div class="filterBar">
-      <label class="settingCard"><span>병과</span>
-        <select id="classFilterInput">
-          <option value="전체" selected>전체</option>
-          <option value="경전차">경전차</option>
-          <option value="중형전차">중형전차</option>
-          <option value="중전차">중전차</option>
-          <option value="구축전차">구축전차</option>
-          <option value="자주포">자주포</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>티어</span>
-        <select id="tierFilterInput">
-          <option value="전체" selected>전체</option>
-          <option value="1">I</option>
-          <option value="2">II</option>
-          <option value="3">III</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>해금 상태</span>
-        <select id="unlockFilterInput">
-          <option value="전체" selected>전체</option>
-          <option value="해금">해금됨</option>
-          <option value="잠김">잠김</option>
-        </select>
-      </label>
-    </div>
-    <div id="tankGrid" class="tankGrid"></div>
-  </div>
-
-  <div class="menuSection">
-    <div class="menuSectionHeader">
-      <h3>6. 전차 상세 / 업그레이드</h3>
-      <div class="sectionNote">선택한 전차의 성능과 장비 강화를 확인합니다.</div>
-    </div>
-    <div id="garagePanel" class="garagePanel"></div>
-  </div>
-
-  <div class="startBar">
-    <div class="menuHint">
-      조작: WASD 이동 / 마우스 조준 / 좌클릭 또는 Space 발사 / 1 ~ 4 탄종 / F 수리 / Q 항공지원 / Shift 조준 확대 / M 메뉴 / R 재시작<br>
-      구축전차와 자주포는 포각이 제한됩니다. 대형 작전전은 구역 돌파, 대전차포, 항공지원, 예비 전차를 포함합니다.
-    </div>
-    <button id="startBtn">전투 시작</button>
-  </div>
 </div>
 
-<div id="customBattleOverlay" class="hidden">
-  <div class="customBattlePanel">
-    <div class="customBattleTop">
+<div id="customBattleOverlay" class="lobbyOverlay hidden">
+  <div class="lobbyOverlayPanel">
+    <div class="lobbyOverlayTop">
       <div>
-        <h2>커스텀 전투 편제</h2>
-        <div class="small">
-          커스텀 전투에서는 해금되지 않은 전차도 플레이어, 아군, 적군 편제에 넣을 수 있습니다.
-        </div>
+        <h2 id="battleSetupTitle">전투 설정</h2>
       </div>
-      <div class="customTopControls">
-        <label class="settingCard"><span>플레이어 전차</span>
-          <select id="customPlayerTankInput"></select>
-        </label>
-        <label class="settingCard"><span>커스텀 전투 모드</span>
-          <select id="customBattleModeInput">
-            <option value="annihilation" selected>전멸전</option>
-            <option value="capture">거점 점령</option>
-            <option value="assault">진지 포탑전</option>
-          </select>
-        </label>
+      <button id="setupCancelBtn" type="button">닫기</button>
+    </div>
+
+    <div id="freeSetupPanel" class="setupPanel">
+      <div class="setupSection">
+        <h3>자유 전투 설정</h3>
+        <div class="setupGrid">
+          <label class="settingCard"><span>맵</span><select id="setupMapInput"></select></label>
+          <label class="settingCard"><span>사용 전차</span><select id="setupPlayerTankInput"></select></label>
+          <label class="settingCard"><span>아군 AI 수</span>
+            <select id="allyCountInput">
+              <option value="0">0</option><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>적 AI 수</span>
+            <select id="enemyCountInput">
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>적 국가</span>
+            <select id="enemyNationInput">
+              <option value="랜덤" selected>랜덤</option><option value="독일">독일</option><option value="영국">영국</option><option value="소련">소련</option><option value="미국">미국</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>난이도</span>
+            <select id="difficultyInput">
+              <option value="쉬움">쉬움</option><option value="보통" selected>보통</option><option value="어려움">어려움</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>전투 모드</span>
+            <select id="battleModeInput">
+              <option value="annihilation" selected>전멸전</option>
+              <option value="capture">거점 점령</option>
+              <option value="assault">진지 포탑전</option>
+              <option value="operation">대형 작전전</option>
+            </select>
+          </label>
+        </div>
       </div>
     </div>
 
-    <div class="customBattleGrid">
-      <div class="customSideBox">
-        <div class="customSideHeader">
-          <b>아군 전차부대 편제</b>
-          <button id="customAddAllyBtn" type="button">아군 편제 추가</button>
+    <div id="campaignSetupPanel" class="setupPanel hidden">
+      <div class="setupSection">
+        <h3>역사적 캠페인 설정</h3>
+        <div class="setupGrid">
+          <label class="settingCard"><span>플레이 국가</span>
+            <select id="campaignNationInput">
+              <option value="독일" selected>독일</option>
+              <option value="소련">소련</option>
+              <option value="미국">미국</option>
+              <option value="영국">영국</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>전장</span><select id="campaignMissionInput"></select></label>
+          <label class="settingCard"><span>사용 전차</span><select id="campaignPlayerTankInput"></select></label>
+          <label class="settingCard"><span>캠페인 보급 한도</span>
+            <select id="campaignSupplyLimitInput">
+              <option value="basic">기본</option>
+              <option value="expanded" selected>확장</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>전투 후 자동 보급</span>
+            <select id="campaignAutoRefillInput">
+              <option value="off" selected>끄기</option>
+              <option value="on">켜기</option>
+            </select>
+          </label>
         </div>
-        <div class="small" id="customAllyTotal">아군 총 0대</div>
-        <div id="customAlliesRows" class="customRows"></div>
-      </div>
-
-      <div class="customSideBox">
-        <div class="customSideHeader">
-          <b>적군 전차부대 편제</b>
-          <button id="customAddEnemyBtn" type="button">적군 편제 추가</button>
-        </div>
-        <div class="small" id="customEnemyTotal">적군 총 0대</div>
-        <div id="customEnemiesRows" class="customRows"></div>
+        <div id="campaignPanel" class="briefing small panelSoft" style="margin-top:10px;"></div>
       </div>
     </div>
 
-    <div class="customBattleActions">
-      <div class="small">
-        편제는 전차 이름과 수량으로 지정됩니다. 전차 티어는 이름 옆에 같이 표시됩니다.
+    <div id="customSetupPanel" class="setupPanel hidden">
+      <div class="setupSection">
+        <h3>커스텀 전투 설정</h3>
+        <div class="setupGrid">
+          <label class="settingCard"><span>맵</span><select id="customMapInput"></select></label>
+          <label class="settingCard"><span>플레이어 전차</span><select id="customPlayerTankInput"></select></label>
+          <label class="settingCard"><span>커스텀 전투 모드</span>
+            <select id="customBattleModeInput">
+              <option value="annihilation" selected>전멸전</option>
+              <option value="capture">거점 점령</option>
+              <option value="assault">진지 포탑전</option>
+            </select>
+          </label>
+        </div>
       </div>
-      <div class="right">
-        <button id="customBattleCancelBtn" type="button">취소</button>
-        <button id="customBattleStartBtn" type="button">이 편제로 전투 시작</button>
+
+      <div class="customBattleGrid">
+        <div class="customSideBox">
+          <div class="customSideHeader">
+            <b>아군 전차부대 편제</b>
+            <button id="customAddAllyBtn" type="button">아군 편제 추가</button>
+          </div>
+          <div class="small" id="customAllyTotal">아군 총 0대</div>
+          <div id="customAlliesRows" class="customRows"></div>
+        </div>
+        <div class="customSideBox">
+          <div class="customSideHeader">
+            <b>적군 전차부대 편제</b>
+            <button id="customAddEnemyBtn" type="button">적군 편제 추가</button>
+          </div>
+          <div class="small" id="customEnemyTotal">적군 총 0대</div>
+          <div id="customEnemiesRows" class="customRows"></div>
+        </div>
       </div>
+      <button id="customBattleCancelBtn" type="button" style="display:none;">취소</button>
+      <button id="customBattleStartBtn" type="button" style="display:none;">시작</button>
+    </div>
+
+    <div class="setupActions">
+      <button id="setupStartBtn" type="button">이 설정으로 전투 시작</button>
     </div>
   </div>
 </div>
@@ -1093,6 +1352,25 @@ const mapButtons = document.getElementById("mapButtons");
 const tankGrid = document.getElementById("tankGrid");
 const garagePanel = document.getElementById("garagePanel");
 const startBtn = document.getElementById("startBtn");
+const settingsBtn = document.getElementById("settingsBtn");
+const lobbySettingsOverlay = document.getElementById("lobbySettingsOverlay");
+const settingsCloseBtn = document.getElementById("settingsCloseBtn");
+const battleTypeButtons = document.getElementById("battleTypeButtons");
+const lobbyTankCanvas = document.getElementById("lobbyTankCanvas");
+const lobbyTankName = document.getElementById("lobbyTankName");
+const lobbyTankMeta = document.getElementById("lobbyTankMeta");
+const lobbyTankStats = document.getElementById("lobbyTankStats");
+const lobbyBgInput = document.getElementById("lobbyBgInput");
+const battleSetupTitle = document.getElementById("battleSetupTitle");
+const freeSetupPanel = document.getElementById("freeSetupPanel");
+const campaignSetupPanel = document.getElementById("campaignSetupPanel");
+const customSetupPanel = document.getElementById("customSetupPanel");
+const setupCancelBtn = document.getElementById("setupCancelBtn");
+const setupStartBtn = document.getElementById("setupStartBtn");
+const setupMapInput = document.getElementById("setupMapInput");
+const customMapInput = document.getElementById("customMapInput");
+const setupPlayerTankInput = document.getElementById("setupPlayerTankInput");
+const campaignPlayerTankInput = document.getElementById("campaignPlayerTankInput");
 const customBattleOverlay = document.getElementById("customBattleOverlay");
 const customPlayerTankInput = document.getElementById("customPlayerTankInput");
 const customBattleModeInput = document.getElementById("customBattleModeInput");
@@ -5060,6 +5338,7 @@ let selectedRewardMult = 1;
 let selectedBattleTime = 0;
 let selectedMinimapSize = "normal";
 let selectedSound = true;
+let selectedLobbyBg = "평지";
 let customBattleReady = false;
 let customBattleDefaultsInitialized = false;
 let customBattleConfig = {
@@ -5155,9 +5434,9 @@ function renderCustomBattleSetup() {
 }
 
 function openCustomBattleSetup() {
-  ensureDefaultCustomConfig();
-  renderCustomBattleSetup();
-  if (customBattleOverlay) customBattleOverlay.classList.remove("hidden");
+  selectedBattleScope = "custom";
+  if (battleScopeInput) battleScopeInput.value = "custom";
+  openBattleSetup();
 }
 
 function closeCustomBattleSetup() {
@@ -5202,6 +5481,7 @@ function validateCustomBattleConfig() {
   }
   selectedTank = playerTank;
   selectedNation = playerTank.nation;
+  if (customMapInput?.value) selectedMap = customMapInput.value;
   selectedBattleMode = customBattleConfig.mode || "annihilation";
   if (battleModeInput) battleModeInput.value = selectedBattleMode;
   selectedAllyCount = customTotal("allies");
@@ -5229,11 +5509,7 @@ function spawnCustomFormation(map, side) {
 
 function handleStartBattleClick() {
   readBattleSettings();
-  if (isCustomBattleMode() && !customBattleReady) {
-    openCustomBattleSetup();
-    return;
-  }
-  startBattle();
+  openBattleSetup();
 }
 
 function renderCampaignPanel() {
@@ -5320,7 +5596,100 @@ function applyCampaignMissionSettings(mission) {
   if (!campaignTankAllowed(selectedTank)) selectedTank = firstUsableCampaignTank(mission);
 }
 
+function mapOptionsHtml(selected) {
+  return Object.keys(maps).map(m => `<option value="${m}" ${m === selected ? "selected" : ""}>${m}</option>`).join("");
+}
+
+function tankOptionsHtmlFor(nation, selectedName, allowLocked=false, allowedNames=null) {
+  const allowedSet = allowedNames ? new Set(allowedNames) : null;
+  return tanks
+    .filter(t => t.nation === nation && (!allowedSet || allowedSet.has(t.name)) && (allowLocked || isTankUnlocked(t) || (isCampaignMode() && campaignTankAllowed(t))))
+    .sort((a,b)=>a.cls.localeCompare(b.cls, "ko") || a.tier-b.tier || a.name.localeCompare(b.name, "ko"))
+    .map(t => `<option value="${t.name}" ${t.name === selectedName ? "selected" : ""}>${t.name} ${tierRoman[t.tier]} · ${t.cls}</option>`)
+    .join("");
+}
+
+function setBattleScope(scope) {
+  selectedBattleScope = scope;
+  if (battleScopeInput) battleScopeInput.value = scope;
+  if (scope === "campaign") {
+    selectedCampaignNation = selectedCampaignNation || selectedNation;
+  }
+  renderMenuPreserveScroll();
+}
+
+function renderBattleTabs() {
+  if (!battleTypeButtons) return;
+  for (const btn of battleTypeButtons.querySelectorAll("[data-scope]")) {
+    btn.classList.toggle("selected", btn.getAttribute("data-scope") === selectedBattleScope);
+  }
+}
+
+function syncLobbyTankInfo() {
+  if (!selectedTank) return;
+  const unlocked = isTankUnlocked(selectedTank) || isCustomBattleMode() || (isCampaignMode() && campaignTankAllowed(selectedTank));
+  const eff = getEffectiveTank(selectedTank, unlocked);
+  if (lobbyTankName) lobbyTankName.textContent = `${selectedTank.name} ${tierRoman[selectedTank.tier]}`;
+  if (lobbyTankMeta) lobbyTankMeta.textContent = `${selectedTank.nation} · ${selectedTank.cls} · ${tierNames[selectedTank.tier]} · ${selectedTank.role}`;
+  if (lobbyTankStats) {
+    lobbyTankStats.innerHTML = `
+      내구도 ${eff.hp} · 속도 ${eff.speed}<br>
+      장갑 전/측/후 ${eff.armor.front}/${eff.armor.side}/${eff.armor.rear}<br>
+      관통 ${eff.pen} · 피해 ${eff.dmg} · 재장전 ${eff.reload}초
+    `;
+  }
+}
+
+function renderBattleSetup() {
+  const scope = selectedBattleScope || "free";
+  if (battleSetupTitle) {
+    battleSetupTitle.textContent = scope === "campaign" ? "역사적 캠페인 설정" : scope === "custom" ? "커스텀 전투 설정" : "자유 전투 설정";
+  }
+  if (freeSetupPanel) freeSetupPanel.classList.toggle("hidden", scope !== "free");
+  if (campaignSetupPanel) campaignSetupPanel.classList.toggle("hidden", scope !== "campaign");
+  if (customSetupPanel) customSetupPanel.classList.toggle("hidden", scope !== "custom");
+
+  if (setupMapInput) {
+    setupMapInput.innerHTML = mapOptionsHtml(selectedMap);
+    setupMapInput.value = selectedMap;
+  }
+  if (customMapInput) {
+    customMapInput.innerHTML = mapOptionsHtml(selectedMap);
+    customMapInput.value = selectedMap;
+  }
+  if (setupPlayerTankInput) {
+    setupPlayerTankInput.innerHTML = tankOptionsHtmlFor(selectedNation, selectedTank?.name, false);
+    if (selectedTank && setupPlayerTankInput.querySelector(`option[value="${CSS.escape(selectedTank.name)}"]`)) setupPlayerTankInput.value = selectedTank.name;
+  }
+
+  if (scope === "campaign") {
+    renderCampaignPanel();
+    const m = currentMission();
+    if (m && campaignPlayerTankInput) {
+      const fallback = campaignTankAllowed(selectedTank) ? selectedTank.name : firstUsableCampaignTank(m).name;
+      campaignPlayerTankInput.innerHTML = tankOptionsHtmlFor(m.nation, fallback, true, m.allowed);
+      campaignPlayerTankInput.value = fallback;
+    }
+  }
+  if (scope === "custom") {
+    ensureDefaultCustomConfig();
+    if (customMapInput) customMapInput.value = selectedMap;
+    renderCustomBattleSetup();
+  }
+}
+
+function openBattleSetup() {
+  renderBattleSetup();
+  if (customBattleOverlay) customBattleOverlay.classList.remove("hidden");
+}
+
+function closeBattleSetup() {
+  if (customBattleOverlay) customBattleOverlay.classList.add("hidden");
+}
+
 function renderMenu() {
+  renderBattleTabs();
+  if (lobbyBgInput) lobbyBgInput.value = selectedLobbyBg;
   nationButtons.innerHTML = "";
   for (const n of nations) {
     const b = document.createElement("button");
@@ -5411,6 +5780,7 @@ function renderMenu() {
   } else if (isCustomBattleMode()) {
     if (!selectedTank || selectedTank.nation !== selectedNation) selectedTank = tanks.find(t => t.nation === selectedNation) || selectDefaultTankForNation(selectedNation);
   } else if (!selectedTank || !isTankUnlocked(selectedTank)) selectedTank = selectDefaultTankForNation(selectedNation);
+  syncLobbyTankInfo();
   renderGarage();
 }
 function renderMenuPreserveScroll() {
@@ -5452,6 +5822,52 @@ if (campaignSupplyLimitInput) campaignSupplyLimitInput.onchange = () => {
 if (campaignAutoRefillInput) campaignAutoRefillInput.onchange = () => {
   setCampaignAutoRefill(campaignAutoRefillInput.value);
 };
+
+if (settingsBtn) settingsBtn.onclick = () => lobbySettingsOverlay?.classList.remove("hidden");
+if (settingsCloseBtn) settingsCloseBtn.onclick = () => lobbySettingsOverlay?.classList.add("hidden");
+if (lobbySettingsOverlay) {
+  lobbySettingsOverlay.addEventListener("click", e => {
+    if (e.target === lobbySettingsOverlay) lobbySettingsOverlay.classList.add("hidden");
+  });
+}
+if (battleTypeButtons) {
+  battleTypeButtons.addEventListener("click", e => {
+    const btn = e.target.closest("[data-scope]");
+    if (!btn) return;
+    setBattleScope(btn.getAttribute("data-scope"));
+  });
+}
+if (lobbyBgInput) {
+  lobbyBgInput.onchange = () => {
+    selectedLobbyBg = lobbyBgInput.value;
+  };
+}
+if (setupCancelBtn) setupCancelBtn.onclick = closeBattleSetup;
+if (setupStartBtn) {
+  setupStartBtn.onclick = () => {
+    readBattleSettings();
+    if (isCustomBattleMode()) {
+      if (!validateCustomBattleConfig()) return;
+      customBattleReady = true;
+    }
+    closeBattleSetup();
+    startBattle();
+  };
+}
+[setupMapInput, customMapInput].forEach(el => {
+  if (el) el.onchange = () => { selectedMap = el.value; };
+});
+[setupPlayerTankInput, campaignPlayerTankInput, customPlayerTankInput].forEach(el => {
+  if (el) el.onchange = () => {
+    const t = tankByName(el.value);
+    if (t) {
+      selectedTank = t;
+      if (el === customPlayerTankInput) customBattleConfig.playerTankName = t.name;
+      renderMenuPreserveScroll();
+      renderBattleSetup();
+    }
+  };
+});
 
 const keys = {};
 let mouse = {x: W/2, y: H/2, down:false};
@@ -5533,6 +5949,79 @@ if (customBattleStartBtn) {
   };
 }
 
+function drawLobbyTankPreview(now=0) {
+  if (!lobbyTankCanvas || !selectedTank) return;
+  const g = lobbyTankCanvas.getContext("2d");
+  const w = lobbyTankCanvas.width, h = lobbyTankCanvas.height;
+  const bg = maps[selectedLobbyBg] || maps["평지"];
+  g.clearRect(0,0,w,h);
+  const grd = g.createLinearGradient(0,0,0,h);
+  grd.addColorStop(0, "#1a1d1c");
+  grd.addColorStop(1, bg?.bg || "#25281f");
+  g.fillStyle = grd;
+  g.fillRect(0,0,w,h);
+  g.globalAlpha = 0.16;
+  g.strokeStyle = "#d8c579";
+  for (let x=-80; x<w+80; x+=70) { g.beginPath(); g.moveTo(x, h*0.78); g.lineTo(x+220, h); g.stroke(); }
+  for (let y=h*0.58; y<h; y+=34) { g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
+  g.globalAlpha = 1;
+
+  const unlocked = isTankUnlocked(selectedTank) || isCustomBattleMode() || (isCampaignMode() && campaignTankAllowed(selectedTank));
+  const t = getEffectiveTank(selectedTank, unlocked);
+  const [len, wid] = t.size;
+  const scale = Math.min(5.2, Math.max(3.7, 280 / Math.max(len, 1)));
+  const cx = w*0.52, cy = h*0.58;
+  const bodyL = len * scale, bodyW = wid * scale;
+  const turret = Math.sin(now/1200) * 0.25;
+
+  g.save();
+  g.translate(cx, cy);
+  g.rotate(-0.06);
+  g.shadowColor = "rgba(0,0,0,.55)";
+  g.shadowBlur = 18;
+  g.shadowOffsetY = 14;
+
+  g.fillStyle = "rgba(0,0,0,.35)";
+  g.beginPath(); g.ellipse(0, bodyW*0.75, bodyL*0.62, bodyW*0.56, 0, 0, TAU); g.fill();
+
+  g.shadowBlur = 0;
+  g.fillStyle = "#222";
+  g.fillRect(-bodyL/2, -bodyW/2-8, bodyL, 12);
+  g.fillRect(-bodyL/2, bodyW/2-4, bodyL, 12);
+
+  g.fillStyle = t.color || nationColors[selectedTank.nation] || "#666";
+  g.strokeStyle = "#111";
+  g.lineWidth = 5;
+  roundRect(g, -bodyL/2, -bodyW/2, bodyL, bodyW, 16);
+  g.fill(); g.stroke();
+
+  g.fillStyle = "rgba(255,255,255,.08)";
+  roundRect(g, -bodyL*0.38, -bodyW*0.36, bodyL*0.38, bodyW*0.72, 8);
+  g.fill();
+
+  g.save();
+  g.rotate(turret);
+  g.fillStyle = "#2b2b27";
+  roundRect(g, -bodyL*0.06, -bodyW*0.13, bodyL*0.72, bodyW*0.26, 8);
+  g.fill(); g.stroke();
+  g.fillStyle = t.color || "#67675c";
+  g.beginPath(); g.ellipse(-bodyL*0.08, 0, bodyL*0.23, bodyW*0.34, 0, 0, TAU); g.fill(); g.stroke();
+  g.restore();
+
+  g.restore();
+
+  g.fillStyle = "rgba(255,255,255,.82)";
+  g.font = "bold 18px system-ui";
+  g.textAlign = "center";
+  g.fillText(`${selectedTank.name} ${tierRoman[selectedTank.tier]}`, w/2, h-34);
+}
+
+function lobbyPreviewLoop(now) {
+  if (!game || menu && !menu.classList.contains("hidden")) drawLobbyTankPreview(now);
+  requestAnimationFrame(lobbyPreviewLoop);
+}
+requestAnimationFrame(lobbyPreviewLoop);
+
 let game = null;
 
 function makeTank(template, x, y, team="enemy") {
@@ -5574,21 +6063,35 @@ function makeTank(template, x, y, team="enemy") {
 }
 
 function readBattleSettings() {
-  selectedAllyCount = parseInt(allyCountInput.value, 10);
-  selectedEnemyCount = parseInt(enemyCountInput.value, 10);
-  selectedEnemyNation = enemyNationInput.value;
-  selectedDifficulty = difficultyInput.value;
-  selectedDamageMode = damageModeInput.value;
-  selectedBattleMode = battleModeInput.value;
-  selectedBattleScope = battleScopeInput.value;
-  selectedCampaignId = campaignMissionInput.value || selectedCampaignId;
-  selectedVision = visionInput.value === "on";
-  selectedFriendlyFire = friendlyFireInput.value === "on";
-  selectedTurretHp = parseInt(turretHpInput.value, 10) || 420;
-  selectedRewardMult = parseFloat(rewardMultInput.value) || 1;
-  selectedBattleTime = parseInt(battleTimeInput.value, 10) || 0;
-  selectedMinimapSize = minimapSizeInput.value || "normal";
-  selectedSound = soundInput.value === "on";
+  selectedAllyCount = parseInt(allyCountInput?.value ?? selectedAllyCount, 10);
+  selectedEnemyCount = parseInt(enemyCountInput?.value ?? selectedEnemyCount, 10);
+  selectedEnemyNation = enemyNationInput?.value || selectedEnemyNation;
+  selectedDifficulty = difficultyInput?.value || selectedDifficulty;
+  selectedDamageMode = damageModeInput?.value || selectedDamageMode;
+  selectedBattleMode = battleModeInput?.value || selectedBattleMode;
+  selectedBattleScope = battleScopeInput?.value || selectedBattleScope;
+  selectedCampaignId = campaignMissionInput?.value || selectedCampaignId;
+  selectedVision = visionInput ? visionInput.value === "on" : selectedVision;
+  selectedFriendlyFire = friendlyFireInput ? friendlyFireInput.value === "on" : selectedFriendlyFire;
+  selectedTurretHp = parseInt(turretHpInput?.value ?? selectedTurretHp, 10) || 420;
+  selectedRewardMult = parseFloat(rewardMultInput?.value ?? selectedRewardMult) || 1;
+  selectedBattleTime = parseInt(battleTimeInput?.value ?? selectedBattleTime, 10) || 0;
+  selectedMinimapSize = minimapSizeInput?.value || selectedMinimapSize;
+  selectedSound = soundInput ? soundInput.value === "on" : selectedSound;
+
+  if (isCustomBattleMode() && customMapInput?.value) selectedMap = customMapInput.value;
+  else if (!isCampaignMode() && setupMapInput?.value) selectedMap = setupMapInput.value;
+
+  if (isCampaignMode() && campaignPlayerTankInput?.value) {
+    const t = tankByName(campaignPlayerTankInput.value);
+    if (t) selectedTank = t;
+  } else if (isCustomBattleMode() && customPlayerTankInput?.value) {
+    const t = tankByName(customPlayerTankInput.value);
+    if (t) selectedTank = t;
+  } else if (!isCampaignMode() && !isCustomBattleMode() && setupPlayerTankInput?.value) {
+    const t = tankByName(setupPlayerTankInput.value);
+    if (t) selectedTank = t;
+  }
 }
 
 function clusterPoint(center, idx, spacing=145, count=8, facing=0) {
