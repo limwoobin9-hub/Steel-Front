@@ -266,6 +266,20 @@
     margin-bottom:14px;
   }
   .customBattleTop h2 { margin:0 0 5px; }
+  .customTopControls {
+    display:grid;
+    grid-template-columns: minmax(240px, 1fr) minmax(190px, .7fr);
+    gap:10px;
+    min-width:min(520px, 100%);
+  }
+  .customEmpty {
+    padding:12px;
+    border:1px dashed rgba(255,255,255,.20);
+    border-radius:10px;
+    color:#aaa;
+    background:rgba(255,255,255,.025);
+    text-align:center;
+  }
   .customBattleGrid {
     display:grid;
     grid-template-columns: 1fr 1fr;
@@ -954,13 +968,18 @@
           커스텀 전투에서는 해금되지 않은 전차도 플레이어, 아군, 적군 편제에 넣을 수 있습니다.
         </div>
       </div>
-      <label class="settingCard" style="min-width:220px;"><span>커스텀 전투 모드</span>
-        <select id="customBattleModeInput">
-          <option value="annihilation" selected>전멸전</option>
-          <option value="capture">거점 점령</option>
-          <option value="assault">진지 포탑전</option>
-        </select>
-      </label>
+      <div class="customTopControls">
+        <label class="settingCard"><span>플레이어 전차</span>
+          <select id="customPlayerTankInput"></select>
+        </label>
+        <label class="settingCard"><span>커스텀 전투 모드</span>
+          <select id="customBattleModeInput">
+            <option value="annihilation" selected>전멸전</option>
+            <option value="capture">거점 점령</option>
+            <option value="assault">진지 포탑전</option>
+          </select>
+        </label>
+      </div>
     </div>
 
     <div class="customBattleGrid">
@@ -1063,6 +1082,7 @@ const tankGrid = document.getElementById("tankGrid");
 const garagePanel = document.getElementById("garagePanel");
 const startBtn = document.getElementById("startBtn");
 const customBattleOverlay = document.getElementById("customBattleOverlay");
+const customPlayerTankInput = document.getElementById("customPlayerTankInput");
 const customBattleModeInput = document.getElementById("customBattleModeInput");
 const customAlliesRows = document.getElementById("customAlliesRows");
 const customEnemiesRows = document.getElementById("customEnemiesRows");
@@ -2359,8 +2379,10 @@ let selectedBattleTime = 0;
 let selectedMinimapSize = "normal";
 let selectedSound = true;
 let customBattleReady = false;
+let customBattleDefaultsInitialized = false;
 let customBattleConfig = {
   mode:"annihilation",
+  playerTankName:"",
   allies:[],
   enemies:[]
 };
@@ -2392,19 +2414,23 @@ function defaultCustomTank(side, index=0) {
 }
 
 function ensureDefaultCustomConfig() {
-  if (!customBattleConfig.allies.length) {
-    customBattleConfig.allies = [
-      {tankName: defaultCustomTank("ally", 1), count:2},
-      {tankName: defaultCustomTank("ally", 2), count:1}
-    ];
+  if (customBattleDefaultsInitialized) {
+    customBattleConfig.mode = customBattleConfig.mode || selectedBattleMode || "annihilation";
+    customBattleConfig.playerTankName = customBattleConfig.playerTankName || (selectedTank?.name) || defaultCustomTank("ally", 0);
+    return;
   }
-  if (!customBattleConfig.enemies.length) {
-    customBattleConfig.enemies = [
-      {tankName: defaultCustomTank("enemy", 1), count:3},
-      {tankName: defaultCustomTank("enemy", 2), count:2}
-    ];
-  }
+
+  customBattleConfig.playerTankName = (selectedTank?.name) || defaultCustomTank("ally", 0);
+  customBattleConfig.allies = [
+    {tankName: defaultCustomTank("ally", 1), count:2},
+    {tankName: defaultCustomTank("ally", 2), count:1}
+  ];
+  customBattleConfig.enemies = [
+    {tankName: defaultCustomTank("enemy", 1), count:3},
+    {tankName: defaultCustomTank("enemy", 2), count:2}
+  ];
   customBattleConfig.mode = customBattleConfig.mode || selectedBattleMode || "annihilation";
+  customBattleDefaultsInitialized = true;
 }
 
 function customTotal(side) {
@@ -2415,6 +2441,10 @@ function renderCustomRows(side) {
   const box = side === "allies" ? customAlliesRows : customEnemiesRows;
   if (!box) return;
   box.innerHTML = "";
+  if (!customBattleConfig[side].length) {
+    box.innerHTML = `<div class="customEmpty">편제가 비어 있습니다. 추가 버튼으로 새 편제를 넣으십시오.</div>`;
+    return;
+  }
   customBattleConfig[side].forEach((row, idx) => {
     const el = document.createElement("div");
     el.className = "customRow";
@@ -2431,6 +2461,10 @@ function renderCustomRows(side) {
 
 function renderCustomBattleSetup() {
   ensureDefaultCustomConfig();
+  if (customPlayerTankInput) {
+    customPlayerTankInput.innerHTML = allTankOptionsHtml(customBattleConfig.playerTankName || selectedTank?.name);
+    customPlayerTankInput.value = customBattleConfig.playerTankName || selectedTank?.name || tanks[0].name;
+  }
   if (customBattleModeInput) customBattleModeInput.value = customBattleConfig.mode || selectedBattleMode || "annihilation";
   renderCustomRows("allies");
   renderCustomRows("enemies");
@@ -2450,6 +2484,7 @@ function closeCustomBattleSetup() {
 
 function updateCustomConfigFromInputs() {
   if (customBattleModeInput) customBattleConfig.mode = customBattleModeInput.value;
+  if (customPlayerTankInput) customBattleConfig.playerTankName = customPlayerTankInput.value || customBattleConfig.playerTankName;
   for (const input of document.querySelectorAll("[data-custom-side][data-custom-index][data-custom-field]")) {
     const side = input.getAttribute("data-custom-side");
     const idx = parseInt(input.getAttribute("data-custom-index"), 10);
@@ -2477,8 +2512,14 @@ function removeCustomRow(side, idx) {
 
 function validateCustomBattleConfig() {
   updateCustomConfigFromInputs();
-  if (!customBattleConfig.allies.length) customBattleConfig.allies.push({tankName: defaultCustomTank("ally", 0), count:1});
-  if (!customBattleConfig.enemies.length) customBattleConfig.enemies.push({tankName: defaultCustomTank("enemy", 0), count:1});
+  const playerTank = tankByName(customBattleConfig.playerTankName) || selectedTank || tanks[0];
+  if (!customBattleConfig.enemies.length || customTotal("enemies") <= 0) {
+    alert("적군 편제가 비어 있습니다. 적군 전차를 1대 이상 추가하십시오.");
+    renderCustomBattleSetup();
+    return false;
+  }
+  selectedTank = playerTank;
+  selectedNation = playerTank.nation;
   selectedBattleMode = customBattleConfig.mode || "annihilation";
   if (battleModeInput) battleModeInput.value = selectedBattleMode;
   selectedAllyCount = customTotal("allies");
@@ -2774,7 +2815,7 @@ if (garagePanel) {
 
 if (customBattleOverlay) {
   customBattleOverlay.addEventListener("change", e => {
-    if (e.target.matches("[data-custom-side]") || e.target === customBattleModeInput) {
+    if (e.target.matches("[data-custom-side]") || e.target === customBattleModeInput || e.target === customPlayerTankInput) {
       updateCustomConfigFromInputs();
       renderCustomBattleSetup();
     }
