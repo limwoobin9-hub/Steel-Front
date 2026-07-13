@@ -806,8 +806,8 @@
       </label>
       <label class="settingCard"><span>피해 시스템</span>
         <select id="damageModeInput">
-          <option value="hp" selected>체력바</option>
-          <option value="module">부위 피해</option>
+          <option value="hp">체력바</option>
+          <option value="module" selected>부위 피해</option>
         </select>
       </label>
       <label class="settingCard"><span>전투 모드</span>
@@ -902,6 +902,18 @@
       </label>
       <label class="settingCard"><span>캠페인 임무</span>
         <select id="campaignMissionInput"></select>
+      </label>
+      <label class="settingCard"><span>캠페인 보급 한도</span>
+        <select id="campaignSupplyLimitInput">
+          <option value="basic">기본</option>
+          <option value="expanded" selected>확장</option>
+        </select>
+      </label>
+      <label class="settingCard"><span>전투 후 자동 보급</span>
+        <select id="campaignAutoRefillInput">
+          <option value="off" selected>끄기</option>
+          <option value="on">켜기</option>
+        </select>
       </label>
     </div>
     <div id="campaignPanel" class="briefing small panelSoft" style="margin-top:10px;"></div>
@@ -1101,6 +1113,8 @@ const battleModeInput = document.getElementById("battleModeInput");
 const battleScopeInput = document.getElementById("battleScopeInput");
 const campaignNationInput = document.getElementById("campaignNationInput");
 const campaignMissionInput = document.getElementById("campaignMissionInput");
+const campaignSupplyLimitInput = document.getElementById("campaignSupplyLimitInput");
+const campaignAutoRefillInput = document.getElementById("campaignAutoRefillInput");
 const campaignPanel = document.getElementById("campaignPanel");
 const visionInput = document.getElementById("visionInput");
 const friendlyFireInput = document.getElementById("friendlyFireInput");
@@ -1594,8 +1608,8 @@ const campaignDefs = {
       "title": "폴란드 전격전",
       "year": 1939,
       "map": "평지",
-      "mode": "breakthrough",
-      "objective": "armored_spearhead",
+      "mode": "annihilation",
+      "objective": "recon_sweep",
       "enemyNation": "영국",
       "difficulty": "쉬움",
       "allyCount": 3,
@@ -1623,7 +1637,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1939년 9월, 폴란드 전역. 기갑 선두부대가 방어선을 뚫고 후방 교차로로 진입한다.\n목표: 전격 돌파.",
+      "briefing": "1939년 9월, 폴란드 전역. 기갑 선두부대가 방어선을 뚫고 후방 교차로로 진입한다.\n목표: 정찰로 확보.",
       "events": [
         {
           "time": 80,
@@ -1639,7 +1653,8 @@ const campaignDefs = {
         }
       ],
       "killQuota": 2,
-      "objectiveLabel": "전격 돌파"
+      "objectiveLabel": "정찰로 확보",
+      "checkpointCount": 3
     },
     {
       "id": "ger_france_1940",
@@ -1647,7 +1662,7 @@ const campaignDefs = {
       "year": 1940,
       "map": "평지",
       "mode": "breakthrough",
-      "objective": "armored_spearhead",
+      "objective": "route_breakthrough",
       "enemyNation": "영국",
       "difficulty": "쉬움",
       "allyCount": 3,
@@ -1675,7 +1690,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1940년 5월, 서부전선. 기갑 선봉대는 방어선을 뚫고 후방으로 진입해야 한다.\n강제 사용 가능 전차: 1호 전차, 2호 전차, 3호 전차.\n목표: 기갑 선봉 돌파.",
+      "briefing": "1940년 5월, 서부전선. 기갑 선봉대는 방어선을 뚫고 후방으로 진입해야 한다.\n강제 사용 가능 전차: 1호 전차, 2호 전차, 3호 전차.\n목표: 연속 돌파.",
       "events": [
         {
           "time": 65,
@@ -1690,16 +1705,16 @@ const campaignDefs = {
           "msg": "적 예비대가 도착했습니다."
         }
       ],
-      "killQuota": 3,
-      "objectiveLabel": "기갑 선봉 돌파"
+      "killQuota": 2,
+      "objectiveLabel": "연속 돌파"
     },
     {
       "id": "ger_balkans_1941",
       "title": "발칸 산악 진격",
       "year": 1941,
       "map": "산악",
-      "mode": "breakthrough",
-      "objective": "mountain_pass",
+      "mode": "annihilation",
+      "objective": "recon_sweep",
       "enemyNation": "영국",
       "difficulty": "보통",
       "allyCount": 3,
@@ -1729,7 +1744,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년 봄, 산악 도로를 따라 적 방어선을 돌파한다. 좁은 지형에서 우회로 확보가 중요하다.\n목표: 산악 통로 돌파.",
+      "briefing": "1941년 봄, 산악 도로를 따라 적 방어선을 돌파한다. 좁은 지형에서 우회로 확보가 중요하다.\n목표: 산악 우회로 정찰.",
       "events": [
         {
           "time": 120,
@@ -1745,7 +1760,8 @@ const campaignDefs = {
         }
       ],
       "killQuota": 2,
-      "objectiveLabel": "산악 통로 돌파"
+      "objectiveLabel": "산악 우회로 정찰",
+      "checkpointCount": 4
     },
     {
       "id": "ger_barbarossa_1941",
@@ -1753,7 +1769,7 @@ const campaignDefs = {
       "year": 1941,
       "map": "언덕",
       "mode": "capture",
-      "objective": "encirclement",
+      "objective": "bridge_seizure",
       "enemyNation": "소련",
       "difficulty": "보통",
       "allyCount": 4,
@@ -1784,7 +1800,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년 여름, 동부전선. 빠른 진격으로 거점을 장악해야 한다.\n목표: 거점 포위.",
+      "briefing": "1941년 여름, 동부전선. 빠른 진격으로 거점을 장악해야 한다.\n목표: 교차로 장악.",
       "events": [
         {
           "time": 90,
@@ -1800,7 +1816,8 @@ const campaignDefs = {
       ],
       "captureScore": 150,
       "killQuota": 4,
-      "objectiveLabel": "거점 포위"
+      "objectiveLabel": "교차로 장악",
+      "holdRequired": 22
     },
     {
       "id": "ger_moscow_approach_1941",
@@ -1808,7 +1825,7 @@ const campaignDefs = {
       "year": 1941,
       "map": "산악",
       "mode": "assault",
-      "objective": "winter_hold",
+      "objective": "ambush_defense",
       "enemyNation": "소련",
       "difficulty": "보통",
       "allyCount": 3,
@@ -1840,7 +1857,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년 겨울 전선. 진격이 둔화된 상황에서 전방 거점을 유지해야 한다.\n목표: 혹한 방어.",
+      "briefing": "1941년 겨울 전선. 진격이 둔화된 상황에서 전방 거점을 유지해야 한다.\n목표: 혹한 매복 방어.",
       "events": [
         {
           "time": 70,
@@ -1855,7 +1872,9 @@ const campaignDefs = {
           "msg": "혹한으로 엔진 출력이 떨어집니다."
         }
       ],
-      "objectiveLabel": "혹한 방어"
+      "objectiveLabel": "혹한 매복 방어",
+      "ambushReady": 12,
+      "killQuota": 5
     },
     {
       "id": "ger_kharkov_1942",
@@ -1973,8 +1992,8 @@ const campaignDefs = {
       "title": "튀니지 후위전",
       "year": 1943,
       "map": "사막",
-      "mode": "assault",
-      "objective": "rear_guard",
+      "mode": "breakthrough",
+      "objective": "convoy_escort",
       "enemyNation": "미국",
       "difficulty": "보통",
       "allyCount": 3,
@@ -2005,7 +2024,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1943년 북아프리카. 후퇴하는 부대를 엄호하기 위해 방어진지를 유지한다.\n목표: 후위 엄호.",
+      "briefing": "1943년 북아프리카. 후퇴하는 부대를 엄호하기 위해 방어진지를 유지한다.\n목표: 후위 보급차량 엄호.",
       "events": [
         {
           "time": 80,
@@ -2020,7 +2039,7 @@ const campaignDefs = {
           "msg": "미군 전차대가 우회 접근합니다."
         }
       ],
-      "objectiveLabel": "후위 엄호"
+      "objectiveLabel": "후위 보급차량 엄호"
     },
     {
       "id": "ger_kursk_1943",
@@ -2028,7 +2047,7 @@ const campaignDefs = {
       "year": 1943,
       "map": "평지",
       "mode": "annihilation",
-      "objective": "ace_hunt",
+      "objective": "artillery_observation",
       "enemyNation": "소련",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -2068,7 +2087,7 @@ const campaignDefs = {
         "tier": 3,
         "label": "근위 에이스"
       },
-      "briefing": "1943년 7월, 쿠르스크 돌출부. 대규모 전차전 속에서 적 정예 전차를 격파해야 한다.\n목표: 근위 에이스 격파.",
+      "briefing": "1943년 7월, 쿠르스크 돌출부. 대규모 전차전 속에서 적 정예 전차를 격파해야 한다.\n목표: 관측 후 포병 타격.",
       "events": [
         {
           "time": 80,
@@ -2082,7 +2101,8 @@ const campaignDefs = {
           "msg": "적 증원 전차가 전장에 진입했습니다."
         }
       ],
-      "objectiveLabel": "근위 에이스 격파"
+      "objectiveLabel": "관측 후 포병 타격",
+      "spotRequired": 14
     },
     {
       "id": "ger_italy_1943",
@@ -2090,7 +2110,7 @@ const campaignDefs = {
       "year": 1943,
       "map": "산악",
       "mode": "assault",
-      "objective": "mountain_defense",
+      "objective": "ambush_defense",
       "enemyNation": "영국",
       "difficulty": "어려움",
       "allyCount": 3,
@@ -2123,7 +2143,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년 이탈리아 전선. 산악 방어선을 이용해 연합군의 진격을 지연시킨다.\n목표: 고지 방어.",
+      "briefing": "1943년 이탈리아 전선. 산악 방어선을 이용해 연합군의 진격을 지연시킨다.\n목표: 고지 매복 방어.",
       "events": [
         {
           "time": 130,
@@ -2137,15 +2157,17 @@ const campaignDefs = {
           "msg": "영국 전차대가 계곡으로 진입합니다."
         }
       ],
-      "objectiveLabel": "고지 방어"
+      "objectiveLabel": "고지 매복 방어",
+      "ambushReady": 14,
+      "killQuota": 5
     },
     {
       "id": "ger_ardennes_1944",
       "title": "아르덴 공세",
       "year": 1944,
       "map": "산악",
-      "mode": "assault",
-      "objective": "fortress_assault",
+      "mode": "annihilation",
+      "objective": "depot_raid",
       "enemyNation": "미국",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -2177,7 +2199,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년 12월, 아르덴. 좁은 산악 도로를 따라 적 방어진지를 돌파한다.\n목표: 방어진지 강습.",
+      "briefing": "1944년 12월, 아르덴. 좁은 산악 도로를 따라 적 방어진지를 돌파한다.\n목표: 연료 집적소 급습.",
       "events": [
         {
           "time": 60,
@@ -2192,7 +2214,8 @@ const campaignDefs = {
           "msg": "연료 부족: 일시적으로 기동력이 감소합니다."
         }
       ],
-      "objectiveLabel": "방어진지 강습"
+      "objectiveLabel": "연료 집적소 급습",
+      "depotCount": 3
     },
     {
       "id": "ger_balaton_1945",
@@ -2320,8 +2343,8 @@ const campaignDefs = {
       "title": "국경 지연전",
       "year": 1941,
       "map": "평지",
-      "mode": "annihilation",
-      "objective": "delaying_action",
+      "mode": "assault",
+      "objective": "ambush_defense",
       "enemyNation": "독일",
       "difficulty": "쉬움",
       "allyCount": 3,
@@ -2349,7 +2372,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년 6월, 국경 지대. 후방 부대가 재편할 시간을 벌기 위해 독일 선두부대를 지연시킨다.\n목표: 국경 지연전.",
+      "briefing": "1941년 6월, 국경 지대. 후방 부대가 재편할 시간을 벌기 위해 독일 선두부대를 지연시킨다.\n목표: 국경 매복 지연.",
       "events": [
         {
           "time": 80,
@@ -2364,8 +2387,9 @@ const campaignDefs = {
           "msg": "독일 선두부대 증원."
         }
       ],
-      "killQuota": 3,
-      "objectiveLabel": "국경 지연전"
+      "killQuota": 4,
+      "objectiveLabel": "국경 매복 지연",
+      "ambushReady": 10
     },
     {
       "id": "sov_smolensk_1941",
@@ -2373,7 +2397,7 @@ const campaignDefs = {
       "year": 1941,
       "map": "언덕",
       "mode": "capture",
-      "objective": "roadblock",
+      "objective": "bridge_seizure",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -2418,7 +2442,8 @@ const campaignDefs = {
         }
       ],
       "captureScore": 150,
-      "objectiveLabel": "진격로 차단"
+      "objectiveLabel": "진격로 차단",
+      "holdRequired": 24
     },
     {
       "id": "sov_moscow_1941",
@@ -2426,7 +2451,7 @@ const campaignDefs = {
       "year": 1941,
       "map": "산악",
       "mode": "assault",
-      "objective": "winter_hold",
+      "objective": "ambush_defense",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 3,
@@ -2457,7 +2482,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년 겨울, 모스크바 외곽. 방어선을 지키며 독일 기갑부대를 저지한다.\n목표: 수도 외곽 방어.",
+      "briefing": "1941년 겨울, 모스크바 외곽. 방어선을 지키며 독일 기갑부대를 저지한다.\n목표: 수도 외곽 매복 방어.",
       "events": [
         {
           "time": 90,
@@ -2471,15 +2496,17 @@ const campaignDefs = {
           "msg": "후방 보급: 수리 키트 1개 추가."
         }
       ],
-      "objectiveLabel": "수도 외곽 방어"
+      "objectiveLabel": "수도 외곽 매복 방어",
+      "ambushReady": 12,
+      "killQuota": 5
     },
     {
       "id": "sov_winter_counter_1941",
       "title": "겨울 반격",
       "year": 1941,
       "map": "산악",
-      "mode": "annihilation",
-      "objective": "winter_counterattack",
+      "mode": "breakthrough",
+      "objective": "route_breakthrough",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -2509,7 +2536,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년 말, 혹한 속 반격. 독일 방어선을 돌파해 전선을 밀어낸다.\n목표: 혹한 반격.",
+      "briefing": "1941년 말, 혹한 속 반격. 독일 방어선을 돌파해 전선을 밀어낸다.\n목표: 혹한 반격 돌파.",
       "events": [
         {
           "time": 70,
@@ -2523,8 +2550,8 @@ const campaignDefs = {
           "msg": "전선 포병이 돌파로를 엽니다."
         }
       ],
-      "killQuota": 4,
-      "objectiveLabel": "혹한 반격"
+      "killQuota": 3,
+      "objectiveLabel": "혹한 반격 돌파"
     },
     {
       "id": "sov_stalingrad_1942",
@@ -2532,7 +2559,7 @@ const campaignDefs = {
       "year": 1942,
       "map": "시가전",
       "mode": "annihilation",
-      "objective": "urban_hold",
+      "objective": "sector_clear",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -2564,7 +2591,7 @@ const campaignDefs = {
         "경전차",
         "중전차"
       ],
-      "briefing": "1942년, 스탈린그라드. 폐허가 된 거리를 이용해 적을 지연시킨다.\n목표: 폐허 고수.",
+      "briefing": "1942년, 스탈린그라드. 폐허가 된 거리를 이용해 적을 지연시킨다.\n목표: 시가지 구역 소탕.",
       "events": [
         {
           "time": 110,
@@ -2581,7 +2608,8 @@ const campaignDefs = {
       ],
       "holdTime": 360,
       "killQuota": 4,
-      "objectiveLabel": "폐허 고수"
+      "objectiveLabel": "시가지 구역 소탕",
+      "sectors": 3
     },
     {
       "id": "sov_uranus_1942",
@@ -2589,7 +2617,7 @@ const campaignDefs = {
       "year": 1942,
       "map": "평지",
       "mode": "breakthrough",
-      "objective": "encirclement_breakthrough",
+      "objective": "route_breakthrough",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 5,
@@ -2619,7 +2647,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1942년 겨울, 포위 작전. 측면 방어선을 돌파해 독일군 포위망을 완성한다.\n목표: 포위망 돌파.",
+      "briefing": "1942년 겨울, 포위 작전. 측면 방어선을 돌파해 독일군 포위망을 완성한다.\n목표: 포위망 연결 돌파.",
       "events": [
         {
           "time": 100,
@@ -2634,15 +2662,15 @@ const campaignDefs = {
         }
       ],
       "killQuota": 3,
-      "objectiveLabel": "포위망 돌파"
+      "objectiveLabel": "포위망 연결 돌파"
     },
     {
       "id": "sov_kharkov_1943",
       "title": "하르코프 탈환전",
       "year": 1943,
       "map": "시가전",
-      "mode": "capture",
-      "objective": "urban_counterattack",
+      "mode": "annihilation",
+      "objective": "depot_raid",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -2675,7 +2703,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년, 하르코프 시가지. 주요 교차로를 장악해 독일 기갑부대를 밀어낸다.\n목표: 시가지 역습.",
+      "briefing": "1943년, 하르코프 시가지. 주요 교차로를 장악해 독일 기갑부대를 밀어낸다.\n목표: 시가지 보급소 파괴.",
       "events": [
         {
           "time": 150,
@@ -2691,7 +2719,8 @@ const campaignDefs = {
       ],
       "captureScore": 150,
       "killQuota": 4,
-      "objectiveLabel": "시가지 역습"
+      "objectiveLabel": "시가지 보급소 파괴",
+      "depotCount": 3
     },
     {
       "id": "sov_kursk_1943",
@@ -2699,7 +2728,7 @@ const campaignDefs = {
       "year": 1943,
       "map": "평지",
       "mode": "annihilation",
-      "objective": "tank_hunt",
+      "objective": "artillery_observation",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -2734,7 +2763,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년 7월, 방어 후 반격. 독일 기갑 전력을 소모시켜 전선을 밀어낸다.\n목표: 기갑 소모전.",
+      "briefing": "1943년 7월, 방어 후 반격. 독일 기갑 전력을 소모시켜 전선을 밀어낸다.\n목표: 대전차 화망 유도.",
       "events": [
         {
           "time": 75,
@@ -2748,15 +2777,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 7,
-      "objectiveLabel": "기갑 소모전"
+      "objectiveLabel": "대전차 화망 유도",
+      "spotRequired": 16
     },
     {
       "id": "sov_dnieper_1943",
       "title": "드네프르 교두보",
       "year": 1943,
       "map": "늪지",
-      "mode": "assault",
-      "objective": "bridgehead_defense",
+      "mode": "capture",
+      "objective": "bridge_seizure",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -2789,7 +2819,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년, 드네프르 강 교두보. 진지를 지켜 후속 부대의 도하를 보장한다.\n목표: 교두보 방어.",
+      "briefing": "1943년, 드네프르 강 교두보. 진지를 지켜 후속 부대의 도하를 보장한다.\n목표: 교두보 확보.",
       "events": [
         {
           "time": 90,
@@ -2805,15 +2835,16 @@ const campaignDefs = {
         }
       ],
       "maxAllyLoss": 5,
-      "objectiveLabel": "교두보 방어"
+      "objectiveLabel": "교두보 확보",
+      "holdRequired": 28
     },
     {
       "id": "sov_bagration_1944",
       "title": "바그라티온 작전",
       "year": 1944,
       "map": "언덕",
-      "mode": "capture",
-      "objective": "deep_operation",
+      "mode": "breakthrough",
+      "objective": "route_breakthrough",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -2862,7 +2893,7 @@ const campaignDefs = {
         }
       ],
       "captureScore": 160,
-      "killQuota": 5,
+      "killQuota": 4,
       "objectiveLabel": "종심 돌파"
     },
     {
@@ -2870,8 +2901,8 @@ const campaignDefs = {
       "title": "비스와-오데르 돌파",
       "year": 1945,
       "map": "평지",
-      "mode": "breakthrough",
-      "objective": "river_crossing",
+      "mode": "capture",
+      "objective": "bridge_seizure",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -2905,7 +2936,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1945년 1월, 대규모 돌파 작전. 독일 방어선의 틈을 열고 서쪽으로 진격한다.\n목표: 도하 돌파.",
+      "briefing": "1945년 1월, 대규모 돌파 작전. 독일 방어선의 틈을 열고 서쪽으로 진격한다.\n목표: 도하 지점 확보.",
       "events": [
         {
           "time": 90,
@@ -2920,15 +2951,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 4,
-      "objectiveLabel": "도하 돌파"
+      "objectiveLabel": "도하 지점 확보",
+      "holdRequired": 28
     },
     {
       "id": "sov_berlin_1945",
       "title": "베를린 공세",
       "year": 1945,
       "map": "시가전",
-      "mode": "assault",
-      "objective": "fortress_assault",
+      "mode": "annihilation",
+      "objective": "depot_raid",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -2962,7 +2994,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1945년 4월, 베를린. 시가 방어선을 뚫고 적 진지를 파괴한다.\n목표: 시가지 진지 강습.",
+      "briefing": "1945년 4월, 베를린. 시가 방어선을 뚫고 적 진지를 파괴한다.\n목표: 도시 방어거점 파괴.",
       "events": [
         {
           "time": 90,
@@ -2977,7 +3009,8 @@ const campaignDefs = {
           "msg": "연기와 먼지로 시야가 감소합니다."
         }
       ],
-      "objectiveLabel": "시가지 진지 강습"
+      "objectiveLabel": "도시 방어거점 파괴",
+      "depotCount": 3
     }
   ],
   "미국": [
@@ -2986,8 +3019,8 @@ const campaignDefs = {
       "title": "북아프리카 상륙",
       "year": 1942,
       "map": "사막",
-      "mode": "capture",
-      "objective": "landing_secure",
+      "mode": "breakthrough",
+      "objective": "convoy_escort",
       "enemyNation": "독일",
       "difficulty": "쉬움",
       "allyCount": 4,
@@ -3016,7 +3049,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1942년, 북아프리카. 상륙 후 내륙 거점을 확보한다.\n목표: 상륙 거점 확보.",
+      "briefing": "1942년, 북아프리카. 상륙 후 내륙 거점을 확보한다.\n목표: 상륙 보급대 엄호.",
       "events": [
         {
           "time": 160,
@@ -3026,7 +3059,7 @@ const campaignDefs = {
         }
       ],
       "captureScore": 140,
-      "objectiveLabel": "상륙 거점 확보"
+      "objectiveLabel": "상륙 보급대 엄호"
     },
     {
       "id": "usa_kasserine_1943",
@@ -3034,7 +3067,7 @@ const campaignDefs = {
       "year": 1943,
       "map": "산악",
       "mode": "assault",
-      "objective": "holding_action",
+      "objective": "ambush_defense",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 3,
@@ -3081,15 +3114,17 @@ const campaignDefs = {
         }
       ],
       "maxAllyLoss": 5,
-      "objectiveLabel": "고개 지연 방어"
+      "objectiveLabel": "고개 지연 방어",
+      "ambushReady": 12,
+      "killQuota": 4
     },
     {
       "id": "usa_tunisia_1943",
       "title": "튀니지 추격전",
       "year": 1943,
       "map": "사막",
-      "mode": "annihilation",
-      "objective": "pursuit",
+      "mode": "breakthrough",
+      "objective": "route_breakthrough",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -3119,7 +3154,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년, 튀니지 최종 추격. 후퇴하는 독일 기갑을 압박해 돌파로를 연다.\n목표: 후퇴 적 추격.",
+      "briefing": "1943년, 튀니지 최종 추격. 후퇴하는 독일 기갑을 압박해 돌파로를 연다.\n목표: 후퇴 적 추격 돌파.",
       "events": [
         {
           "time": 90,
@@ -3133,16 +3168,16 @@ const campaignDefs = {
           "msg": "야전 포병 지원."
         }
       ],
-      "killQuota": 4,
-      "objectiveLabel": "후퇴 적 추격"
+      "killQuota": 3,
+      "objectiveLabel": "후퇴 적 추격 돌파"
     },
     {
       "id": "usa_sicily_1943",
       "title": "시칠리아 진격",
       "year": 1943,
       "map": "언덕",
-      "mode": "breakthrough",
-      "objective": "mountain_pass",
+      "mode": "annihilation",
+      "objective": "recon_sweep",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -3171,7 +3206,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1943년, 시칠리아. 산악 도로를 따라 방어선을 돌파한다.\n목표: 산악 진격로 돌파.",
+      "briefing": "1943년, 시칠리아. 산악 도로를 따라 방어선을 돌파한다.\n목표: 산악 진격로 정찰.",
       "events": [
         {
           "time": 120,
@@ -3186,15 +3221,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 2,
-      "objectiveLabel": "산악 진격로 돌파"
+      "objectiveLabel": "산악 진격로 정찰",
+      "checkpointCount": 3
     },
     {
       "id": "usa_salerno_1943",
       "title": "살레르노 교두보",
       "year": 1943,
       "map": "평지",
-      "mode": "assault",
-      "objective": "beachhead_defense",
+      "mode": "breakthrough",
+      "objective": "convoy_escort",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -3224,7 +3260,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년 이탈리아 상륙 후, 교두보를 향한 독일 반격을 막는다.\n목표: 교두보 방어.",
+      "briefing": "1943년 이탈리아 상륙 후, 교두보를 향한 독일 반격을 막는다.\n목표: 교두보 보급대 엄호.",
       "events": [
         {
           "time": 110,
@@ -3238,7 +3274,7 @@ const campaignDefs = {
           "msg": "독일 반격부대가 도착합니다."
         }
       ],
-      "objectiveLabel": "교두보 방어"
+      "objectiveLabel": "교두보 보급대 엄호"
     },
     {
       "id": "usa_anzio_1944",
@@ -3246,7 +3282,7 @@ const campaignDefs = {
       "year": 1944,
       "map": "늪지",
       "mode": "assault",
-      "objective": "beachhead_defense",
+      "objective": "ambush_defense",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -3279,7 +3315,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년 안치오. 습지와 해안 교두보를 지켜 후속 병력 투입을 보장한다.\n목표: 안치오 교두보 방어.",
+      "briefing": "1944년 안치오. 습지와 해안 교두보를 지켜 후속 병력 투입을 보장한다.\n목표: 교두보 반격 저지.",
       "events": [
         {
           "time": 95,
@@ -3295,7 +3331,9 @@ const campaignDefs = {
         }
       ],
       "maxAllyLoss": 5,
-      "objectiveLabel": "안치오 교두보 방어"
+      "objectiveLabel": "교두보 반격 저지",
+      "ambushReady": 12,
+      "killQuota": 5
     },
     {
       "id": "usa_normandy_1944",
@@ -3303,7 +3341,7 @@ const campaignDefs = {
       "year": 1944,
       "map": "평지",
       "mode": "annihilation",
-      "objective": "hedgerow_clear",
+      "objective": "depot_raid",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 5,
@@ -3335,7 +3373,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년 6월 이후, 노르망디 교두보. 독일 반격 전차를 격파하고 돌파로를 연다.\n목표: 생울타리 방어선 청소.",
+      "briefing": "1944년 6월 이후, 노르망디 교두보. 독일 반격 전차를 격파하고 돌파로를 연다.\n목표: 방어 거점 파괴.",
       "events": [
         {
           "time": 100,
@@ -3351,15 +3389,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 6,
-      "objectiveLabel": "생울타리 방어선 청소"
+      "objectiveLabel": "방어 거점 파괴",
+      "depotCount": 3
     },
     {
       "id": "usa_cobra_1944",
       "title": "코브라 작전",
       "year": 1944,
       "map": "평지",
-      "mode": "breakthrough",
-      "objective": "air_ground_breakthrough",
+      "mode": "annihilation",
+      "objective": "artillery_observation",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 5,
@@ -3391,7 +3430,7 @@ const campaignDefs = {
         "경전차",
         "중전차"
       ],
-      "briefing": "1944년 여름, 노르망디 돌파 작전. 항공 폭격 이후 기갑부대가 개활지를 돌파한다.\n목표: 항공지원 돌파.",
+      "briefing": "1944년 여름, 노르망디 돌파 작전. 항공 폭격 이후 기갑부대가 개활지를 돌파한다.\n목표: 항공폭격 표적 지시.",
       "events": [
         {
           "time": 60,
@@ -3406,7 +3445,8 @@ const campaignDefs = {
         }
       ],
       "killQuota": 3,
-      "objectiveLabel": "항공지원 돌파"
+      "objectiveLabel": "항공폭격 표적 지시",
+      "spotRequired": 12
     },
     {
       "id": "usa_hurtgen_1944",
@@ -3414,7 +3454,7 @@ const campaignDefs = {
       "year": 1944,
       "map": "산악",
       "mode": "annihilation",
-      "objective": "forest_hunt",
+      "objective": "recon_sweep",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -3447,7 +3487,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년, 숲과 고지의 소모전. 매복을 버티며 적 전차를 찾아 격파한다.\n목표: 숲속 매복전.",
+      "briefing": "1944년, 숲과 고지의 소모전. 매복을 버티며 적 전차를 찾아 격파한다.\n목표: 숲속 정찰로 확보.",
       "events": [
         {
           "time": 70,
@@ -3464,7 +3504,8 @@ const campaignDefs = {
       ],
       "holdTime": 360,
       "killQuota": 5,
-      "objectiveLabel": "숲속 매복전"
+      "objectiveLabel": "숲속 정찰로 확보",
+      "checkpointCount": 4
     },
     {
       "id": "usa_ardennes_1944",
@@ -3472,7 +3513,7 @@ const campaignDefs = {
       "year": 1944,
       "map": "산악",
       "mode": "assault",
-      "objective": "holding_action",
+      "objective": "ambush_defense",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -3506,7 +3547,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년 12월, 아르덴. 독일 공세를 막고 진지를 지켜야 한다.\n목표: 공세 저지.",
+      "briefing": "1944년 12월, 아르덴. 독일 공세를 막고 진지를 지켜야 한다.\n목표: 공세 차단 매복.",
       "events": [
         {
           "time": 70,
@@ -3521,15 +3562,17 @@ const campaignDefs = {
           "msg": "독일 증원 전차 도착."
         }
       ],
-      "objectiveLabel": "공세 저지"
+      "objectiveLabel": "공세 차단 매복",
+      "ambushReady": 12,
+      "killQuota": 5
     },
     {
       "id": "usa_rhine_1945",
       "title": "라인강 진격",
       "year": 1945,
       "map": "시가전",
-      "mode": "assault",
-      "objective": "fortress_assault",
+      "mode": "capture",
+      "objective": "bridge_seizure",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -3562,7 +3605,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1945년, 독일 본토. 도시 외곽 방어 진지를 파괴하고 진격로를 확보한다.\n목표: 도시 진지 강습.",
+      "briefing": "1945년, 독일 본토. 도시 외곽 방어 진지를 파괴하고 진격로를 확보한다.\n목표: 라인강 교량 확보.",
       "events": [
         {
           "time": 120,
@@ -3575,15 +3618,16 @@ const campaignDefs = {
           "msg": "독일 에이스 전차 확인."
         }
       ],
-      "objectiveLabel": "도시 진지 강습"
+      "objectiveLabel": "라인강 교량 확보",
+      "holdRequired": 30
     },
     {
       "id": "usa_ruhr_1945",
       "title": "루르 포위망",
       "year": 1945,
       "map": "시가전",
-      "mode": "capture",
-      "objective": "encirclement",
+      "mode": "annihilation",
+      "objective": "depot_raid",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -3617,7 +3661,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1945년, 루르 공업지대. 교차로와 공장 지대를 장악해 포위망을 완성한다.\n목표: 포위망 완성.",
+      "briefing": "1945년, 루르 공업지대. 교차로와 공장 지대를 장악해 포위망을 완성한다.\n목표: 공업지대 보급소 파괴.",
       "events": [
         {
           "time": 100,
@@ -3634,7 +3678,8 @@ const campaignDefs = {
       ],
       "captureScore": 155,
       "killQuota": 5,
-      "objectiveLabel": "포위망 완성"
+      "objectiveLabel": "공업지대 보급소 파괴",
+      "depotCount": 4
     }
   ],
   "영국": [
@@ -3643,8 +3688,8 @@ const campaignDefs = {
       "title": "프랑스 방어전",
       "year": 1940,
       "map": "평지",
-      "mode": "assault",
-      "objective": "rearguard_screen",
+      "mode": "annihilation",
+      "objective": "delay_withdrawal",
       "enemyNation": "독일",
       "difficulty": "쉬움",
       "allyCount": 3,
@@ -3672,7 +3717,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1940년, 프랑스. 후퇴로를 확보하기 위해 방어선을 유지한다.\n목표: 후퇴로 엄호.",
+      "briefing": "1940년, 프랑스. 후퇴로를 확보하기 위해 방어선을 유지한다.\n목표: 후퇴로 엄호 후 철수.",
       "events": [
         {
           "time": 120,
@@ -3682,7 +3727,8 @@ const campaignDefs = {
         }
       ],
       "maxAllyLoss": 5,
-      "objectiveLabel": "후퇴로 엄호"
+      "objectiveLabel": "후퇴로 엄호 후 철수",
+      "holdTime": 300
     },
     {
       "id": "uk_arras_1940",
@@ -3690,7 +3736,7 @@ const campaignDefs = {
       "year": 1940,
       "map": "평지",
       "mode": "annihilation",
-      "objective": "armored_raid",
+      "objective": "depot_raid",
       "enemyNation": "독일",
       "difficulty": "쉬움",
       "allyCount": 3,
@@ -3717,7 +3763,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1940년, 아라스. 중장갑 마틸다를 앞세워 독일 선두부대를 흔든다.\n목표: 마틸다 기습.",
+      "briefing": "1940년, 아라스. 중장갑 마틸다를 앞세워 독일 선두부대를 흔든다.\n목표: 전방 대전차 진지 급습.",
       "events": [
         {
           "time": 100,
@@ -3732,15 +3778,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 3,
-      "objectiveLabel": "마틸다 기습"
+      "objectiveLabel": "전방 대전차 진지 급습",
+      "depotCount": 2
     },
     {
       "id": "uk_compass_1940",
       "title": "컴퍼스 작전",
       "year": 1940,
       "map": "사막",
-      "mode": "capture",
-      "objective": "desert_outflank",
+      "mode": "breakthrough",
+      "objective": "route_breakthrough",
       "enemyNation": "독일",
       "difficulty": "쉬움",
       "allyCount": 4,
@@ -3769,7 +3816,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1940년 말, 북아프리카. 사막 거점을 빠르게 점령해 적 방어선을 붕괴시킨다.\n목표: 사막 우회 점령.",
+      "briefing": "1940년 말, 북아프리카. 사막 거점을 빠르게 점령해 적 방어선을 붕괴시킨다.\n목표: 사막 우회 돌파.",
       "events": [
         {
           "time": 130,
@@ -3779,15 +3826,16 @@ const campaignDefs = {
         }
       ],
       "captureScore": 140,
-      "objectiveLabel": "사막 우회 점령"
+      "objectiveLabel": "사막 우회 돌파",
+      "killQuota": 2
     },
     {
       "id": "uk_north_africa_1941",
       "title": "북아프리카 기동전",
       "year": 1941,
       "map": "사막",
-      "mode": "breakthrough",
-      "objective": "desert_breakthrough",
+      "mode": "annihilation",
+      "objective": "recon_sweep",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -3817,7 +3865,7 @@ const campaignDefs = {
         "구축전차",
         "자주포"
       ],
-      "briefing": "1941년, 북아프리카. 열린 사막에서 적 방어선을 우회 돌파한다.\n목표: 사막 돌파.",
+      "briefing": "1941년, 북아프리카. 열린 사막에서 적 방어선을 우회 돌파한다.\n목표: 사막 우회로 정찰.",
       "events": [
         {
           "time": 90,
@@ -3833,15 +3881,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 2,
-      "objectiveLabel": "사막 돌파"
+      "objectiveLabel": "사막 우회로 정찰",
+      "checkpointCount": 3
     },
     {
       "id": "uk_crusader_1941",
       "title": "크루세이더 작전",
       "year": 1941,
       "map": "사막",
-      "mode": "annihilation",
-      "objective": "relief_attack",
+      "mode": "breakthrough",
+      "objective": "convoy_escort",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 5,
@@ -3871,7 +3920,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1941년, 토브룩 구원 작전. 사막 기동전으로 독일 기갑을 격파한다.\n목표: 토브룩 구원 공격.",
+      "briefing": "1941년, 토브룩 구원 작전. 사막 기동전으로 독일 기갑을 격파한다.\n목표: 토브룩 구원 차량 엄호.",
       "events": [
         {
           "time": 120,
@@ -3886,7 +3935,7 @@ const campaignDefs = {
         }
       ],
       "killQuota": 5,
-      "objectiveLabel": "토브룩 구원 공격"
+      "objectiveLabel": "토브룩 구원 차량 엄호"
     },
     {
       "id": "uk_gazala_1942",
@@ -3894,7 +3943,7 @@ const campaignDefs = {
       "year": 1942,
       "map": "사막",
       "mode": "assault",
-      "objective": "box_defense",
+      "objective": "ambush_defense",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -3925,7 +3974,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1942년, 가잘라 방어선. 사막 진지를 지켜 독일 기갑의 돌파를 막는다.\n목표: 박스 방어.",
+      "briefing": "1942년, 가잘라 방어선. 사막 진지를 지켜 독일 기갑의 돌파를 막는다.\n목표: 박스 방어 매복.",
       "events": [
         {
           "time": 80,
@@ -3941,15 +3990,17 @@ const campaignDefs = {
         }
       ],
       "maxAllyLoss": 5,
-      "objectiveLabel": "박스 방어"
+      "objectiveLabel": "박스 방어 매복",
+      "ambushReady": 14,
+      "killQuota": 5
     },
     {
       "id": "uk_el_alamein_1942",
       "title": "엘 알라메인",
       "year": 1942,
       "map": "사막",
-      "mode": "capture",
-      "objective": "minefield_breach",
+      "mode": "annihilation",
+      "objective": "artillery_observation",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 5,
@@ -3981,7 +4032,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1942년, 엘 알라메인. 핵심 거점을 점령해 추축군 방어선을 붕괴시킨다.\n목표: 지뢰지대 돌파.",
+      "briefing": "1942년, 엘 알라메인. 핵심 거점을 점령해 추축군 방어선을 붕괴시킨다.\n목표: 지뢰지대 포격 유도.",
       "events": [
         {
           "time": 100,
@@ -3997,15 +4048,16 @@ const campaignDefs = {
       ],
       "captureScore": 160,
       "killQuota": 4,
-      "objectiveLabel": "지뢰지대 돌파"
+      "objectiveLabel": "지뢰지대 포격 유도",
+      "spotRequired": 16
     },
     {
       "id": "uk_tunisia_1943",
       "title": "튀니지 돌파",
       "year": 1943,
       "map": "언덕",
-      "mode": "breakthrough",
-      "objective": "mountain_pass",
+      "mode": "annihilation",
+      "objective": "recon_sweep",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -4035,7 +4087,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년, 튀니지 산악지대. 후퇴하는 독일 방어선을 돌파한다.\n목표: 튀니지 산악 돌파.",
+      "briefing": "1943년, 튀니지 산악지대. 후퇴하는 독일 방어선을 돌파한다.\n목표: 튀니지 산악로 정찰.",
       "events": [
         {
           "time": 110,
@@ -4051,15 +4103,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 3,
-      "objectiveLabel": "튀니지 산악 돌파"
+      "objectiveLabel": "튀니지 산악로 정찰",
+      "checkpointCount": 3
     },
     {
       "id": "uk_sicily_1943",
       "title": "시칠리아 상륙 지원",
       "year": 1943,
       "map": "언덕",
-      "mode": "capture",
-      "objective": "landing_secure",
+      "mode": "breakthrough",
+      "objective": "convoy_escort",
       "enemyNation": "독일",
       "difficulty": "보통",
       "allyCount": 4,
@@ -4089,7 +4142,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1943년, 시칠리아. 내륙 진격로의 고지와 도로 거점을 장악한다.\n목표: 상륙 지원 거점 확보.",
+      "briefing": "1943년, 시칠리아. 내륙 진격로의 고지와 도로 거점을 장악한다.\n목표: 상륙 지원 차량 엄호.",
       "events": [
         {
           "time": 100,
@@ -4104,15 +4157,15 @@ const campaignDefs = {
         }
       ],
       "captureScore": 145,
-      "objectiveLabel": "상륙 지원 거점 확보"
+      "objectiveLabel": "상륙 지원 차량 엄호"
     },
     {
       "id": "uk_italy_1944",
       "title": "이탈리아 고지전",
       "year": 1944,
       "map": "산악",
-      "mode": "assault",
-      "objective": "fortress_assault",
+      "mode": "annihilation",
+      "objective": "depot_raid",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -4145,7 +4198,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년 이탈리아 전선. 산악 방어선의 포탑 진지를 파괴한다.\n목표: 고지 진지 강습.",
+      "briefing": "1944년 이탈리아 전선. 산악 방어선의 포탑 진지를 파괴한다.\n목표: 고지 진지 파괴.",
       "events": [
         {
           "time": 90,
@@ -4159,7 +4212,8 @@ const campaignDefs = {
           "msg": "아군 포병이 고지 진지를 타격합니다."
         }
       ],
-      "objectiveLabel": "고지 진지 강습"
+      "objectiveLabel": "고지 진지 파괴",
+      "depotCount": 3
     },
     {
       "id": "uk_normandy_1944",
@@ -4223,8 +4277,8 @@ const campaignDefs = {
       "title": "마켓 가든 지원",
       "year": 1944,
       "map": "평지",
-      "mode": "breakthrough",
-      "objective": "road_dash",
+      "mode": "capture",
+      "objective": "bridge_seizure",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 4,
@@ -4258,7 +4312,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1944년, 네덜란드 진격로. 좁은 도로를 따라 교량 방면으로 돌파한다.\n목표: 교량 도로 돌파.",
+      "briefing": "1944년, 네덜란드 진격로. 좁은 도로를 따라 교량 방면으로 돌파한다.\n목표: 교량 확보.",
       "events": [
         {
           "time": 120,
@@ -4274,15 +4328,16 @@ const campaignDefs = {
         }
       ],
       "killQuota": 3,
-      "objectiveLabel": "교량 도로 돌파"
+      "objectiveLabel": "교량 확보",
+      "holdRequired": 32
     },
     {
       "id": "uk_rhine_1945",
       "title": "라인강 진격",
       "year": 1945,
       "map": "시가전",
-      "mode": "assault",
-      "objective": "fortress_assault",
+      "mode": "capture",
+      "objective": "bridge_seizure",
       "enemyNation": "독일",
       "difficulty": "어려움",
       "allyCount": 5,
@@ -4315,7 +4370,7 @@ const campaignDefs = {
         "자주포",
         "경전차"
       ],
-      "briefing": "1945년, 라인강 방면. 도시 방어선을 뚫고 적 진지를 파괴한다.\n목표: 라인 방어선 강습.",
+      "briefing": "1945년, 라인강 방면. 도시 방어선을 뚫고 적 진지를 파괴한다.\n목표: 라인 방어선 교량 장악.",
       "events": [
         {
           "time": 110,
@@ -4329,7 +4384,8 @@ const campaignDefs = {
           "msg": "독일 잔존 전차대가 반격합니다."
         }
       ],
-      "objectiveLabel": "라인 방어선 강습"
+      "objectiveLabel": "라인 방어선 교량 장악",
+      "holdRequired": 28
     }
   ]
 };
@@ -4422,6 +4478,9 @@ function ensureCampaignData() {
   saveData.campaign.completed = saveData.campaign.completed || {};
   saveData.campaign.failed = saveData.campaign.failed || {};
   saveData.campaign.penalties = saveData.campaign.penalties || {};
+  saveData.campaign.settings = saveData.campaign.settings || {supplyLimit:"expanded", autoRefill:false};
+  if (!saveData.campaign.settings.supplyLimit) saveData.campaign.settings.supplyLimit = "expanded";
+  if (typeof saveData.campaign.settings.autoRefill !== "boolean") saveData.campaign.settings.autoRefill = false;
   saveData.crew = saveData.crew || {};
   saveData.supplies = saveData.supplies || {};
   saveData.medals = saveData.medals || {};
@@ -4438,11 +4497,60 @@ function crewFor(nation) {
   return saveData.crew[nation];
 }
 
+function campaignSupplySettings() {
+  ensureCampaignData();
+  return saveData.campaign.settings;
+}
+
+function campaignSupplyCaps() {
+  const mode = campaignSupplySettings().supplyLimit || "expanded";
+  if (mode === "expanded") return {repair:6, ammo:5, reserve:3};
+  return {repair:3, ammo:2, reserve:1};
+}
+
+function campaignSupplyCap(type) {
+  return campaignSupplyCaps()[type] || 0;
+}
+
+function campaignAutoRefillEnabled() {
+  return !!campaignSupplySettings().autoRefill;
+}
+
 function supplyFor(nation) {
   ensureCampaignData();
   if (!saveData.supplies[nation]) saveData.supplies[nation] = {repair:0, ammo:0, reserve:0};
-  return saveData.supplies[nation];
+  const supply = saveData.supplies[nation];
+  supply.repair = Math.min(supply.repair || 0, campaignSupplyCap("repair"));
+  supply.ammo = Math.min(supply.ammo || 0, campaignSupplyCap("ammo"));
+  supply.reserve = Math.min(supply.reserve || 0, campaignSupplyCap("reserve"));
+  return supply;
 }
+
+function autoRefillCampaignSupplies(nation) {
+  if (!nation || !campaignAutoRefillEnabled()) return false;
+  const supply = supplyFor(nation);
+  const caps = campaignSupplyCaps();
+  supply.repair = caps.repair;
+  supply.ammo = caps.ammo;
+  supply.reserve = caps.reserve;
+  return true;
+}
+
+function setCampaignSupplyLimit(value) {
+  campaignSupplySettings().supplyLimit = value === "basic" ? "basic" : "expanded";
+  // 한도를 낮출 때 기존 보급품도 새 한도 안으로 정리한다.
+  for (const nation of nations) supplyFor(nation);
+  saveProgress();
+  renderMenuPreserveScroll();
+}
+
+function setCampaignAutoRefill(value) {
+  campaignSupplySettings().autoRefill = value === "on";
+  saveProgress();
+  renderMenuPreserveScroll();
+}
+window.setCampaignSupplyLimit = setCampaignSupplyLimit;
+window.setCampaignAutoRefill = setCampaignAutoRefill;
 
 function crewLevelFromXp(xp) {
   if (xp >= 900) return 5;
@@ -4601,7 +4709,7 @@ function buyCampaignSupply(type) {
   const nation = m ? m.nation : selectedNation;
   const supply = supplyFor(nation);
   const cost = {repair:90, ammo:110, reserve:180}[type] || 100;
-  const max = {repair:3, ammo:2, reserve:1}[type] || 2;
+  const max = campaignSupplyCap(type);
   if (supply[type] >= max) { alert("이미 최대 보급입니다."); return; }
   if (saveData.money < cost) { alert("자금이 부족합니다."); return; }
   saveData.money -= cost;
@@ -4939,7 +5047,7 @@ let selectedAllyCount = 2;
 let selectedEnemyCount = 5;
 let selectedEnemyNation = "랜덤";
 let selectedDifficulty = "보통";
-let selectedDamageMode = "hp";
+let selectedDamageMode = "module";
 let selectedBattleMode = "annihilation";
 let selectedBattleScope = "free";
 let selectedCampaignNation = "독일";
@@ -5165,6 +5273,10 @@ function renderCampaignPanel() {
 
   const nation = m.nation || selectedCampaignNation || selectedNation;
   const supply = supplyFor(nation);
+  const supplySettings = campaignSupplySettings();
+  const caps = campaignSupplyCaps();
+  if (campaignSupplyLimitInput) campaignSupplyLimitInput.value = supplySettings.supplyLimit || "expanded";
+  if (campaignAutoRefillInput) campaignAutoRefillInput.value = supplySettings.autoRefill ? "on" : "off";
   const penalty = saveData.campaign.penalties[nation] || {};
   const allowed = (m.allowed || []).map(x => `<span>${x}</span>`).join("");
   const failedCount = saveData.campaign.failed[campaignKey(m.id)] || 0;
@@ -5176,7 +5288,8 @@ function renderCampaignPanel() {
     <div style="margin-top:6px">${m.briefing || ""}</div>
     <div class="badgeLine" style="margin-top:8px"><b>강제 사용 가능 전차</b><br>${allowed}</div>
     <div style="margin-top:8px">
-      <b>보급품</b>: 수리 부품 ${supply.repair} · 탄약 보급 ${supply.ammo} · 예비 전차 ${supply.reserve}
+      <b>보급품</b>: 수리 부품 ${supply.repair}/${caps.repair} · 탄약 보급 ${supply.ammo}/${caps.ammo} · 예비 전차 ${supply.reserve}/${caps.reserve}<br>
+      <b>보급 설정</b>: 한도 ${supplySettings.supplyLimit === "expanded" ? "확장" : "기본"} · 전투 후 자동 보급 ${supplySettings.autoRefill ? "켜짐" : "꺼짐"}
       ${penalty.allyLoss ? `<br><span style="color:#e6a06d">패배 영향: 다음 전투 아군 ${penalty.allyLoss}대 감소</span>` : ""}
     </div>
     <div class="row" style="margin-top:8px">
@@ -5331,6 +5444,13 @@ if (campaignMissionInput) campaignMissionInput.onchange = () => {
     selectedTank = firstUsableCampaignTank(m);
   }
   renderMenuPreserveScroll();
+};
+
+if (campaignSupplyLimitInput) campaignSupplyLimitInput.onchange = () => {
+  setCampaignSupplyLimit(campaignSupplyLimitInput.value);
+};
+if (campaignAutoRefillInput) campaignAutoRefillInput.onchange = () => {
+  setCampaignAutoRefill(campaignAutoRefillInput.value);
 };
 
 const keys = {};
@@ -6384,18 +6504,20 @@ function completeCampaignMission(result) {
     saveData.campaign.completed[campaignKey(m.id)] = true;
     delete saveData.campaign.penalties[m.nation];
     const supply = supplyFor(m.nation);
-    supply.repair = Math.min(3, supply.repair + 1);
+    supply.repair = Math.min(campaignSupplyCap("repair"), supply.repair + 1);
+    const refilled = autoRefillCampaignSupplies(m.nation);
     addCrewXp(m.nation, 55 + (game.playerKills || 0) * 10);
     saveProgress();
-    return ` · 캠페인 완료 · 승무원 경험치 획득 · 다음 전투 보급 +1`;
+    return ` · 캠페인 완료 · 승무원 경험치 획득${refilled ? " · 전투 후 자동 보급 완료" : " · 다음 전투 수리 부품 +1"}`;
   } else {
     saveData.campaign.failed[campaignKey(m.id)] = (saveData.campaign.failed[campaignKey(m.id)] || 0) + 1;
     saveData.campaign.penalties[m.nation] = {allyLoss:1};
     saveData.money = Math.max(0, saveData.money - 40);
+    const refilled = autoRefillCampaignSupplies(m.nation);
     addCrewXp(m.nation, 18);
     saveProgress();
     const next = nextCampaignMission(m);
-    return ` · 패배 기록 · ${next ? "다음 임무 해금" : "마지막 임무"} · 다음 ${m.nation} 캠페인 전투에서 아군 1대 감소`;
+    return ` · 패배 기록 · ${next ? "다음 임무 해금" : "마지막 임무"} · 다음 ${m.nation} 캠페인 전투에서 아군 1대 감소${refilled ? " · 전투 후 자동 보급 완료" : ""}`;
   }
 }
 
@@ -6404,6 +6526,13 @@ function checkCampaignEnd() {
   const m = game.campaignMission;
   const obj = game.missionObjective;
   const type = obj?.type || m.objective || "destroy";
+
+  if (obj?.failed) {
+    game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
+  }
+  if (obj?.completed) {
+    game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+  }
 
   if (game.mode === "assault" && !game.player.alive) {
     game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
@@ -6493,7 +6622,10 @@ function campaignObjectiveName(type) {
     urban_counterattack:"시가지 역습", mud_counterattack:"진흙 속 반격",
     counterattack:"기동 역습", winter_counterattack:"혹한 반격", tank_hunt:"기갑 소모전",
     pursuit:"추격전", hedgerow_clear:"생울타리 방어선 청소", relief_attack:"구원 공격", armored_raid:"장갑 기습",
-    fortress_assault:"방어진지 강습", assault:"적 진지 강습", destroy:"적 전차 섬멸"
+    fortress_assault:"방어진지 강습", assault:"적 진지 강습", destroy:"적 전차 섬멸",
+    recon_sweep:"정찰로 확보", route_breakthrough:"연속 돌파", convoy_escort:"차량 엄호",
+    depot_raid:"보급소 파괴", artillery_observation:"관측 후 포격 유도",
+    ambush_defense:"매복 방어", bridge_seizure:"교량 확보", sector_clear:"구역 소탕"
   };
   return names[type] || "특수 임무";
 }
@@ -6529,21 +6661,245 @@ function createMissionObjective(mission, map) {
   if (!mission || !map) return null;
   const type = mission.objective || mission.mode || "destroy";
   const label = mission.objectiveLabel || campaignObjectiveName(type);
-  const targetTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash"]);
-  const defendTypes = new Set(["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+  const target = map.enemySpawn || {x:WORLD_W-260, y:WORLD_H/2};
+  const start = map.player || {x:260, y:WORLD_H/2};
 
-  if (targetTypes.has(type)) {
-    const target = map.breakthrough || map.enemySpawn || {x:WORLD_W-260, y:WORLD_H/2};
-    return {type, x:target.x, y:target.y, r:mission.objectiveRadius || 175, label};
+  function routePoint(t, lane=0, r=165) {
+    return {
+      x:clamp(lerp(start.x, target.x, t), 120, WORLD_W-120),
+      y:clamp(lerp(start.y, target.y, t) + lane, 120, WORLD_H-120),
+      r
+    };
   }
-  if (type === "delay_withdrawal") {
-    return {type, x:map.player.x + 90, y:map.player.y, r:mission.objectiveRadius || 185, label};
+
+  if (type === "recon_sweep") {
+    const count = mission.checkpointCount || 3;
+    const points = [];
+    for (let i=0;i<count;i++) {
+      const t = (i+1) / (count+1);
+      const lane = (i%2 ? 1 : -1) * (180 + i*35);
+      points.push({...routePoint(t, lane, 145), label:`정찰 ${i+1}`, done:false});
+    }
+    return {type, label, points, index:0, completed:false, failed:false};
   }
+
+  if (type === "route_breakthrough" || type === "breakthrough") {
+    const points = [
+      {...routePoint(0.42, -130, 150), label:"전초선", done:false},
+      {...routePoint(0.68, 120, 150), label:"돌파로", done:false},
+      {...routePoint(0.91, 0, 175), label:"최종 돌파 지점", done:false}
+    ];
+    return {type:"route_breakthrough", label, points, index:0, completed:false, failed:false};
+  }
+
+  if (type === "convoy_escort") {
+    return {
+      type, label,
+      convoy:{x:start.x+120, y:start.y+70, hp:180, maxHp:180, speed:58, escortR:270, dangerR:220},
+      dest:{x:clamp(target.x-260, 160, WORLD_W-160), y:target.y, r:190, label:"목적지"},
+      completed:false, failed:false
+    };
+  }
+
+  if (type === "depot_raid") {
+    const count = mission.depotCount || 3;
+    const targets = [];
+    for (let i=0;i<count;i++) {
+      const t = 0.55 + i * (0.30 / Math.max(1,count-1));
+      const lane = (i%2 ? 1 : -1) * (170 + i*40);
+      targets.push({...routePoint(t, lane, 58), hp:130, maxHp:130, alive:true, label:`보급소 ${i+1}`});
+    }
+    return {type, label, targets, completed:false, failed:false};
+  }
+
+  if (type === "artillery_observation") {
+    return {
+      type, label,
+      zone:{...routePoint(0.56, -170, 170), label:"관측 지점"},
+      required:mission.spotRequired || 14,
+      timer:0,
+      struck:false,
+      completed:false,
+      failed:false
+    };
+  }
+
+  if (type === "ambush_defense") {
+    return {
+      type, label,
+      zone:{...routePoint(0.32, 0, 210), label:"매복 진지"},
+      readyRequired:mission.ambushReady || 12,
+      ready:0,
+      sprung:false,
+      startKills:0,
+      killQuota:mission.killQuota || 4,
+      completed:false,
+      failed:false
+    };
+  }
+
+  if (type === "bridge_seizure") {
+    return {
+      type, label,
+      zone:{...routePoint(0.58, 0, 190), label:"교량 / 교차로"},
+      holdRequired:mission.holdRequired || 25,
+      hold:0,
+      completed:false,
+      failed:false
+    };
+  }
+
+  if (type === "sector_clear") {
+    const sectors = [];
+    const count = mission.sectors || 3;
+    for (let i=0;i<count;i++) sectors.push({...routePoint(0.35+i*0.18, (i%2 ? 1 : -1)*150, 210), label:`소탕 구역 ${i+1}`, done:false, timer:0});
+    return {type, label, sectors, index:0, required:10, completed:false, failed:false};
+  }
+
+  const defendTypes = new Set(["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+  if (type === "delay_withdrawal") return {type, x:start.x + 90, y:start.y, r:185, label, completed:false, failed:false};
   if (defendTypes.has(type)) {
-    const base = (map.strongholds && map.strongholds.blue) || {x:map.player.x+220, y:map.player.y, r:245};
+    const base = (map.strongholds && map.strongholds.blue) || {x:start.x+220, y:start.y, r:245};
     return {type, x:base.x, y:base.y, r:base.r || 245, label};
   }
   return {type, label};
+}
+
+function missionObjectiveFail(reason) {
+  if (!game || !game.missionObjective) return;
+  game.missionObjective.failed = true;
+  if (reason) addRadio(reason, "bad");
+}
+
+function missionObjectiveComplete(message) {
+  if (!game || !game.missionObjective || game.missionObjective.completed) return;
+  game.missionObjective.completed = true;
+  if (message) addRadio(message, "good");
+}
+
+function enemyCountNearPoint(p, r) {
+  if (!game || !p) return 0;
+  return game.enemies.filter(e => e.alive && Math.hypot(e.x-p.x,e.y-p.y) < r).length;
+}
+
+function movePointToward(p, dest, speed, dt) {
+  const dx = dest.x - p.x, dy = dest.y - p.y;
+  const d = Math.hypot(dx, dy);
+  if (d < 1) return true;
+  const step = Math.min(d, speed * dt);
+  p.x += dx / d * step;
+  p.y += dy / d * step;
+  return d <= step + 2;
+}
+
+function damageMissionTarget(shell, target) {
+  if (!target || !target.alive) return;
+  const dmg = shell.smoke ? 0 : Math.max(18, shell.dmg || 35);
+  target.hp = Math.max(0, target.hp - dmg);
+  game.effects.push({type:"spark", x:target.x, y:target.y, age:0, life:0.25});
+  if (target.hp <= 0) {
+    target.alive = false;
+    game.effects.push({type:"ammoBoom", x:target.x, y:target.y, age:0, life:1.05});
+    addRadio(`${target.label || "목표"} 파괴.`, "good");
+  }
+}
+
+function missionTargetAtSegment(a, b) {
+  const obj = game?.missionObjective;
+  if (!obj || !obj.targets) return null;
+  for (const t of obj.targets) {
+    if (!t.alive) continue;
+    if (lineCircleIntersects(a, b, t, (t.r || 55) + 8)) return t;
+  }
+  return null;
+}
+
+function updateCampaignObjective(dt) {
+  if (!game || !game.campaignMission || !game.missionObjective || game.result) return;
+  const obj = game.missionObjective;
+  const p = game.player;
+  if (!p.alive || obj.completed || obj.failed) return;
+
+  if (obj.type === "recon_sweep" || obj.type === "route_breakthrough") {
+    const list = obj.points || [];
+    const current = list[obj.index || 0];
+    if (current && Math.hypot(p.x-current.x,p.y-current.y) < current.r) {
+      current.done = true;
+      obj.index = (obj.index || 0) + 1;
+      addRadio(`${current.label} 통과.`, "good");
+      if (obj.index >= list.length) missionObjectiveComplete(obj.type === "recon_sweep" ? "정찰로 확보 완료." : "돌파로 확보 완료.");
+    }
+  }
+
+  if (obj.type === "convoy_escort") {
+    const c = obj.convoy, dest = obj.dest;
+    const nearPlayer = Math.hypot(p.x-c.x,p.y-c.y) < c.escortR;
+    const danger = enemyCountNearPoint(c, c.dangerR);
+    if (danger > 0) c.hp = Math.max(0, c.hp - danger * 10 * dt);
+    if (nearPlayer && danger <= 0) movePointToward(c, dest, c.speed, dt);
+    else if (!nearPlayer) c.hp = Math.max(0, c.hp - 2.5 * dt);
+    if (c.hp <= 0) missionObjectiveFail("엄호 대상 차량이 파괴되었습니다.");
+    if (Math.hypot(c.x-dest.x,c.y-dest.y) < dest.r) missionObjectiveComplete("엄호 차량이 목적지에 도착했습니다.");
+  }
+
+  if (obj.type === "depot_raid") {
+    if ((obj.targets || []).every(t => !t.alive)) missionObjectiveComplete("모든 보급소를 파괴했습니다.");
+  }
+
+  if (obj.type === "artillery_observation") {
+    const z = obj.zone;
+    const inZone = Math.hypot(p.x-z.x,p.y-z.y) < z.r;
+    obj.timer = clamp((obj.timer || 0) + (inZone ? dt : -dt*0.75), 0, obj.required || 14);
+    if (!obj.struck && obj.timer >= (obj.required || 14)) {
+      obj.struck = true;
+      const targets = game.enemies.filter(e=>e.alive).slice().sort((a,b)=>Math.hypot(a.x-z.x,a.y-z.y)-Math.hypot(b.x-z.x,b.y-z.y)).slice(0,5);
+      for (const t of targets) callAirStrike("ally", {x:t.x+rand(-45,45), y:t.y+rand(-45,45)}, "rocket");
+      missionObjectiveComplete("관측 완료. 포병과 항공지원이 표적을 타격합니다.");
+    }
+  }
+
+  if (obj.type === "ambush_defense") {
+    const z = obj.zone;
+    const inZone = Math.hypot(p.x-z.x,p.y-z.y) < z.r;
+    if (!obj.sprung) {
+      obj.ready = clamp((obj.ready || 0) + (inZone ? dt : -dt*0.8), 0, obj.readyRequired || 12);
+      if (obj.ready >= (obj.readyRequired || 12)) {
+        obj.sprung = true;
+        obj.startKills = missionEnemyKills();
+        addRadio("매복 준비 완료. 적을 유인합니다.", "good");
+        if (game.enemies.filter(e=>e.alive).length < 4) spawnOperationEnemyGroup(z.x + 520, z.y, 3, ["중형전차","구축전차","경전차"]);
+      }
+    } else {
+      const got = missionEnemyKills() - (obj.startKills || 0);
+      if (got >= (obj.killQuota || 4)) missionObjectiveComplete("매복 목표 달성.");
+    }
+  }
+
+  if (obj.type === "bridge_seizure") {
+    const z = obj.zone;
+    const inZone = Math.hypot(p.x-z.x,p.y-z.y) < z.r;
+    const contested = enemyCountNearPoint(z, z.r + 170) > 0;
+    if (inZone && !contested) obj.hold = clamp((obj.hold || 0) + dt, 0, obj.holdRequired || 25);
+    else if (!inZone) obj.hold = Math.max(0, (obj.hold || 0) - dt*0.35);
+    if (obj.hold >= (obj.holdRequired || 25)) missionObjectiveComplete("교량 / 교차로 확보 완료.");
+  }
+
+  if (obj.type === "sector_clear") {
+    const sectors = obj.sectors || [];
+    const s = sectors[obj.index || 0];
+    if (s) {
+      const inZone = Math.hypot(p.x-s.x,p.y-s.y) < s.r;
+      const clear = enemyCountNearPoint(s, s.r + 90) <= 0;
+      if (inZone && clear) s.timer = clamp((s.timer || 0) + dt, 0, obj.required || 10);
+      else s.timer = Math.max(0, (s.timer || 0) - dt*0.5);
+      if (s.timer >= (obj.required || 10)) {
+        s.done = true;
+        obj.index = (obj.index || 0) + 1;
+        addRadio(`${s.label} 확보.`, "good");
+        if (obj.index >= sectors.length) missionObjectiveComplete("시가지 구역 소탕 완료.");
+      }
+    }
+  }
 }
 
 function campaignObjectiveStatusText() {
@@ -6551,16 +6907,45 @@ function campaignObjectiveStatusText() {
   const m = game.campaignMission, obj = game.missionObjective;
   const type = obj.type;
   const name = obj.label || m.objectiveLabel || campaignObjectiveName(type);
+
+  if (obj.failed) return `<br>캠페인 목표 실패: ${name}`;
+  if (obj.completed) return `<br>캠페인 목표 완료: ${name}`;
+
+  if (type === "recon_sweep" || type === "route_breakthrough") {
+    const list = obj.points || [];
+    const cur = list[obj.index || 0];
+    const d = cur ? Math.round(Math.hypot(game.player.x-cur.x, game.player.y-cur.y)) : 0;
+    return `<br>캠페인 목표: ${name} · 단계 ${Math.min((obj.index||0)+1, list.length)}/${list.length} · 거리 ${d}`;
+  }
+  if (type === "convoy_escort") {
+    const c = obj.convoy, dest = obj.dest;
+    const d = Math.round(Math.hypot(c.x-dest.x,c.y-dest.y));
+    return `<br>캠페인 목표: ${name} · 차량 내구도 ${Math.ceil(c.hp)}/${c.maxHp} · 목적지 ${d}`;
+  }
+  if (type === "depot_raid") {
+    const left = (obj.targets || []).filter(t=>t.alive).length;
+    return `<br>캠페인 목표: ${name} · 남은 목표 ${left}/${(obj.targets || []).length}`;
+  }
+  if (type === "artillery_observation") return `<br>캠페인 목표: ${name} · 관측 ${Math.floor(obj.timer || 0)}/${obj.required || 14}초`;
+  if (type === "ambush_defense") {
+    if (!obj.sprung) return `<br>캠페인 목표: ${name} · 매복 준비 ${Math.floor(obj.ready || 0)}/${obj.readyRequired || 12}초`;
+    const got = missionEnemyKills() - (obj.startKills || 0);
+    return `<br>캠페인 목표: ${name} · 매복 격파 ${got}/${obj.killQuota || 4}`;
+  }
+  if (type === "bridge_seizure") {
+    const contested = enemyCountNearPoint(obj.zone, obj.zone.r + 170) > 0;
+    return `<br>캠페인 목표: ${name} · 확보 ${Math.floor(obj.hold || 0)}/${obj.holdRequired || 25}초${contested ? " · 교전 중" : ""}`;
+  }
+  if (type === "sector_clear") {
+    const sectors = obj.sectors || [];
+    const cur = sectors[obj.index || 0];
+    const timer = cur ? Math.floor(cur.timer || 0) : 0;
+    return `<br>캠페인 목표: ${name} · 구역 ${Math.min((obj.index||0)+1, sectors.length)}/${sectors.length} · 확보 ${timer}/${obj.required || 10}초`;
+  }
+
   const kills = missionEnemyKills();
   const quota = m.killQuota || 0;
   const quotaText = quota ? ` · 격파 ${kills}/${quota}` : "";
-  const capTypes = new Set(["capture","encirclement","roadblock","deep_operation","landing_secure","desert_outflank","minefield_breach","urban_counterattack","mud_counterattack"]);
-  const targetTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash"]);
-
-  if (targetTypes.has(type)) {
-    const d = Math.round(Math.hypot(game.player.x - obj.x, game.player.y - obj.y));
-    return `<br>캠페인 목표: ${name} · 거리 ${d}${quotaText}`;
-  }
   if (type === "delay_withdrawal") {
     const hold = m.holdTime || Math.floor((m.battleTime || 480) * 0.65);
     if (game.time < hold) return `<br>캠페인 목표: ${name} · 철수 가능까지 ${formatSeconds(hold - game.time)}${quotaText}`;
@@ -6572,19 +6957,9 @@ function campaignObjectiveStatusText() {
     const lossText = m.maxAllyLoss ? ` · 아군 손실 ${game.missionStats?.allyLosses || 0}/${m.maxAllyLoss}` : "";
     return `<br>캠페인 목표: ${name} · ${missionTimeLeft(m)} 동안 방어${lossText}`;
   }
-  if (type === "survival" || type === "delaying_action" || type === "urban_hold" || type === "forest_hunt") {
-    return `<br>캠페인 목표: ${name} · ${missionTimeLeft(m)} 생존${quotaText}`;
-  }
   if (type === "ace" || type === "ace_hunt") return `<br>캠페인 목표: ${name}`;
   if (type === "assault" || type === "fortress_assault") return `<br>캠페인 목표: ${name} · 적 포탑 파괴`;
-  if (capTypes.has(type)) {
-    return `<br>캠페인 목표: ${name} · 점수 ${Math.floor(game.capture?.blueScore || 0)}/${m.captureScore || game.capture?.limit || 160}${quotaText}`;
-  }
-  if (type === "counterattack" || type === "winter_counterattack" || type === "tank_hunt" || type === "pursuit" || type === "hedgerow_clear" || type === "relief_attack" || type === "armored_raid") {
-    return `<br>캠페인 목표: ${name}${quotaText}`;
-  }
-  if (type === "destroy") return `<br>캠페인 목표: 적 전차 섬멸`;
-  return `<br>캠페인 목표: ${name}`;
+  return `<br>캠페인 목표: ${name}${quotaText}`;
 }
 
 function startBattle() {
@@ -6635,7 +7010,7 @@ function startBattle() {
     campaignMission:activeCampaignMission,
     missionObjective:createMissionObjective(activeCampaignMission, map),
     campaignEvents:activeCampaignMission ? (activeCampaignMission.events || []).map(e => ({...e, done:false})) : [],
-    missionStats:{enemyKills:0, allyLosses:0, playerDeaths:0, classKills:{}, reached:false},
+    missionStats:{enemyKills:0, allyLosses:0, playerDeaths:0, classKills:{}, reached:false, objectiveProgress:0},
     missionSightMult:1,
     radioJammedUntil:0,
     playerDebuffUntil:0,
@@ -7824,6 +8199,15 @@ function updateShells(dt) {
     }
 
     if (!remove) {
+      const mt = missionTargetAtSegment(segA, segB);
+      if (mt) {
+        damageMissionTarget(s, mt);
+        shellExplosion(s);
+        remove = true;
+      }
+    }
+
+    if (!remove) {
       for (const t of allTanks) {
         if (!t.alive || t === s.shooter) continue;
         if (!game.settings?.friendlyFire && sameSide(t.team, s.team)) continue;
@@ -7985,6 +8369,7 @@ function update(dt) {
   for (const t of [p, ...game.allies, ...game.enemies]) t.fireReveal = Math.max(0, (t.fireReveal || 0) - dt);
   if (game.state === "play") {
     updateCampaignEvents(dt);
+    updateCampaignObjective(dt);
     updateOperationBattle(dt);
     updatePlayerAirSupport(dt);
     updateAirstrikes(dt);
@@ -8021,24 +8406,74 @@ function drawCampaignObjectiveZone() {
   const obj = game.missionObjective;
   const c = game.camera;
 
-  const zoneTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash","delay_withdrawal","defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
-  if (zoneTypes.has(obj.type) && Number.isFinite(obj.x)) {
-    const p = worldToScreen(obj.x, obj.y);
-    const r = (obj.r || 160) * c.zoom;
-    const attackZone = !["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"].includes(obj.type);
-    ctx.fillStyle = attackZone ? "rgba(255,220,120,.12)" : "rgba(116,168,223,.10)";
-    ctx.strokeStyle = attackZone ? "rgba(255,220,120,.85)" : "rgba(116,168,223,.80)";
+  function drawZoneMarker(z, label, attack=true, done=false) {
+    if (!z || !Number.isFinite(z.x)) return;
+    const p = worldToScreen(z.x, z.y);
+    const r = (z.r || 150) * c.zoom;
+    ctx.save();
+    ctx.fillStyle = done ? "rgba(130,220,145,.08)" : attack ? "rgba(255,220,120,.12)" : "rgba(116,168,223,.10)";
+    ctx.strokeStyle = done ? "rgba(130,220,145,.75)" : attack ? "rgba(255,220,120,.85)" : "rgba(116,168,223,.80)";
     ctx.lineWidth = 4;
-    ctx.setLineDash([12,8]);
+    ctx.setLineDash(done ? [] : [12,8]);
     ctx.beginPath(); ctx.arc(p.x,p.y,r,0,TAU); ctx.fill(); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = attackZone ? "#ffe28a" : "#b9d7ff";
-    ctx.font = "bold 18px system-ui";
+    ctx.fillStyle = done ? "#b9f7c8" : attack ? "#ffe28a" : "#b9d7ff";
+    ctx.font = "bold 16px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText(obj.label || (obj.type === "breakthrough" ? "돌파 지점" : "방어 진지"), p.x, p.y + 6);
+    ctx.fillText(label || z.label || "목표", p.x, p.y + 6);
+    ctx.restore();
+  }
+
+  if (obj.points) for (const z of obj.points) drawZoneMarker(z, z.done ? "완료" : z.label, true, z.done);
+  if (obj.sectors) for (const z of obj.sectors) drawZoneMarker(z, z.done ? "소탕 완료" : z.label, true, z.done);
+  if (obj.zone) drawZoneMarker(obj.zone, obj.zone.label || obj.label, obj.type !== "ambush_defense", false);
+  if (obj.dest) drawZoneMarker(obj.dest, "목적지", true, false);
+
+  if (obj.convoy) {
+    const p = worldToScreen(obj.convoy.x, obj.convoy.y);
+    ctx.save();
+    ctx.fillStyle = "#d8c579";
+    ctx.strokeStyle = "#1b1b13";
+    ctx.lineWidth = 2;
+    ctx.translate(p.x, p.y);
+    roundRect(ctx, -18*c.zoom, -10*c.zoom, 36*c.zoom, 20*c.zoom, 5*c.zoom);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fff1a6";
+    ctx.font = "bold 12px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("엄호 차량", 0, -18*c.zoom);
+    ctx.restore();
+  }
+
+  if (obj.targets) {
+    for (const t of obj.targets) {
+      if (!t.alive) continue;
+      const p = worldToScreen(t.x, t.y);
+      const r = (t.r || 55) * c.zoom;
+      ctx.save();
+      ctx.fillStyle = "rgba(218,120,70,.20)";
+      ctx.strokeStyle = "rgba(255,160,100,.88)";
+      ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.rect(p.x-r, p.y-r*0.75, r*2, r*1.5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#ffd4a6";
+      ctx.font = "bold 13px system-ui";
+      ctx.textAlign = "center";
+      ctx.fillText(t.label || "파괴 목표", p.x, p.y-r-8);
+      const bw = r*1.6;
+      ctx.fillStyle = "rgba(0,0,0,.55)";
+      ctx.fillRect(p.x-bw/2, p.y+r+6, bw, 6);
+      ctx.fillStyle = "#e07852";
+      ctx.fillRect(p.x-bw/2, p.y+r+6, bw*clamp(t.hp/t.maxHp,0,1), 6);
+      ctx.restore();
+    }
+  }
+
+  const zoneTypes = new Set(["delay_withdrawal","defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+  if (zoneTypes.has(obj.type) && Number.isFinite(obj.x)) {
+    const attack = obj.type === "delay_withdrawal";
+    drawZoneMarker(obj, obj.label || (attack ? "철수 지점" : "방어 진지"), attack, false);
   }
 }
-
 
 function drawObjectiveZones(map) {
   if (!game) return;
