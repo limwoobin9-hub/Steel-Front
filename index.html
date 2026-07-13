@@ -1590,172 +1590,2746 @@ const ammoOrder = ["AP", "APCR", "HE", "SMOKE"];
 const campaignDefs = {
   "독일": [
     {
-      id:"ger_france_1940", title:"프랑스 전역", year:1940, map:"평지", mode:"annihilation", objective:"breakthrough",
-      enemyNation:"영국", difficulty:"쉬움", allyCount:3, enemyCount:6, battleTime:420, rewardMult:1.10,
-      allowed:["1호 전차","2호 전차","3호 전차"],
-      enemyTiers:[1,1,1,1,2,1], enemyClasses:["경전차","경전차","중형전차","중형전차","구축전차","자주포"],
-      briefing:"1940년 5월, 서부전선. 기갑 선봉대는 방어선을 뚫고 후방으로 진입해야 한다.\n강제 사용 가능 전차: 1호 전차, 2호 전차, 3호 전차.\n목표: 제한 시간 안에 돌파 지점에 도달.",
-      events:[{time:65,type:"radio",msg:"무전 혼선: 잠시 미니맵 정보가 제한됩니다."},{time:150,type:"reinforce",count:2,msg:"적 예비대가 도착했습니다."}]
+      "id": "ger_poland_1939",
+      "title": "폴란드 전격전",
+      "year": 1939,
+      "map": "평지",
+      "mode": "breakthrough",
+      "objective": "armored_spearhead",
+      "enemyNation": "영국",
+      "difficulty": "쉬움",
+      "allyCount": 3,
+      "enemyCount": 5,
+      "battleTime": 390,
+      "rewardMult": 1.05,
+      "allowed": [
+        "1호 전차",
+        "2호 전차",
+        "3호 전차",
+        "판처예거 1",
+        "비존"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "경전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1939년 9월, 폴란드 전역. 기갑 선두부대가 방어선을 뚫고 후방 교차로로 진입한다.\n목표: 전격 돌파.",
+      "events": [
+        {
+          "time": 80,
+          "type": "radio",
+          "duration": 30,
+          "msg": "선두부대가 통신 혼선을 겪습니다."
+        },
+        {
+          "time": 190,
+          "type": "reinforce",
+          "count": 1,
+          "msg": "적 예비 전차가 도로로 접근합니다."
+        }
+      ],
+      "killQuota": 2,
+      "objectiveLabel": "전격 돌파"
     },
     {
-      id:"ger_barbarossa_1941", title:"바르바로사", year:1941, map:"언덕", mode:"capture", objective:"capture",
-      enemyNation:"소련", difficulty:"보통", allyCount:4, enemyCount:8, battleTime:600, rewardMult:1.15,
-      allowed:["2호 전차","3호 전차","4호 전차","마르더 3","베스페"],
-      enemyTiers:[1,1,2,1,1,2,1,2], enemyClasses:["경전차","중형전차","중형전차","구축전차","자주포"],
-      briefing:"1941년 여름, 동부전선. 빠른 진격으로 거점을 장악해야 한다.\n목표: 중앙 거점들을 점령해 점수 우세 확보.",
-      events:[{time:90,type:"supply",msg:"보급 차량 도착: 수리 키트 1개 추가."},{time:210,type:"fog",duration:55,msg:"먼지와 연막으로 시야가 감소합니다."}]
+      "id": "ger_france_1940",
+      "title": "프랑스 전역",
+      "year": 1940,
+      "map": "평지",
+      "mode": "breakthrough",
+      "objective": "armored_spearhead",
+      "enemyNation": "영국",
+      "difficulty": "쉬움",
+      "allyCount": 3,
+      "enemyCount": 6,
+      "battleTime": 420,
+      "rewardMult": 1.1,
+      "allowed": [
+        "1호 전차",
+        "2호 전차",
+        "3호 전차"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "경전차",
+        "중형전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1940년 5월, 서부전선. 기갑 선봉대는 방어선을 뚫고 후방으로 진입해야 한다.\n강제 사용 가능 전차: 1호 전차, 2호 전차, 3호 전차.\n목표: 기갑 선봉 돌파.",
+      "events": [
+        {
+          "time": 65,
+          "type": "radio",
+          "duration": 45,
+          "msg": "무전 혼선: 잠시 미니맵 정보가 제한됩니다."
+        },
+        {
+          "time": 150,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "적 예비대가 도착했습니다."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "기갑 선봉 돌파"
     },
     {
-      id:"ger_kursk_1943", title:"쿠르스크", year:1943, map:"평지", mode:"annihilation", objective:"ace",
-      enemyNation:"소련", difficulty:"어려움", allyCount:5, enemyCount:10, battleTime:620, rewardMult:1.25,
-      allowed:["4호 전차","판터","티거 1","마르더 3","야크트판터","훔멜"],
-      enemyTiers:[2,2,3,2,3,2,3,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      ace:{nation:"소련",cls:"중전차",tier:3,label:"근위 에이스"},
-      briefing:"1943년 7월, 쿠르스크 돌출부. 대규모 전차전 속에서 적 정예 전차를 격파해야 한다.\n목표: 적 에이스 전차 격파.",
-      events:[{time:80,type:"artillery",msg:"아군 포병 지원이 적 전열을 타격합니다."},{time:200,type:"reinforce",count:3,msg:"적 증원 전차가 전장에 진입했습니다."}]
+      "id": "ger_balkans_1941",
+      "title": "발칸 산악 진격",
+      "year": 1941,
+      "map": "산악",
+      "mode": "breakthrough",
+      "objective": "mountain_pass",
+      "enemyNation": "영국",
+      "difficulty": "보통",
+      "allyCount": 3,
+      "enemyCount": 7,
+      "battleTime": 500,
+      "rewardMult": 1.12,
+      "allowed": [
+        "2호 전차",
+        "3호 전차",
+        "4호 전차",
+        "판처예거 1",
+        "비존"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        2,
+        1,
+        2,
+        1,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 봄, 산악 도로를 따라 적 방어선을 돌파한다. 좁은 지형에서 우회로 확보가 중요하다.\n목표: 산악 통로 돌파.",
+      "events": [
+        {
+          "time": 120,
+          "type": "engine",
+          "duration": 40,
+          "msg": "가파른 산악로로 기동력이 일시적으로 저하됩니다."
+        },
+        {
+          "time": 240,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "적 후위부대가 협곡 입구를 봉쇄합니다."
+        }
+      ],
+      "killQuota": 2,
+      "objectiveLabel": "산악 통로 돌파"
     },
     {
-      id:"ger_ardennes_1944", title:"아르덴 공세", year:1944, map:"산악", mode:"assault", objective:"assault",
-      enemyNation:"미국", difficulty:"어려움", allyCount:4, enemyCount:9, battleTime:640, rewardMult:1.20,
-      allowed:["판터","티거 1","티거 2","야크트판터","훔멜"],
-      enemyTiers:[2,2,3,2,3,2,3,2,2], enemyClasses:["중형전차","구축전차","중전차","자주포","경전차"],
-      briefing:"1944년 12월, 아르덴. 좁은 산악 도로를 따라 적 방어진지를 돌파한다.\n목표: 적 진지 포탑 파괴.",
-      events:[{time:60,type:"fog",duration:80,msg:"눈보라: 시야가 크게 감소합니다."},{time:260,type:"engine",duration:45,msg:"연료 부족: 일시적으로 기동력이 감소합니다."}]
+      "id": "ger_barbarossa_1941",
+      "title": "바르바로사",
+      "year": 1941,
+      "map": "언덕",
+      "mode": "capture",
+      "objective": "encirclement",
+      "enemyNation": "소련",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 600,
+      "rewardMult": 1.15,
+      "allowed": [
+        "2호 전차",
+        "3호 전차",
+        "4호 전차",
+        "마르더 3",
+        "베스페"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 여름, 동부전선. 빠른 진격으로 거점을 장악해야 한다.\n목표: 거점 포위.",
+      "events": [
+        {
+          "time": 90,
+          "type": "supply",
+          "msg": "보급 차량 도착: 수리 키트 1개 추가."
+        },
+        {
+          "time": 210,
+          "type": "fog",
+          "duration": 55,
+          "msg": "먼지와 연막으로 시야가 감소합니다."
+        }
+      ],
+      "captureScore": 150,
+      "killQuota": 4,
+      "objectiveLabel": "거점 포위"
     },
     {
-      id:"ger_berlin_1945", title:"베를린 방어전", year:1945, map:"시가전", mode:"assault", objective:"defense",
-      enemyNation:"소련", difficulty:"어려움", allyCount:3, enemyCount:12, battleTime:520, rewardMult:1.35,
-      allowed:["판터","티거 2","야크트판터","훔멜","2호 전차 룩스"],
-      enemyTiers:[3,3,3,2,3,2,3,3,2,3,2,3], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      briefing:"1945년 4월, 베를린 시가. 포탑과 잔존 기갑부대를 지켜 마지막 방어선을 유지해야 한다.\n목표: 제한 시간 동안 아군 포탑 생존.",
-      events:[{time:70,type:"reinforce",count:3,msg:"적 돌격대 증원."},{time:180,type:"reinforce",count:3,msg:"또 다른 소련 전차대가 접근합니다."}]
+      "id": "ger_moscow_approach_1941",
+      "title": "모스크바 접근로",
+      "year": 1941,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "winter_hold",
+      "enemyNation": "소련",
+      "difficulty": "보통",
+      "allyCount": 3,
+      "enemyCount": 9,
+      "battleTime": 500,
+      "rewardMult": 1.16,
+      "allowed": [
+        "3호 전차",
+        "4호 전차",
+        "마르더 3",
+        "베스페",
+        "2호 전차"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 겨울 전선. 진격이 둔화된 상황에서 전방 거점을 유지해야 한다.\n목표: 혹한 방어.",
+      "events": [
+        {
+          "time": 70,
+          "type": "fog",
+          "duration": 75,
+          "msg": "눈발이 거세져 시야가 줄어듭니다."
+        },
+        {
+          "time": 210,
+          "type": "engine",
+          "duration": 50,
+          "msg": "혹한으로 엔진 출력이 떨어집니다."
+        }
+      ],
+      "objectiveLabel": "혹한 방어"
+    },
+    {
+      "id": "ger_kharkov_1942",
+      "title": "하르코프 역습",
+      "year": 1942,
+      "map": "언덕",
+      "mode": "annihilation",
+      "objective": "counterattack",
+      "enemyNation": "소련",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 560,
+      "rewardMult": 1.18,
+      "allowed": [
+        "3호 전차",
+        "4호 전차",
+        "마르더 3",
+        "베스페",
+        "비존"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "경전차",
+        "자주포"
+      ],
+      "briefing": "1942년, 하르코프 방면. 소련군의 돌출부를 끊기 위해 거점을 빠르게 탈환한다.\n목표: 기동 역습.",
+      "events": [
+        {
+          "time": 100,
+          "type": "artillery",
+          "msg": "아군 포병이 적 집결지를 타격합니다."
+        },
+        {
+          "time": 270,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "소련 예비대가 측면에서 진입합니다."
+        }
+      ],
+      "killQuota": 5,
+      "objectiveLabel": "기동 역습"
+    },
+    {
+      "id": "ger_stalingrad_1942",
+      "title": "스탈린그라드 포위망",
+      "year": 1942,
+      "map": "시가전",
+      "mode": "annihilation",
+      "objective": "delay_withdrawal",
+      "enemyNation": "소련",
+      "difficulty": "어려움",
+      "allyCount": 3,
+      "enemyCount": 10,
+      "battleTime": 520,
+      "rewardMult": 1.25,
+      "allowed": [
+        "3호 전차",
+        "4호 전차",
+        "마르더 3",
+        "베스페"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1942년 말, 폐허 속 고립된 전투. 좁은 거리에서 적의 압박을 견뎌야 한다.\n목표: 지연 후 철수.",
+      "events": [
+        {
+          "time": 95,
+          "type": "radio",
+          "duration": 55,
+          "msg": "건물 잔해로 통신이 끊깁니다."
+        },
+        {
+          "time": 230,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "소련 돌격 전차대가 투입됩니다."
+        }
+      ],
+      "holdTime": 330,
+      "killQuota": 3,
+      "objectiveLabel": "지연 후 철수"
+    },
+    {
+      "id": "ger_tunisia_1943",
+      "title": "튀니지 후위전",
+      "year": 1943,
+      "map": "사막",
+      "mode": "assault",
+      "objective": "rear_guard",
+      "enemyNation": "미국",
+      "difficulty": "보통",
+      "allyCount": 3,
+      "enemyCount": 9,
+      "battleTime": 500,
+      "rewardMult": 1.2,
+      "allowed": [
+        "3호 전차",
+        "4호 전차",
+        "마르더 3",
+        "베스페",
+        "티거 1"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1943년 북아프리카. 후퇴하는 부대를 엄호하기 위해 방어진지를 유지한다.\n목표: 후위 엄호.",
+      "events": [
+        {
+          "time": 80,
+          "type": "fog",
+          "duration": 50,
+          "msg": "모래먼지가 전장을 덮습니다."
+        },
+        {
+          "time": 220,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "미군 전차대가 우회 접근합니다."
+        }
+      ],
+      "objectiveLabel": "후위 엄호"
+    },
+    {
+      "id": "ger_kursk_1943",
+      "title": "쿠르스크",
+      "year": 1943,
+      "map": "평지",
+      "mode": "annihilation",
+      "objective": "ace_hunt",
+      "enemyNation": "소련",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 10,
+      "battleTime": 620,
+      "rewardMult": 1.25,
+      "allowed": [
+        "4호 전차",
+        "판터",
+        "티거 1",
+        "마르더 3",
+        "야크트판터",
+        "훔멜"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "ace": {
+        "nation": "소련",
+        "cls": "중전차",
+        "tier": 3,
+        "label": "근위 에이스"
+      },
+      "briefing": "1943년 7월, 쿠르스크 돌출부. 대규모 전차전 속에서 적 정예 전차를 격파해야 한다.\n목표: 근위 에이스 격파.",
+      "events": [
+        {
+          "time": 80,
+          "type": "artillery",
+          "msg": "아군 포병 지원이 적 전열을 타격합니다."
+        },
+        {
+          "time": 200,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "적 증원 전차가 전장에 진입했습니다."
+        }
+      ],
+      "objectiveLabel": "근위 에이스 격파"
+    },
+    {
+      "id": "ger_italy_1943",
+      "title": "이탈리아 방어선",
+      "year": 1943,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "mountain_defense",
+      "enemyNation": "영국",
+      "difficulty": "어려움",
+      "allyCount": 3,
+      "enemyCount": 9,
+      "battleTime": 560,
+      "rewardMult": 1.22,
+      "allowed": [
+        "4호 전차",
+        "판터",
+        "티거 1",
+        "마르더 3",
+        "베스페",
+        "훔멜"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년 이탈리아 전선. 산악 방어선을 이용해 연합군의 진격을 지연시킨다.\n목표: 고지 방어.",
+      "events": [
+        {
+          "time": 130,
+          "type": "artillery",
+          "msg": "고지 포병 관측 성공. 적 선두부대를 타격합니다."
+        },
+        {
+          "time": 300,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "영국 전차대가 계곡으로 진입합니다."
+        }
+      ],
+      "objectiveLabel": "고지 방어"
+    },
+    {
+      "id": "ger_ardennes_1944",
+      "title": "아르덴 공세",
+      "year": 1944,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "fortress_assault",
+      "enemyNation": "미국",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 9,
+      "battleTime": 640,
+      "rewardMult": 1.2,
+      "allowed": [
+        "판터",
+        "티거 1",
+        "티거 2",
+        "야크트판터",
+        "훔멜"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년 12월, 아르덴. 좁은 산악 도로를 따라 적 방어진지를 돌파한다.\n목표: 방어진지 강습.",
+      "events": [
+        {
+          "time": 60,
+          "type": "fog",
+          "duration": 80,
+          "msg": "눈보라: 시야가 크게 감소합니다."
+        },
+        {
+          "time": 260,
+          "type": "engine",
+          "duration": 45,
+          "msg": "연료 부족: 일시적으로 기동력이 감소합니다."
+        }
+      ],
+      "objectiveLabel": "방어진지 강습"
+    },
+    {
+      "id": "ger_balaton_1945",
+      "title": "벌러톤 호수 반격",
+      "year": 1945,
+      "map": "늪지",
+      "mode": "capture",
+      "objective": "mud_counterattack",
+      "enemyNation": "소련",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 11,
+      "battleTime": 600,
+      "rewardMult": 1.3,
+      "allowed": [
+        "판터",
+        "티거 1",
+        "티거 2",
+        "야크트판터",
+        "훔멜",
+        "2호 전차 룩스"
+      ],
+      "enemyTiers": [
+        3,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        3,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년 헝가리. 늪지와 마을 사이의 거점을 장악해 마지막 반격로를 확보한다.\n목표: 진흙 속 반격.",
+      "events": [
+        {
+          "time": 90,
+          "type": "engine",
+          "duration": 55,
+          "msg": "진흙 지형으로 기동력이 떨어집니다."
+        },
+        {
+          "time": 240,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "소련 중전차 예비대가 진입합니다."
+        }
+      ],
+      "captureScore": 150,
+      "killQuota": 5,
+      "objectiveLabel": "진흙 속 반격"
+    },
+    {
+      "id": "ger_berlin_1945",
+      "title": "베를린 방어전",
+      "year": 1945,
+      "map": "시가전",
+      "mode": "assault",
+      "objective": "last_stand",
+      "enemyNation": "소련",
+      "difficulty": "어려움",
+      "allyCount": 3,
+      "enemyCount": 12,
+      "battleTime": 520,
+      "rewardMult": 1.35,
+      "allowed": [
+        "판터",
+        "티거 2",
+        "야크트판터",
+        "훔멜",
+        "2호 전차 룩스"
+      ],
+      "enemyTiers": [
+        3,
+        3,
+        3,
+        2,
+        3,
+        2,
+        3,
+        3,
+        2,
+        3,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년 4월, 베를린 시가. 포탑과 잔존 기갑부대를 지켜 마지막 방어선을 유지해야 한다.\n목표: 최후 방어.",
+      "events": [
+        {
+          "time": 70,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "적 돌격대 증원."
+        },
+        {
+          "time": 180,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "또 다른 소련 전차대가 접근합니다."
+        }
+      ],
+      "maxAllyLoss": 4,
+      "objectiveLabel": "최후 방어"
     }
   ],
   "소련": [
     {
-      id:"sov_moscow_1941", title:"모스크바 방어전", year:1941, map:"산악", mode:"assault", objective:"defense",
-      enemyNation:"독일", difficulty:"보통", allyCount:3, enemyCount:8, battleTime:480, rewardMult:1.15,
-      allowed:["T-26","BT-7","T-28","KV-1","SU-76M"],
-      enemyTiers:[1,1,1,2,1,1,2,1], enemyClasses:["경전차","중형전차","중형전차","구축전차","자주포"],
-      briefing:"1941년 겨울, 모스크바 외곽. 방어선을 지키며 독일 기갑부대를 저지한다.\n목표: 제한 시간 동안 아군 포탑 생존.",
-      events:[{time:90,type:"fog",duration:70,msg:"눈보라로 시야가 감소합니다."},{time:240,type:"supply",msg:"후방 보급: 수리 키트 1개 추가."}]
+      "id": "sov_border_1941",
+      "title": "국경 지연전",
+      "year": 1941,
+      "map": "평지",
+      "mode": "annihilation",
+      "objective": "delaying_action",
+      "enemyNation": "독일",
+      "difficulty": "쉬움",
+      "allyCount": 3,
+      "enemyCount": 7,
+      "battleTime": 420,
+      "rewardMult": 1.08,
+      "allowed": [
+        "T-26",
+        "BT-7",
+        "T-28",
+        "SU-76M"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 6월, 국경 지대. 후방 부대가 재편할 시간을 벌기 위해 독일 선두부대를 지연시킨다.\n목표: 국경 지연전.",
+      "events": [
+        {
+          "time": 80,
+          "type": "radio",
+          "duration": 50,
+          "msg": "지휘망이 혼란에 빠졌습니다."
+        },
+        {
+          "time": 210,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 선두부대 증원."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "국경 지연전"
     },
     {
-      id:"sov_stalingrad_1942", title:"스탈린그라드", year:1942, map:"시가전", mode:"annihilation", objective:"survival",
-      enemyNation:"독일", difficulty:"보통", allyCount:4, enemyCount:9, battleTime:500, rewardMult:1.20,
-      allowed:["T-34/76","KV-1","SU-76M","SU-122","BT-7"],
-      enemyTiers:[1,2,2,1,2,1,2,1,2], enemyClasses:["중형전차","구축전차","자주포","경전차","중전차"],
-      briefing:"1942년, 스탈린그라드. 폐허가 된 거리를 이용해 적을 지연시킨다.\n목표: 제한 시간 동안 생존 또는 적 전차 섬멸.",
-      events:[{time:110,type:"radio",msg:"건물 잔해로 통신이 끊깁니다."},{time:230,type:"reinforce",count:2,msg:"독일 증원 전차가 도착했습니다."}]
+      "id": "sov_smolensk_1941",
+      "title": "스몰렌스크 역습",
+      "year": 1941,
+      "map": "언덕",
+      "mode": "capture",
+      "objective": "roadblock",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 540,
+      "rewardMult": 1.12,
+      "allowed": [
+        "T-26",
+        "BT-7",
+        "T-28",
+        "KV-1",
+        "SU-76M"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 여름, 스몰렌스크. 전방 거점을 되찾아 독일군 진격을 늦춘다.\n목표: 진격로 차단.",
+      "events": [
+        {
+          "time": 120,
+          "type": "supply",
+          "msg": "후방 보급대가 수리 키트를 전달합니다."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 예비대가 투입됩니다."
+        }
+      ],
+      "captureScore": 150,
+      "objectiveLabel": "진격로 차단"
     },
     {
-      id:"sov_kursk_1943", title:"쿠르스크 반격", year:1943, map:"평지", mode:"annihilation", objective:"destroy",
-      enemyNation:"독일", difficulty:"어려움", allyCount:5, enemyCount:11, battleTime:620, rewardMult:1.25,
-      allowed:["T-34/76","T-34/85","KV-85","SU-85","SU-100","SU-122"],
-      enemyTiers:[2,2,3,2,3,2,3,2,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      briefing:"1943년 7월, 방어 후 반격. 독일 기갑 전력을 소모시켜 전선을 밀어낸다.\n목표: 적 전차 섬멸.",
-      events:[{time:75,type:"artillery",msg:"카튜샤 포격 지원."},{time:260,type:"ace",msg:"적 에이스 전차 발견."}]
+      "id": "sov_moscow_1941",
+      "title": "모스크바 방어전",
+      "year": 1941,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "winter_hold",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 3,
+      "enemyCount": 8,
+      "battleTime": 480,
+      "rewardMult": 1.15,
+      "allowed": [
+        "T-26",
+        "BT-7",
+        "T-28",
+        "KV-1",
+        "SU-76M"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 겨울, 모스크바 외곽. 방어선을 지키며 독일 기갑부대를 저지한다.\n목표: 수도 외곽 방어.",
+      "events": [
+        {
+          "time": 90,
+          "type": "fog",
+          "duration": 70,
+          "msg": "눈보라로 시야가 감소합니다."
+        },
+        {
+          "time": 240,
+          "type": "supply",
+          "msg": "후방 보급: 수리 키트 1개 추가."
+        }
+      ],
+      "objectiveLabel": "수도 외곽 방어"
     },
     {
-      id:"sov_bagration_1944", title:"바그라티온 작전", year:1944, map:"언덕", mode:"capture", objective:"capture",
-      enemyNation:"독일", difficulty:"어려움", allyCount:5, enemyCount:10, battleTime:580, rewardMult:1.25,
-      allowed:["T-34/85","IS-2","SU-85","SU-100","ISU-152","T-70"],
-      enemyTiers:[2,2,2,3,2,3,2,3,2,3], enemyClasses:["중형전차","구축전차","중전차","자주포","경전차"],
-      briefing:"1944년 여름, 대공세. 거점을 빠르게 장악해 독일군 퇴로를 끊는다.\n목표: 거점 점령 점수 우세.",
-      events:[{time:120,type:"supply",msg:"전선 보급 도착."},{time:260,type:"reinforce",count:2,msg:"독일 예비대가 투입됩니다."}]
+      "id": "sov_winter_counter_1941",
+      "title": "겨울 반격",
+      "year": 1941,
+      "map": "산악",
+      "mode": "annihilation",
+      "objective": "winter_counterattack",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 500,
+      "rewardMult": 1.15,
+      "allowed": [
+        "T-26",
+        "BT-7",
+        "T-28",
+        "KV-1",
+        "SU-76M"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        2,
+        1,
+        2,
+        1,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년 말, 혹한 속 반격. 독일 방어선을 돌파해 전선을 밀어낸다.\n목표: 혹한 반격.",
+      "events": [
+        {
+          "time": 70,
+          "type": "fog",
+          "duration": 65,
+          "msg": "강설로 시야가 제한됩니다."
+        },
+        {
+          "time": 180,
+          "type": "artillery",
+          "msg": "전선 포병이 돌파로를 엽니다."
+        }
+      ],
+      "killQuota": 4,
+      "objectiveLabel": "혹한 반격"
     },
     {
-      id:"sov_berlin_1945", title:"베를린 공세", year:1945, map:"시가전", mode:"assault", objective:"assault",
-      enemyNation:"독일", difficulty:"어려움", allyCount:5, enemyCount:11, battleTime:620, rewardMult:1.35,
-      allowed:["T-34/85","IS-2","SU-100","ISU-152","T-70"],
-      enemyTiers:[3,3,2,3,2,3,2,3,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      briefing:"1945년 4월, 베를린. 시가 방어선을 뚫고 적 진지를 파괴한다.\n목표: 적 진지 포탑 파괴.",
-      events:[{time:90,type:"reinforce",count:2,msg:"독일 잔존 기갑대 증원."},{time:210,type:"fog",duration:45,msg:"연기와 먼지로 시야가 감소합니다."}]
+      "id": "sov_stalingrad_1942",
+      "title": "스탈린그라드",
+      "year": 1942,
+      "map": "시가전",
+      "mode": "annihilation",
+      "objective": "urban_hold",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 9,
+      "battleTime": 500,
+      "rewardMult": 1.2,
+      "allowed": [
+        "T-34/76",
+        "KV-1",
+        "SU-76M",
+        "SU-122",
+        "BT-7"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차",
+        "중전차"
+      ],
+      "briefing": "1942년, 스탈린그라드. 폐허가 된 거리를 이용해 적을 지연시킨다.\n목표: 폐허 고수.",
+      "events": [
+        {
+          "time": 110,
+          "type": "radio",
+          "duration": 45,
+          "msg": "건물 잔해로 통신이 끊깁니다."
+        },
+        {
+          "time": 230,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 증원 전차가 도착했습니다."
+        }
+      ],
+      "holdTime": 360,
+      "killQuota": 4,
+      "objectiveLabel": "폐허 고수"
+    },
+    {
+      "id": "sov_uranus_1942",
+      "title": "천왕성 작전",
+      "year": 1942,
+      "map": "평지",
+      "mode": "breakthrough",
+      "objective": "encirclement_breakthrough",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 5,
+      "enemyCount": 8,
+      "battleTime": 520,
+      "rewardMult": 1.22,
+      "allowed": [
+        "T-34/76",
+        "KV-1",
+        "SU-76M",
+        "SU-122",
+        "BT-7"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "경전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1942년 겨울, 포위 작전. 측면 방어선을 돌파해 독일군 포위망을 완성한다.\n목표: 포위망 돌파.",
+      "events": [
+        {
+          "time": 100,
+          "type": "artillery",
+          "msg": "대규모 포병 준비사격."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 방어대가 급히 투입됩니다."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "포위망 돌파"
+    },
+    {
+      "id": "sov_kharkov_1943",
+      "title": "하르코프 탈환전",
+      "year": 1943,
+      "map": "시가전",
+      "mode": "capture",
+      "objective": "urban_counterattack",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 9,
+      "battleTime": 560,
+      "rewardMult": 1.22,
+      "allowed": [
+        "T-34/76",
+        "T-34/85",
+        "KV-1",
+        "KV-85",
+        "SU-85",
+        "SU-122"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년, 하르코프 시가지. 주요 교차로를 장악해 독일 기갑부대를 밀어낸다.\n목표: 시가지 역습.",
+      "events": [
+        {
+          "time": 150,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 전차대가 시가지 측면으로 진입합니다."
+        },
+        {
+          "time": 300,
+          "type": "supply",
+          "msg": "근위부대 보급 도착."
+        }
+      ],
+      "captureScore": 150,
+      "killQuota": 4,
+      "objectiveLabel": "시가지 역습"
+    },
+    {
+      "id": "sov_kursk_1943",
+      "title": "쿠르스크 반격",
+      "year": 1943,
+      "map": "평지",
+      "mode": "annihilation",
+      "objective": "tank_hunt",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 11,
+      "battleTime": 620,
+      "rewardMult": 1.25,
+      "allowed": [
+        "T-34/76",
+        "T-34/85",
+        "KV-85",
+        "SU-85",
+        "SU-100",
+        "SU-122"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년 7월, 방어 후 반격. 독일 기갑 전력을 소모시켜 전선을 밀어낸다.\n목표: 기갑 소모전.",
+      "events": [
+        {
+          "time": 75,
+          "type": "artillery",
+          "msg": "카튜샤 포격 지원."
+        },
+        {
+          "time": 260,
+          "type": "ace",
+          "msg": "적 에이스 전차 발견."
+        }
+      ],
+      "killQuota": 7,
+      "objectiveLabel": "기갑 소모전"
+    },
+    {
+      "id": "sov_dnieper_1943",
+      "title": "드네프르 교두보",
+      "year": 1943,
+      "map": "늪지",
+      "mode": "assault",
+      "objective": "bridgehead_defense",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 10,
+      "battleTime": 540,
+      "rewardMult": 1.24,
+      "allowed": [
+        "T-34/76",
+        "T-34/85",
+        "KV-85",
+        "SU-85",
+        "SU-122"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        3,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년, 드네프르 강 교두보. 진지를 지켜 후속 부대의 도하를 보장한다.\n목표: 교두보 방어.",
+      "events": [
+        {
+          "time": 90,
+          "type": "engine",
+          "duration": 45,
+          "msg": "진흙과 강변 지형으로 기동력이 저하됩니다."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "독일 반격부대가 교두보를 압박합니다."
+        }
+      ],
+      "maxAllyLoss": 5,
+      "objectiveLabel": "교두보 방어"
+    },
+    {
+      "id": "sov_bagration_1944",
+      "title": "바그라티온 작전",
+      "year": 1944,
+      "map": "언덕",
+      "mode": "capture",
+      "objective": "deep_operation",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 10,
+      "battleTime": 580,
+      "rewardMult": 1.25,
+      "allowed": [
+        "T-34/85",
+        "IS-2",
+        "SU-85",
+        "SU-100",
+        "ISU-152",
+        "T-70"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년 여름, 대공세. 거점을 빠르게 장악해 독일군 퇴로를 끊는다.\n목표: 종심 돌파.",
+      "events": [
+        {
+          "time": 120,
+          "type": "supply",
+          "msg": "전선 보급 도착."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 예비대가 투입됩니다."
+        }
+      ],
+      "captureScore": 160,
+      "killQuota": 5,
+      "objectiveLabel": "종심 돌파"
+    },
+    {
+      "id": "sov_vistula_1945",
+      "title": "비스와-오데르 돌파",
+      "year": 1945,
+      "map": "평지",
+      "mode": "breakthrough",
+      "objective": "river_crossing",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 11,
+      "battleTime": 560,
+      "rewardMult": 1.3,
+      "allowed": [
+        "T-34/85",
+        "IS-2",
+        "SU-100",
+        "ISU-152",
+        "T-70"
+      ],
+      "enemyTiers": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년 1월, 대규모 돌파 작전. 독일 방어선의 틈을 열고 서쪽으로 진격한다.\n목표: 도하 돌파.",
+      "events": [
+        {
+          "time": 90,
+          "type": "artillery",
+          "msg": "전선 전체에 포병 준비사격."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "독일 방어 예비대가 차단을 시도합니다."
+        }
+      ],
+      "killQuota": 4,
+      "objectiveLabel": "도하 돌파"
+    },
+    {
+      "id": "sov_berlin_1945",
+      "title": "베를린 공세",
+      "year": 1945,
+      "map": "시가전",
+      "mode": "assault",
+      "objective": "fortress_assault",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 11,
+      "battleTime": 620,
+      "rewardMult": 1.35,
+      "allowed": [
+        "T-34/85",
+        "IS-2",
+        "SU-100",
+        "ISU-152",
+        "T-70"
+      ],
+      "enemyTiers": [
+        3,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년 4월, 베를린. 시가 방어선을 뚫고 적 진지를 파괴한다.\n목표: 시가지 진지 강습.",
+      "events": [
+        {
+          "time": 90,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 잔존 기갑대 증원."
+        },
+        {
+          "time": 210,
+          "type": "fog",
+          "duration": 45,
+          "msg": "연기와 먼지로 시야가 감소합니다."
+        }
+      ],
+      "objectiveLabel": "시가지 진지 강습"
     }
   ],
   "미국": [
     {
-      id:"usa_torch_1942", title:"북아프리카 상륙", year:1942, map:"사막", mode:"capture", objective:"capture",
-      enemyNation:"독일", difficulty:"쉬움", allyCount:4, enemyCount:7, battleTime:500, rewardMult:1.10,
-      allowed:["M2 경전차","M3/M5 스튜어트","M3 리/그랜트","M8 HMC","M10 울버린"],
-      enemyTiers:[1,1,1,2,1,1,2], enemyClasses:["경전차","중형전차","구축전차","자주포"],
-      briefing:"1942년, 북아프리카. 상륙 후 내륙 거점을 확보한다.\n목표: 거점 점령.",
-      events:[{time:160,type:"reinforce",count:2,msg:"적 정찰부대가 접근합니다."}]
+      "id": "usa_torch_1942",
+      "title": "북아프리카 상륙",
+      "year": 1942,
+      "map": "사막",
+      "mode": "capture",
+      "objective": "landing_secure",
+      "enemyNation": "독일",
+      "difficulty": "쉬움",
+      "allyCount": 4,
+      "enemyCount": 7,
+      "battleTime": 500,
+      "rewardMult": 1.1,
+      "allowed": [
+        "M2 경전차",
+        "M3/M5 스튜어트",
+        "M3 리/그랜트",
+        "M8 HMC",
+        "M10 울버린"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        2,
+        1,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1942년, 북아프리카. 상륙 후 내륙 거점을 확보한다.\n목표: 상륙 거점 확보.",
+      "events": [
+        {
+          "time": 160,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "적 정찰부대가 접근합니다."
+        }
+      ],
+      "captureScore": 140,
+      "objectiveLabel": "상륙 거점 확보"
     },
     {
-      id:"usa_sicily_1943", title:"시칠리아 진격", year:1943, map:"언덕", mode:"breakthrough", objective:"breakthrough",
-      enemyNation:"독일", difficulty:"보통", allyCount:4, enemyCount:8, battleTime:480, rewardMult:1.15,
-      allowed:["M3/M5 스튜어트","M4 셔먼","M10 울버린","M7 프리스트"],
-      enemyTiers:[1,2,2,1,2,1,2,1], enemyClasses:["경전차","중형전차","구축전차","자주포"],
-      briefing:"1943년, 시칠리아. 산악 도로를 따라 방어선을 돌파한다.\n목표: 돌파 지점 도달.",
-      events:[{time:120,type:"artillery",msg:"해상 포격 지원."},{time:240,type:"engine",duration:35,msg:"가파른 도로: 기동력 감소."}]
+      "id": "usa_kasserine_1943",
+      "title": "카세린 고개",
+      "year": 1943,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "holding_action",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 3,
+      "enemyCount": 8,
+      "battleTime": 480,
+      "rewardMult": 1.14,
+      "allowed": [
+        "M3/M5 스튜어트",
+        "M3 리/그랜트",
+        "M8 HMC",
+        "M10 울버린",
+        "M4 셔먼"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년 튀니지, 고개 방어선. 독일 기갑 반격을 막고 후방 재편 시간을 번다.\n목표: 고개 지연 방어.",
+      "events": [
+        {
+          "time": 80,
+          "type": "radio",
+          "duration": 40,
+          "msg": "지휘 체계 혼선으로 미니맵 정보가 제한됩니다."
+        },
+        {
+          "time": 230,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 전차가 협곡으로 추가 진입합니다."
+        }
+      ],
+      "maxAllyLoss": 5,
+      "objectiveLabel": "고개 지연 방어"
     },
     {
-      id:"usa_normandy_1944", title:"노르망디 돌파", year:1944, map:"평지", mode:"annihilation", objective:"destroy",
-      enemyNation:"독일", difficulty:"보통", allyCount:5, enemyCount:9, battleTime:560, rewardMult:1.20,
-      allowed:["M4 셔먼","M4A3E8 셔먼","M10 울버린","M18 헬캣","M7 프리스트"],
-      enemyTiers:[2,2,2,3,2,2,3,2,2], enemyClasses:["중형전차","구축전차","중전차","자주포","경전차"],
-      briefing:"1944년 6월 이후, 노르망디 교두보. 독일 반격 전차를 격파하고 돌파로를 연다.\n목표: 적 전차 섬멸.",
-      events:[{time:100,type:"fog",duration:50,msg:"먼지와 연막으로 시야 저하."},{time:260,type:"reinforce",count:2,msg:"독일 기갑 예비대 접근."}]
+      "id": "usa_tunisia_1943",
+      "title": "튀니지 추격전",
+      "year": 1943,
+      "map": "사막",
+      "mode": "annihilation",
+      "objective": "pursuit",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 500,
+      "rewardMult": 1.16,
+      "allowed": [
+        "M3/M5 스튜어트",
+        "M4 셔먼",
+        "M3 리/그랜트",
+        "M10 울버린",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년, 튀니지 최종 추격. 후퇴하는 독일 기갑을 압박해 돌파로를 연다.\n목표: 후퇴 적 추격.",
+      "events": [
+        {
+          "time": 90,
+          "type": "fog",
+          "duration": 45,
+          "msg": "사막 먼지로 시야가 제한됩니다."
+        },
+        {
+          "time": 210,
+          "type": "artillery",
+          "msg": "야전 포병 지원."
+        }
+      ],
+      "killQuota": 4,
+      "objectiveLabel": "후퇴 적 추격"
     },
     {
-      id:"usa_ardennes_1944", title:"아르덴 방어", year:1944, map:"산악", mode:"assault", objective:"defense",
-      enemyNation:"독일", difficulty:"어려움", allyCount:4, enemyCount:10, battleTime:520, rewardMult:1.25,
-      allowed:["M4 셔먼","M4A3E8 셔먼","M4A3E2 점보","M18 헬캣","M36 잭슨","M7 프리스트"],
-      enemyTiers:[2,3,3,2,3,2,3,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      briefing:"1944년 12월, 아르덴. 독일 공세를 막고 진지를 지켜야 한다.\n목표: 제한 시간 동안 아군 포탑 생존.",
-      events:[{time:70,type:"fog",duration:90,msg:"눈보라 발생."},{time:190,type:"reinforce",count:3,msg:"독일 증원 전차 도착."}]
+      "id": "usa_sicily_1943",
+      "title": "시칠리아 진격",
+      "year": 1943,
+      "map": "언덕",
+      "mode": "breakthrough",
+      "objective": "mountain_pass",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 480,
+      "rewardMult": 1.15,
+      "allowed": [
+        "M3/M5 스튜어트",
+        "M4 셔먼",
+        "M10 울버린",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1943년, 시칠리아. 산악 도로를 따라 방어선을 돌파한다.\n목표: 산악 진격로 돌파.",
+      "events": [
+        {
+          "time": 120,
+          "type": "artillery",
+          "msg": "해상 포격 지원."
+        },
+        {
+          "time": 240,
+          "type": "engine",
+          "duration": 35,
+          "msg": "가파른 도로: 기동력 감소."
+        }
+      ],
+      "killQuota": 2,
+      "objectiveLabel": "산악 진격로 돌파"
     },
     {
-      id:"usa_rhine_1945", title:"라인강 진격", year:1945, map:"시가전", mode:"assault", objective:"assault",
-      enemyNation:"독일", difficulty:"어려움", allyCount:5, enemyCount:10, battleTime:600, rewardMult:1.30,
-      allowed:["M4A3E8 셔먼","M4A3E2 점보","M26 퍼싱","M36 잭슨","M12 GMC"],
-      enemyTiers:[3,2,3,2,3,2,3,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      briefing:"1945년, 독일 본토. 도시 외곽 방어 진지를 파괴하고 진격로를 확보한다.\n목표: 적 진지 포탑 파괴.",
-      events:[{time:120,type:"supply",msg:"공병대가 임시 수리 보급을 제공합니다."},{time:260,type:"ace",msg:"독일 에이스 전차 확인."}]
+      "id": "usa_salerno_1943",
+      "title": "살레르노 교두보",
+      "year": 1943,
+      "map": "평지",
+      "mode": "assault",
+      "objective": "beachhead_defense",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 9,
+      "battleTime": 500,
+      "rewardMult": 1.18,
+      "allowed": [
+        "M4 셔먼",
+        "M3/M5 스튜어트",
+        "M10 울버린",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년 이탈리아 상륙 후, 교두보를 향한 독일 반격을 막는다.\n목표: 교두보 방어.",
+      "events": [
+        {
+          "time": 110,
+          "type": "artillery",
+          "msg": "해상 포격이 적 선두부대를 타격합니다."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 반격부대가 도착합니다."
+        }
+      ],
+      "objectiveLabel": "교두보 방어"
+    },
+    {
+      "id": "usa_anzio_1944",
+      "title": "안치오 방어전",
+      "year": 1944,
+      "map": "늪지",
+      "mode": "assault",
+      "objective": "beachhead_defense",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 10,
+      "battleTime": 540,
+      "rewardMult": 1.22,
+      "allowed": [
+        "M4 셔먼",
+        "M10 울버린",
+        "M18 헬캣",
+        "M7 프리스트",
+        "M4A3E8 셔먼"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년 안치오. 습지와 해안 교두보를 지켜 후속 병력 투입을 보장한다.\n목표: 안치오 교두보 방어.",
+      "events": [
+        {
+          "time": 95,
+          "type": "engine",
+          "duration": 45,
+          "msg": "습지 지형으로 기동력이 저하됩니다."
+        },
+        {
+          "time": 250,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "독일 기갑 반격."
+        }
+      ],
+      "maxAllyLoss": 5,
+      "objectiveLabel": "안치오 교두보 방어"
+    },
+    {
+      "id": "usa_normandy_1944",
+      "title": "노르망디 돌파",
+      "year": 1944,
+      "map": "평지",
+      "mode": "annihilation",
+      "objective": "hedgerow_clear",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 5,
+      "enemyCount": 9,
+      "battleTime": 560,
+      "rewardMult": 1.2,
+      "allowed": [
+        "M4 셔먼",
+        "M4A3E8 셔먼",
+        "M10 울버린",
+        "M18 헬캣",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년 6월 이후, 노르망디 교두보. 독일 반격 전차를 격파하고 돌파로를 연다.\n목표: 생울타리 방어선 청소.",
+      "events": [
+        {
+          "time": 100,
+          "type": "fog",
+          "duration": 50,
+          "msg": "먼지와 연막으로 시야 저하."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 기갑 예비대 접근."
+        }
+      ],
+      "killQuota": 6,
+      "objectiveLabel": "생울타리 방어선 청소"
+    },
+    {
+      "id": "usa_cobra_1944",
+      "title": "코브라 작전",
+      "year": 1944,
+      "map": "평지",
+      "mode": "breakthrough",
+      "objective": "air_ground_breakthrough",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 5,
+      "enemyCount": 9,
+      "battleTime": 520,
+      "rewardMult": 1.22,
+      "allowed": [
+        "M4 셔먼",
+        "M4A3E8 셔먼",
+        "M18 헬캣",
+        "M10 울버린",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        3,
+        2,
+        2,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차",
+        "중전차"
+      ],
+      "briefing": "1944년 여름, 노르망디 돌파 작전. 항공 폭격 이후 기갑부대가 개활지를 돌파한다.\n목표: 항공지원 돌파.",
+      "events": [
+        {
+          "time": 60,
+          "type": "artillery",
+          "msg": "집중 폭격 후 지상 진격 개시."
+        },
+        {
+          "time": 210,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 차단부대가 투입됩니다."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "항공지원 돌파"
+    },
+    {
+      "id": "usa_hurtgen_1944",
+      "title": "휘르트겐 숲 전투",
+      "year": 1944,
+      "map": "산악",
+      "mode": "annihilation",
+      "objective": "forest_hunt",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 10,
+      "battleTime": 540,
+      "rewardMult": 1.24,
+      "allowed": [
+        "M4 셔먼",
+        "M4A3E8 셔먼",
+        "M10 울버린",
+        "M18 헬캣",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "구축전차",
+        "중형전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년, 숲과 고지의 소모전. 매복을 버티며 적 전차를 찾아 격파한다.\n목표: 숲속 매복전.",
+      "events": [
+        {
+          "time": 70,
+          "type": "fog",
+          "duration": 70,
+          "msg": "숲과 안개로 시야가 급감합니다."
+        },
+        {
+          "time": 220,
+          "type": "radio",
+          "duration": 45,
+          "msg": "수목 지형 때문에 통신이 불안정합니다."
+        }
+      ],
+      "holdTime": 360,
+      "killQuota": 5,
+      "objectiveLabel": "숲속 매복전"
+    },
+    {
+      "id": "usa_ardennes_1944",
+      "title": "아르덴 방어",
+      "year": 1944,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "holding_action",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 10,
+      "battleTime": 520,
+      "rewardMult": 1.25,
+      "allowed": [
+        "M4 셔먼",
+        "M4A3E8 셔먼",
+        "M4A3E2 점보",
+        "M18 헬캣",
+        "M36 잭슨",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        3,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년 12월, 아르덴. 독일 공세를 막고 진지를 지켜야 한다.\n목표: 공세 저지.",
+      "events": [
+        {
+          "time": 70,
+          "type": "fog",
+          "duration": 90,
+          "msg": "눈보라 발생."
+        },
+        {
+          "time": 190,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "독일 증원 전차 도착."
+        }
+      ],
+      "objectiveLabel": "공세 저지"
+    },
+    {
+      "id": "usa_rhine_1945",
+      "title": "라인강 진격",
+      "year": 1945,
+      "map": "시가전",
+      "mode": "assault",
+      "objective": "fortress_assault",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 10,
+      "battleTime": 600,
+      "rewardMult": 1.3,
+      "allowed": [
+        "M4A3E8 셔먼",
+        "M4A3E2 점보",
+        "M26 퍼싱",
+        "M36 잭슨",
+        "M12 GMC"
+      ],
+      "enemyTiers": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년, 독일 본토. 도시 외곽 방어 진지를 파괴하고 진격로를 확보한다.\n목표: 도시 진지 강습.",
+      "events": [
+        {
+          "time": 120,
+          "type": "supply",
+          "msg": "공병대가 임시 수리 보급을 제공합니다."
+        },
+        {
+          "time": 260,
+          "type": "ace",
+          "msg": "독일 에이스 전차 확인."
+        }
+      ],
+      "objectiveLabel": "도시 진지 강습"
+    },
+    {
+      "id": "usa_ruhr_1945",
+      "title": "루르 포위망",
+      "year": 1945,
+      "map": "시가전",
+      "mode": "capture",
+      "objective": "encirclement",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 10,
+      "battleTime": 580,
+      "rewardMult": 1.28,
+      "allowed": [
+        "M4A3E8 셔먼",
+        "M4A3E2 점보",
+        "M26 퍼싱",
+        "M36 잭슨",
+        "M12 GMC",
+        "M24 채피"
+      ],
+      "enemyTiers": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "중전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년, 루르 공업지대. 교차로와 공장 지대를 장악해 포위망을 완성한다.\n목표: 포위망 완성.",
+      "events": [
+        {
+          "time": 100,
+          "type": "radio",
+          "duration": 35,
+          "msg": "시가지 통신 혼선."
+        },
+        {
+          "time": 250,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 잔존 전차대가 반격합니다."
+        }
+      ],
+      "captureScore": 155,
+      "killQuota": 5,
+      "objectiveLabel": "포위망 완성"
     }
   ],
   "영국": [
     {
-      id:"uk_france_1940", title:"프랑스 방어전", year:1940, map:"평지", mode:"assault", objective:"defense",
-      enemyNation:"독일", difficulty:"쉬움", allyCount:3, enemyCount:7, battleTime:420, rewardMult:1.10,
-      allowed:["경전차 Mk VI","마틸다 2","크루세이더","비숍"],
-      enemyTiers:[1,1,1,1,2,1,1], enemyClasses:["경전차","중형전차","구축전차","자주포"],
-      briefing:"1940년, 프랑스. 후퇴로를 확보하기 위해 방어선을 유지한다.\n목표: 제한 시간 동안 아군 포탑 생존.",
-      events:[{time:120,type:"reinforce",count:2,msg:"독일 선두부대가 추가로 접근합니다."}]
+      "id": "uk_france_1940",
+      "title": "프랑스 방어전",
+      "year": 1940,
+      "map": "평지",
+      "mode": "assault",
+      "objective": "rearguard_screen",
+      "enemyNation": "독일",
+      "difficulty": "쉬움",
+      "allyCount": 3,
+      "enemyCount": 7,
+      "battleTime": 420,
+      "rewardMult": 1.1,
+      "allowed": [
+        "경전차 Mk VI",
+        "마틸다 2",
+        "크루세이더",
+        "비숍"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1940년, 프랑스. 후퇴로를 확보하기 위해 방어선을 유지한다.\n목표: 후퇴로 엄호.",
+      "events": [
+        {
+          "time": 120,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 선두부대가 추가로 접근합니다."
+        }
+      ],
+      "maxAllyLoss": 5,
+      "objectiveLabel": "후퇴로 엄호"
     },
     {
-      id:"uk_north_africa_1941", title:"북아프리카 기동전", year:1941, map:"사막", mode:"breakthrough", objective:"breakthrough",
-      enemyNation:"독일", difficulty:"보통", allyCount:4, enemyCount:8, battleTime:500, rewardMult:1.15,
-      allowed:["경전차 Mk VI","크루세이더","마틸다 2","비숍","디컨"],
-      enemyTiers:[1,2,1,2,1,2,1,2], enemyClasses:["경전차","중형전차","구축전차","자주포"],
-      briefing:"1941년, 북아프리카. 열린 사막에서 적 방어선을 우회 돌파한다.\n목표: 돌파 지점 도달.",
-      events:[{time:90,type:"fog",duration:45,msg:"모래먼지로 시야가 줄어듭니다."},{time:230,type:"engine",duration:40,msg:"모래 지형으로 기동력이 저하됩니다."}]
+      "id": "uk_arras_1940",
+      "title": "아라스 반격",
+      "year": 1940,
+      "map": "평지",
+      "mode": "annihilation",
+      "objective": "armored_raid",
+      "enemyNation": "독일",
+      "difficulty": "쉬움",
+      "allyCount": 3,
+      "enemyCount": 6,
+      "battleTime": 420,
+      "rewardMult": 1.1,
+      "allowed": [
+        "경전차 Mk VI",
+        "마틸다 2",
+        "크루세이더",
+        "비숍"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        2,
+        1,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1940년, 아라스. 중장갑 마틸다를 앞세워 독일 선두부대를 흔든다.\n목표: 마틸다 기습.",
+      "events": [
+        {
+          "time": 100,
+          "type": "artillery",
+          "msg": "아군 포병이 도로 방어선을 타격합니다."
+        },
+        {
+          "time": 220,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 대전차 부대가 증원됩니다."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "마틸다 기습"
     },
     {
-      id:"uk_el_alamein_1942", title:"엘 알라메인", year:1942, map:"사막", mode:"capture", objective:"capture",
-      enemyNation:"독일", difficulty:"보통", allyCount:5, enemyCount:9, battleTime:560, rewardMult:1.20,
-      allowed:["크루세이더","크롬웰","마틸다 2","처칠 Mk IV","아처","M7 프리스트"],
-      enemyTiers:[2,2,2,1,2,2,1,2,2], enemyClasses:["중형전차","구축전차","자주포","경전차"],
-      briefing:"1942년, 엘 알라메인. 핵심 거점을 점령해 추축군 방어선을 붕괴시킨다.\n목표: 거점 점령 점수 우세.",
-      events:[{time:100,type:"artillery",msg:"아군 포병 지원."},{time:260,type:"reinforce",count:2,msg:"적 예비대 도착."}]
+      "id": "uk_compass_1940",
+      "title": "컴퍼스 작전",
+      "year": 1940,
+      "map": "사막",
+      "mode": "capture",
+      "objective": "desert_outflank",
+      "enemyNation": "독일",
+      "difficulty": "쉬움",
+      "allyCount": 4,
+      "enemyCount": 7,
+      "battleTime": 480,
+      "rewardMult": 1.12,
+      "allowed": [
+        "경전차 Mk VI",
+        "마틸다 2",
+        "크루세이더",
+        "비숍",
+        "디컨"
+      ],
+      "enemyTiers": [
+        1,
+        1,
+        1,
+        1,
+        2,
+        1,
+        1
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1940년 말, 북아프리카. 사막 거점을 빠르게 점령해 적 방어선을 붕괴시킨다.\n목표: 사막 우회 점령.",
+      "events": [
+        {
+          "time": 130,
+          "type": "fog",
+          "duration": 45,
+          "msg": "모래먼지가 시야를 가립니다."
+        }
+      ],
+      "captureScore": 140,
+      "objectiveLabel": "사막 우회 점령"
     },
     {
-      id:"uk_normandy_1944", title:"노르망디", year:1944, map:"언덕", mode:"annihilation", objective:"ace",
-      enemyNation:"독일", difficulty:"어려움", allyCount:5, enemyCount:10, battleTime:620, rewardMult:1.25,
-      allowed:["크롬웰","코멧","처칠 Mk IV","처칠 Mk VII","아처","아킬레스","섹스턴"],
-      enemyTiers:[2,3,2,3,2,3,2,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      ace:{nation:"독일",cls:"중전차",tier:2,label:"티거 에이스"},
-      briefing:"1944년, 노르망디. 독일 중전차 에이스를 격파해 전선 돌파를 지원한다.\n목표: 적 에이스 전차 격파.",
-      events:[{time:160,type:"ace",msg:"적 에이스가 위치를 드러냈습니다."}]
+      "id": "uk_north_africa_1941",
+      "title": "북아프리카 기동전",
+      "year": 1941,
+      "map": "사막",
+      "mode": "breakthrough",
+      "objective": "desert_breakthrough",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 500,
+      "rewardMult": 1.15,
+      "allowed": [
+        "경전차 Mk VI",
+        "크루세이더",
+        "마틸다 2",
+        "비숍",
+        "디컨"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        1,
+        2,
+        1,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "경전차",
+        "중형전차",
+        "구축전차",
+        "자주포"
+      ],
+      "briefing": "1941년, 북아프리카. 열린 사막에서 적 방어선을 우회 돌파한다.\n목표: 사막 돌파.",
+      "events": [
+        {
+          "time": 90,
+          "type": "fog",
+          "duration": 45,
+          "msg": "모래먼지로 시야가 줄어듭니다."
+        },
+        {
+          "time": 230,
+          "type": "engine",
+          "duration": 40,
+          "msg": "모래 지형으로 기동력이 저하됩니다."
+        }
+      ],
+      "killQuota": 2,
+      "objectiveLabel": "사막 돌파"
     },
     {
-      id:"uk_rhine_1945", title:"라인강 진격", year:1945, map:"시가전", mode:"assault", objective:"assault",
-      enemyNation:"독일", difficulty:"어려움", allyCount:5, enemyCount:10, battleTime:600, rewardMult:1.30,
-      allowed:["코멧","처칠 Mk VII","아킬레스","섹스턴","M3 스튜어트 “허니”"],
-      enemyTiers:[3,2,3,2,3,2,3,2,3,2], enemyClasses:["중형전차","중전차","구축전차","자주포","경전차"],
-      briefing:"1945년, 라인강 방면. 도시 방어선을 뚫고 적 진지를 파괴한다.\n목표: 적 진지 포탑 파괴.",
-      events:[{time:110,type:"supply",msg:"보급대 도착: 수리 키트 1개 추가."},{time:250,type:"reinforce",count:2,msg:"독일 잔존 전차대가 반격합니다."}]
+      "id": "uk_crusader_1941",
+      "title": "크루세이더 작전",
+      "year": 1941,
+      "map": "사막",
+      "mode": "annihilation",
+      "objective": "relief_attack",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 5,
+      "enemyCount": 8,
+      "battleTime": 520,
+      "rewardMult": 1.17,
+      "allowed": [
+        "크루세이더",
+        "마틸다 2",
+        "비숍",
+        "디컨",
+        "경전차 Mk VI"
+      ],
+      "enemyTiers": [
+        1,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1941년, 토브룩 구원 작전. 사막 기동전으로 독일 기갑을 격파한다.\n목표: 토브룩 구원 공격.",
+      "events": [
+        {
+          "time": 120,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 기갑 예비대가 남쪽에서 접근합니다."
+        },
+        {
+          "time": 260,
+          "type": "supply",
+          "msg": "전방 보급대가 수리 키트를 전달합니다."
+        }
+      ],
+      "killQuota": 5,
+      "objectiveLabel": "토브룩 구원 공격"
+    },
+    {
+      "id": "uk_gazala_1942",
+      "title": "가잘라 방어전",
+      "year": 1942,
+      "map": "사막",
+      "mode": "assault",
+      "objective": "box_defense",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 9,
+      "battleTime": 520,
+      "rewardMult": 1.18,
+      "allowed": [
+        "크루세이더",
+        "마틸다 2",
+        "비숍",
+        "디컨",
+        "처칠 Mk IV"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1942년, 가잘라 방어선. 사막 진지를 지켜 독일 기갑의 돌파를 막는다.\n목표: 박스 방어.",
+      "events": [
+        {
+          "time": 80,
+          "type": "fog",
+          "duration": 55,
+          "msg": "모래폭풍으로 시야가 감소합니다."
+        },
+        {
+          "time": 210,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "독일 전차대가 방어선 측면을 압박합니다."
+        }
+      ],
+      "maxAllyLoss": 5,
+      "objectiveLabel": "박스 방어"
+    },
+    {
+      "id": "uk_el_alamein_1942",
+      "title": "엘 알라메인",
+      "year": 1942,
+      "map": "사막",
+      "mode": "capture",
+      "objective": "minefield_breach",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 5,
+      "enemyCount": 9,
+      "battleTime": 560,
+      "rewardMult": 1.2,
+      "allowed": [
+        "크루세이더",
+        "크롬웰",
+        "마틸다 2",
+        "처칠 Mk IV",
+        "아처",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1942년, 엘 알라메인. 핵심 거점을 점령해 추축군 방어선을 붕괴시킨다.\n목표: 지뢰지대 돌파.",
+      "events": [
+        {
+          "time": 100,
+          "type": "artillery",
+          "msg": "아군 포병 지원."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "적 예비대 도착."
+        }
+      ],
+      "captureScore": 160,
+      "killQuota": 4,
+      "objectiveLabel": "지뢰지대 돌파"
+    },
+    {
+      "id": "uk_tunisia_1943",
+      "title": "튀니지 돌파",
+      "year": 1943,
+      "map": "언덕",
+      "mode": "breakthrough",
+      "objective": "mountain_pass",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 500,
+      "rewardMult": 1.18,
+      "allowed": [
+        "크루세이더",
+        "크롬웰",
+        "처칠 Mk IV",
+        "아처",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년, 튀니지 산악지대. 후퇴하는 독일 방어선을 돌파한다.\n목표: 튀니지 산악 돌파.",
+      "events": [
+        {
+          "time": 110,
+          "type": "engine",
+          "duration": 35,
+          "msg": "거친 산악로로 기동력이 떨어집니다."
+        },
+        {
+          "time": 240,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 후위부대가 방어선을 형성합니다."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "튀니지 산악 돌파"
+    },
+    {
+      "id": "uk_sicily_1943",
+      "title": "시칠리아 상륙 지원",
+      "year": 1943,
+      "map": "언덕",
+      "mode": "capture",
+      "objective": "landing_secure",
+      "enemyNation": "독일",
+      "difficulty": "보통",
+      "allyCount": 4,
+      "enemyCount": 8,
+      "battleTime": 540,
+      "rewardMult": 1.18,
+      "allowed": [
+        "크루세이더",
+        "크롬웰",
+        "처칠 Mk IV",
+        "아처",
+        "M7 프리스트"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        2,
+        1,
+        2,
+        2,
+        1,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1943년, 시칠리아. 내륙 진격로의 고지와 도로 거점을 장악한다.\n목표: 상륙 지원 거점 확보.",
+      "events": [
+        {
+          "time": 100,
+          "type": "artillery",
+          "msg": "해상 포격 지원."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 방어대가 후퇴로를 막습니다."
+        }
+      ],
+      "captureScore": 145,
+      "objectiveLabel": "상륙 지원 거점 확보"
+    },
+    {
+      "id": "uk_italy_1944",
+      "title": "이탈리아 고지전",
+      "year": 1944,
+      "map": "산악",
+      "mode": "assault",
+      "objective": "fortress_assault",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 9,
+      "battleTime": 580,
+      "rewardMult": 1.22,
+      "allowed": [
+        "처칠 Mk IV",
+        "처칠 Mk VII",
+        "크롬웰",
+        "아처",
+        "아킬레스",
+        "섹스턴"
+      ],
+      "enemyTiers": [
+        2,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년 이탈리아 전선. 산악 방어선의 포탑 진지를 파괴한다.\n목표: 고지 진지 강습.",
+      "events": [
+        {
+          "time": 90,
+          "type": "engine",
+          "duration": 45,
+          "msg": "산악 지형으로 기동력이 감소합니다."
+        },
+        {
+          "time": 230,
+          "type": "artillery",
+          "msg": "아군 포병이 고지 진지를 타격합니다."
+        }
+      ],
+      "objectiveLabel": "고지 진지 강습"
+    },
+    {
+      "id": "uk_normandy_1944",
+      "title": "노르망디",
+      "year": 1944,
+      "map": "언덕",
+      "mode": "annihilation",
+      "objective": "ace_hunt",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 10,
+      "battleTime": 620,
+      "rewardMult": 1.25,
+      "allowed": [
+        "크롬웰",
+        "코멧",
+        "처칠 Mk IV",
+        "처칠 Mk VII",
+        "아처",
+        "아킬레스",
+        "섹스턴"
+      ],
+      "enemyTiers": [
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "ace": {
+        "nation": "독일",
+        "cls": "중전차",
+        "tier": 2,
+        "label": "티거 에이스"
+      },
+      "briefing": "1944년, 노르망디. 독일 중전차 에이스를 격파해 전선 돌파를 지원한다.\n목표: 티거 에이스 격파.",
+      "events": [
+        {
+          "time": 160,
+          "type": "ace",
+          "msg": "적 에이스가 위치를 드러냈습니다."
+        }
+      ],
+      "objectiveLabel": "티거 에이스 격파"
+    },
+    {
+      "id": "uk_market_garden_1944",
+      "title": "마켓 가든 지원",
+      "year": 1944,
+      "map": "평지",
+      "mode": "breakthrough",
+      "objective": "road_dash",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 4,
+      "enemyCount": 10,
+      "battleTime": 540,
+      "rewardMult": 1.24,
+      "allowed": [
+        "크롬웰",
+        "코멧",
+        "처칠 Mk VII",
+        "아킬레스",
+        "섹스턴",
+        "M3 스튜어트 “허니”"
+      ],
+      "enemyTiers": [
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1944년, 네덜란드 진격로. 좁은 도로를 따라 교량 방면으로 돌파한다.\n목표: 교량 도로 돌파.",
+      "events": [
+        {
+          "time": 120,
+          "type": "radio",
+          "duration": 40,
+          "msg": "교량 지역 통신 혼선."
+        },
+        {
+          "time": 260,
+          "type": "reinforce",
+          "count": 3,
+          "msg": "독일 기갑부대가 차단에 나섭니다."
+        }
+      ],
+      "killQuota": 3,
+      "objectiveLabel": "교량 도로 돌파"
+    },
+    {
+      "id": "uk_rhine_1945",
+      "title": "라인강 진격",
+      "year": 1945,
+      "map": "시가전",
+      "mode": "assault",
+      "objective": "fortress_assault",
+      "enemyNation": "독일",
+      "difficulty": "어려움",
+      "allyCount": 5,
+      "enemyCount": 10,
+      "battleTime": 600,
+      "rewardMult": 1.3,
+      "allowed": [
+        "코멧",
+        "처칠 Mk VII",
+        "아킬레스",
+        "섹스턴",
+        "M3 스튜어트 “허니”"
+      ],
+      "enemyTiers": [
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2,
+        3,
+        2
+      ],
+      "enemyClasses": [
+        "중형전차",
+        "중전차",
+        "구축전차",
+        "자주포",
+        "경전차"
+      ],
+      "briefing": "1945년, 라인강 방면. 도시 방어선을 뚫고 적 진지를 파괴한다.\n목표: 라인 방어선 강습.",
+      "events": [
+        {
+          "time": 110,
+          "type": "supply",
+          "msg": "보급대 도착: 수리 키트 1개 추가."
+        },
+        {
+          "time": 250,
+          "type": "reinforce",
+          "count": 2,
+          "msg": "독일 잔존 전차대가 반격합니다."
+        }
+      ],
+      "objectiveLabel": "라인 방어선 강습"
     }
   ]
 };
@@ -3829,74 +6403,188 @@ function checkCampaignEnd() {
   if (!game || !game.campaignMission || game.result) return false;
   const m = game.campaignMission;
   const obj = game.missionObjective;
+  const type = obj?.type || m.objective || "destroy";
 
-  // 진지 포탑전은 예비 전차 없이 플레이어 격파 즉시 패배.
   if (game.mode === "assault" && !game.player.alive) {
     game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
   }
-
   if (!game.player.alive && tryCampaignReserveRespawn()) return true;
-
   if (!game.player.alive) {
     game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
   }
 
-  if (obj && obj.type === "breakthrough") {
-    if (Math.hypot(game.player.x - obj.x, game.player.y - obj.y) < obj.r) {
-      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
-    }
-  } else if (obj && obj.type === "defense") {
+  const defendTypes = new Set(["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+  const targetTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash"]);
+  const captureTypes = new Set(["capture","encirclement","roadblock","deep_operation","landing_secure","desert_outflank","minefield_breach","urban_counterattack","mud_counterattack"]);
+  const quotaTypes = new Set(["counterattack","winter_counterattack","tank_hunt","pursuit","hedgerow_clear","relief_attack","armored_raid"]);
+  const survivalTypes = new Set(["survival","delaying_action","urban_hold","forest_hunt"]);
+
+  if (defendTypes.has(type)) {
     const base = friendlyBaseTurret();
     if (base && !base.alive) {
+      game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
+    }
+    if (m.maxAllyLoss && (game.missionStats?.allyLosses || 0) > m.maxAllyLoss) {
       game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
     }
     if (game.time >= (m.battleTime || 480)) {
       game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
     }
-  } else if (obj && obj.type === "survival") {
-    if (game.time >= (m.battleTime || 480)) {
+  } else if (targetTypes.has(type)) {
+    if (missionReached(obj) && missionQuotaMet(m)) {
       game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
     }
-  } else if (obj && obj.type === "ace") {
+  } else if (type === "delay_withdrawal") {
+    const hold = m.holdTime || Math.floor((m.battleTime || 480) * 0.65);
+    if (game.time >= hold && missionReached(obj) && missionQuotaMet(m)) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  } else if (survivalTypes.has(type)) {
+    if (game.time >= (m.battleTime || 480) && missionQuotaMet(m)) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+    if (game.enemies.every(e => !e.alive) && missionQuotaMet(m)) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  } else if (type === "ace" || type === "ace_hunt") {
     const aceAlive = game.enemies.some(e => e.alive && e.isAce);
     if (!aceAlive) {
       game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  } else if (type === "assault" || type === "fortress_assault") {
+    const redBase = enemyBaseTurret();
+    if (redBase && !redBase.alive) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  } else if (captureTypes.has(type)) {
+    if (missionCaptureMet(m) && missionQuotaMet(m)) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  } else if (quotaTypes.has(type)) {
+    if (missionQuotaMet(m)) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  } else if (type === "destroy") {
+    if (game.enemies.every(e => !e.alive)) {
+      game.result = "승리"; game.state = "over"; awardBattle("승리"); return true;
+    }
+  }
+
+  if (m.battleTime && game.time >= m.battleTime && !game.result) {
+    if (!defendTypes.has(type) && !survivalTypes.has(type)) {
+      game.result = "패배"; game.state = "over"; awardBattle("패배"); return true;
     }
   }
   return false;
 }
 
+function campaignObjectiveName(type) {
+  const names = {
+    breakthrough:"돌파 지점 도달", armored_spearhead:"기갑 선봉 돌파", mountain_pass:"산악 통로 돌파",
+    river_crossing:"도하 돌파", encirclement_breakthrough:"포위망 돌파", air_ground_breakthrough:"항공지원 돌파",
+    desert_breakthrough:"사막 돌파", road_dash:"교량 도로 돌파",
+    defense:"진지 방어", winter_hold:"혹한 방어", rear_guard:"후위 엄호", mountain_defense:"고지 방어",
+    last_stand:"최후 방어", bridgehead_defense:"교두보 방어", holding_action:"지연 방어",
+    beachhead_defense:"교두보 방어", rearguard_screen:"후퇴로 엄호", box_defense:"박스 방어",
+    survival:"생존", delaying_action:"지연전", delay_withdrawal:"지연 후 철수", urban_hold:"시가지 고수",
+    forest_hunt:"숲속 매복전", ace:"에이스 격파", ace_hunt:"에이스 추적 격파",
+    capture:"거점 점령", encirclement:"포위망 완성", roadblock:"진격로 차단", deep_operation:"종심 돌파",
+    landing_secure:"상륙 거점 확보", desert_outflank:"사막 우회 점령", minefield_breach:"지뢰지대 돌파",
+    urban_counterattack:"시가지 역습", mud_counterattack:"진흙 속 반격",
+    counterattack:"기동 역습", winter_counterattack:"혹한 반격", tank_hunt:"기갑 소모전",
+    pursuit:"추격전", hedgerow_clear:"생울타리 방어선 청소", relief_attack:"구원 공격", armored_raid:"장갑 기습",
+    fortress_assault:"방어진지 강습", assault:"적 진지 강습", destroy:"적 전차 섬멸"
+  };
+  return names[type] || "특수 임무";
+}
+
+function missionEnemyKills() {
+  return game?.missionStats?.enemyKills || 0;
+}
+
+function missionClassKills(cls) {
+  return game?.missionStats?.classKills?.[cls] || 0;
+}
+
+function missionQuotaMet(mission) {
+  if (!mission) return true;
+  if (mission.classQuota) return Object.entries(mission.classQuota).every(([cls, q]) => missionClassKills(cls) >= q);
+  return missionEnemyKills() >= (mission.killQuota || 0);
+}
+
+function missionCaptureMet(mission) {
+  if (!game || !game.capture) return false;
+  return (game.capture.blueScore || 0) >= (mission.captureScore || game.capture.limit || 160);
+}
+
+function missionReached(obj) {
+  return !!(obj && Number.isFinite(obj.x) && Math.hypot(game.player.x - obj.x, game.player.y - obj.y) < (obj.r || 170));
+}
+
+function missionTimeLeft(mission) {
+  return formatSeconds(Math.max(0, (mission?.battleTime || 0) - (game?.time || 0)));
+}
+
 function createMissionObjective(mission, map) {
   if (!mission || !map) return null;
   const type = mission.objective || mission.mode || "destroy";
-  if (type === "breakthrough") {
+  const label = mission.objectiveLabel || campaignObjectiveName(type);
+  const targetTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash"]);
+  const defendTypes = new Set(["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+
+  if (targetTypes.has(type)) {
     const target = map.breakthrough || map.enemySpawn || {x:WORLD_W-260, y:WORLD_H/2};
-    return {type:"breakthrough", x:target.x, y:target.y, r:170, label:"돌파 지점"};
+    return {type, x:target.x, y:target.y, r:mission.objectiveRadius || 175, label};
   }
-  if (type === "defense") {
+  if (type === "delay_withdrawal") {
+    return {type, x:map.player.x + 90, y:map.player.y, r:mission.objectiveRadius || 185, label};
+  }
+  if (defendTypes.has(type)) {
     const base = (map.strongholds && map.strongholds.blue) || {x:map.player.x+220, y:map.player.y, r:245};
-    return {type:"defense", x:base.x, y:base.y, r:base.r || 245, label:"방어 진지"};
+    return {type, x:base.x, y:base.y, r:base.r || 245, label};
   }
-  if (type === "survival") return {type:"survival", label:"생존"};
-  if (type === "ace") return {type:"ace", label:"적 에이스 격파"};
-  if (type === "capture") return {type:"capture", label:"거점 점령"};
-  if (type === "assault") return {type:"assault", label:"적 진지 포탑 파괴"};
-  return {type:"destroy", label:"적 전차 섬멸"};
+  return {type, label};
 }
 
 function campaignObjectiveStatusText() {
   if (!game || !game.campaignMission || !game.missionObjective) return "";
   const m = game.campaignMission, obj = game.missionObjective;
-  if (obj.type === "breakthrough") {
+  const type = obj.type;
+  const name = obj.label || m.objectiveLabel || campaignObjectiveName(type);
+  const kills = missionEnemyKills();
+  const quota = m.killQuota || 0;
+  const quotaText = quota ? ` · 격파 ${kills}/${quota}` : "";
+  const capTypes = new Set(["capture","encirclement","roadblock","deep_operation","landing_secure","desert_outflank","minefield_breach","urban_counterattack","mud_counterattack"]);
+  const targetTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash"]);
+
+  if (targetTypes.has(type)) {
     const d = Math.round(Math.hypot(game.player.x - obj.x, game.player.y - obj.y));
-    return `<br>캠페인 목표: 돌파 지점 도달 · 거리 ${d}`;
+    return `<br>캠페인 목표: ${name} · 거리 ${d}${quotaText}`;
   }
-  if (obj.type === "defense") return `<br>캠페인 목표: ${formatSeconds((m.battleTime || 0) - game.time)} 동안 방어`;
-  if (obj.type === "survival") return `<br>캠페인 목표: ${formatSeconds((m.battleTime || 0) - game.time)} 생존`;
-  if (obj.type === "ace") return `<br>캠페인 목표: 적 에이스 격파`;
-  if (obj.type === "assault") return `<br>캠페인 목표: 적 포탑 파괴 또는 적 전차 전멸 · 플레이어 격파 시 패배`;
-  if (obj.type === "destroy") return `<br>캠페인 목표: 적 전차 섬멸`;
-  return `<br>캠페인 목표: ${obj.label || m.title}`;
+  if (type === "delay_withdrawal") {
+    const hold = m.holdTime || Math.floor((m.battleTime || 480) * 0.65);
+    if (game.time < hold) return `<br>캠페인 목표: ${name} · 철수 가능까지 ${formatSeconds(hold - game.time)}${quotaText}`;
+    const d = Math.round(Math.hypot(game.player.x - obj.x, game.player.y - obj.y));
+    return `<br>캠페인 목표: 철수 지점 도달 · 거리 ${d}${quotaText}`;
+  }
+  const defendTypes = new Set(["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+  if (defendTypes.has(type)) {
+    const lossText = m.maxAllyLoss ? ` · 아군 손실 ${game.missionStats?.allyLosses || 0}/${m.maxAllyLoss}` : "";
+    return `<br>캠페인 목표: ${name} · ${missionTimeLeft(m)} 동안 방어${lossText}`;
+  }
+  if (type === "survival" || type === "delaying_action" || type === "urban_hold" || type === "forest_hunt") {
+    return `<br>캠페인 목표: ${name} · ${missionTimeLeft(m)} 생존${quotaText}`;
+  }
+  if (type === "ace" || type === "ace_hunt") return `<br>캠페인 목표: ${name}`;
+  if (type === "assault" || type === "fortress_assault") return `<br>캠페인 목표: ${name} · 적 포탑 파괴`;
+  if (capTypes.has(type)) {
+    return `<br>캠페인 목표: ${name} · 점수 ${Math.floor(game.capture?.blueScore || 0)}/${m.captureScore || game.capture?.limit || 160}${quotaText}`;
+  }
+  if (type === "counterattack" || type === "winter_counterattack" || type === "tank_hunt" || type === "pursuit" || type === "hedgerow_clear" || type === "relief_attack" || type === "armored_raid") {
+    return `<br>캠페인 목표: ${name}${quotaText}`;
+  }
+  if (type === "destroy") return `<br>캠페인 목표: 적 전차 섬멸`;
+  return `<br>캠페인 목표: ${name}`;
 }
 
 function startBattle() {
@@ -3947,6 +6635,7 @@ function startBattle() {
     campaignMission:activeCampaignMission,
     missionObjective:createMissionObjective(activeCampaignMission, map),
     campaignEvents:activeCampaignMission ? (activeCampaignMission.events || []).map(e => ({...e, done:false})) : [],
+    missionStats:{enemyKills:0, allyLosses:0, playerDeaths:0, classKills:{}, reached:false},
     missionSightMult:1,
     radioJammedUntil:0,
     playerDebuffUntil:0,
@@ -4603,6 +7292,17 @@ function destroyTank(tank, shell) {
   addLog(`${tank.t.name} 격파`, tank.team === "enemy" ? "good" : tank.team === "player" ? "bad" : "neutral");
   if (!tank.killCounted) {
     tank.killCounted = true;
+    if (game && game.missionStats) {
+      if (tank.team === "enemy") {
+        game.missionStats.enemyKills = (game.missionStats.enemyKills || 0) + 1;
+        const cls = tank.t?.cls || "기타";
+        game.missionStats.classKills[cls] = (game.missionStats.classKills[cls] || 0) + 1;
+      } else if (tank.team === "ally") {
+        game.missionStats.allyLosses = (game.missionStats.allyLosses || 0) + 1;
+      } else if (tank.team === "player") {
+        game.missionStats.playerDeaths = (game.missionStats.playerDeaths || 0) + 1;
+      }
+    }
     if (tank.team === "enemy" && shell && isFriendlyTeam(shell.team)) {
       if (shell.shooter && shell.shooter.team === "player") {
         game.playerKills = (game.playerKills || 0) + 1;
@@ -5321,16 +8021,18 @@ function drawCampaignObjectiveZone() {
   const obj = game.missionObjective;
   const c = game.camera;
 
-  if (obj.type === "breakthrough" || obj.type === "defense") {
+  const zoneTypes = new Set(["breakthrough","armored_spearhead","mountain_pass","river_crossing","encirclement_breakthrough","air_ground_breakthrough","desert_breakthrough","road_dash","delay_withdrawal","defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"]);
+  if (zoneTypes.has(obj.type) && Number.isFinite(obj.x)) {
     const p = worldToScreen(obj.x, obj.y);
     const r = (obj.r || 160) * c.zoom;
-    ctx.fillStyle = obj.type === "breakthrough" ? "rgba(255,220,120,.12)" : "rgba(116,168,223,.10)";
-    ctx.strokeStyle = obj.type === "breakthrough" ? "rgba(255,220,120,.85)" : "rgba(116,168,223,.80)";
+    const attackZone = !["defense","winter_hold","rear_guard","mountain_defense","last_stand","bridgehead_defense","holding_action","beachhead_defense","rearguard_screen","box_defense"].includes(obj.type);
+    ctx.fillStyle = attackZone ? "rgba(255,220,120,.12)" : "rgba(116,168,223,.10)";
+    ctx.strokeStyle = attackZone ? "rgba(255,220,120,.85)" : "rgba(116,168,223,.80)";
     ctx.lineWidth = 4;
     ctx.setLineDash([12,8]);
     ctx.beginPath(); ctx.arc(p.x,p.y,r,0,TAU); ctx.fill(); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = obj.type === "breakthrough" ? "#ffe28a" : "#b9d7ff";
+    ctx.fillStyle = attackZone ? "#ffe28a" : "#b9d7ff";
     ctx.font = "bold 18px system-ui";
     ctx.textAlign = "center";
     ctx.fillText(obj.label || (obj.type === "breakthrough" ? "돌파 지점" : "방어 진지"), p.x, p.y + 6);
