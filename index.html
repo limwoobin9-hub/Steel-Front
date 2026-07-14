@@ -630,11 +630,149 @@
   #garagePanel.lobbyGarage {
     font-size:12px;
   }
-  #garagePanel.lobbyGarage .moduleCard,
-  #garagePanel.lobbyGarage .economy button,
-  #garagePanel.lobbyGarage .branch {
+
+  .lobbyStage {
+    grid-template-columns: 320px minmax(520px,1fr);
+    bottom:154px;
+  }
+  .lobbyStage .lobbyCanvasWrap {
+    grid-column:2;
+  }
+  .tankDetailButton {
+    width:100%;
+    margin-top:12px;
+    border-color:rgba(232,213,156,.42);
+    background:rgba(232,213,156,.10);
+    color:#f2e3b0;
+    font-weight:800;
+  }
+  .tankSelectorToggle {
+    position:absolute;
+    left:calc((100vw - 230px) / 2);
+    bottom:128px;
+    transform:translateX(-50%);
+    z-index:8;
+    width:64px;
+    height:34px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    border-radius:18px 18px 8px 8px;
+    border:1px solid rgba(232,213,156,.45);
+    background:rgba(20,20,18,.92);
+    color:#f2e3b0;
+    font-size:22px;
+    font-weight:900;
+    line-height:1;
+  }
+  .lobbyBottomBar {
+    height:154px;
+    grid-template-columns:minmax(560px,1fr) 230px;
+    align-items:end;
+  }
+  .nationDock {
+    align-self:end;
+    align-items:center;
+  }
+  .nationDockTitle {
+    width:100%;
+    text-align:center;
+    font-size:13px;
+    margin-bottom:2px;
+  }
+  #nationButtons {
+    width:min(760px, 100%);
+    display:grid;
+    grid-template-columns:repeat(4, minmax(118px, 1fr));
+    gap:12px;
+  }
+  #nationButtons button {
+    height:62px;
+    border-radius:14px;
+    font-size:18px;
+    font-weight:900;
+    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(0,0,0,.28));
+  }
+  #nationButtons button.selected {
+    border-color:rgba(232,213,156,.85);
+    color:#fff0b7;
+    background:linear-gradient(180deg, rgba(109,92,45,.92), rgba(54,46,28,.92));
+  }
+  .tankDock {
+    position:absolute;
+    left:28px;
+    right:270px;
+    bottom:154px;
+    z-index:7;
+    padding:12px;
+    border:1px solid rgba(232,213,156,.28);
+    border-radius:16px 16px 10px 10px;
+    background:linear-gradient(180deg, rgba(18,18,16,.95), rgba(5,5,5,.88));
+    box-shadow:0 -18px 40px rgba(0,0,0,.45);
+  }
+  .tankDock.collapsed {
     display:none;
   }
+  #tankGrid {
+    height:142px;
+  }
+  #tankGrid .tankCard {
+    flex-basis:268px;
+    height:122px;
+  }
+  .lobbyStartPanel {
+    align-self:end;
+  }
+  .detailOverlayPanel {
+    width:min(980px, 94vw);
+  }
+  #tankDetailOverlay #garagePanel {
+    margin:0;
+  }
+  #tankDetailOverlay #garagePanel .moduleCard,
+  #tankDetailOverlay #garagePanel .economy button,
+  #tankDetailOverlay #garagePanel .branch {
+    display:block;
+  }
+  #tankDetailOverlay #garagePanel .moduleGrid {
+    display:grid;
+  }
+
+  .tankDock {
+    left:28px;
+    right:28px;
+    top:92px;
+    bottom:154px;
+    max-height:none;
+    display:flex;
+    flex-direction:column;
+  }
+  .tankDock.collapsed {
+    display:none;
+  }
+  #tankGrid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(235px, 1fr));
+    gap:12px;
+    height:auto;
+    flex:1;
+    min-height:0;
+    overflow-x:hidden;
+    overflow-y:auto;
+    padding:4px 4px 12px;
+  }
+  #tankGrid .tankCard {
+    flex:none;
+    height:128px;
+    min-height:128px;
+  }
+  #tankGrid .tankCard .small:nth-of-type(n+4),
+  #tankGrid .tankCard .statbar {
+    display:none;
+  }
+
+
   @media (max-width: 960px) {
     .lobbyTopBar { grid-template-columns:1fr; height:auto; position:absolute; }
     .battleTabs { justify-content:flex-start; overflow-x:auto; }
@@ -903,20 +1041,6 @@
     margin-top:5px;
   }
 
-  #help {
-    position: fixed;
-    left: 14px;
-    bottom: 14px;
-    background: rgba(0,0,0,.65);
-    border: 1px solid #444;
-    border-radius: 10px;
-    padding: 10px 12px;
-    color: #ccc;
-    font-size: 12px;
-    line-height: 1.55;
-    pointer-events: none;
-  }
-
   .garagePanel {
     border: 1px solid #444;
     background: #1d1d1d;
@@ -1002,6 +1126,62 @@
     user-select: text;
     cursor: text;
   }
+
+  /* 전차 선택 패널 최종 위치 보정: 하단바 내부가 아니라 화면 중앙 대형 패널 */
+  #tankDock.tankDock {
+    position:fixed !important;
+    left:32px !important;
+    right:32px !important;
+    top:92px !important;
+    bottom:172px !important;
+    z-index:60 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    min-width:0 !important;
+    max-height:none !important;
+    padding:14px !important;
+    border:1px solid rgba(232,213,156,.36) !important;
+    border-radius:18px !important;
+    background:linear-gradient(180deg, rgba(18,18,16,.97), rgba(4,4,4,.94)) !important;
+    box-shadow:0 22px 70px rgba(0,0,0,.72) !important;
+  }
+  #tankDock.tankDock.collapsed {
+    display:none !important;
+  }
+  #tankDock #tankGrid {
+    display:grid !important;
+    grid-template-columns:repeat(auto-fill, minmax(245px, 1fr)) !important;
+    gap:12px !important;
+    flex:1 1 auto !important;
+    height:auto !important;
+    min-height:0 !important;
+    overflow-x:hidden !important;
+    overflow-y:auto !important;
+    padding:6px 6px 14px !important;
+  }
+  #tankDock #tankGrid .tankCard {
+    flex:none !important;
+    height:132px !important;
+    min-height:132px !important;
+    padding:11px !important;
+  }
+  #tankDock .tankDockTitle {
+    font-size:14px !important;
+    margin-bottom:8px !important;
+    color:#f2e3b0 !important;
+  }
+  #tankSelectorToggle.tankSelectorToggle {
+    position:fixed !important;
+    left:50% !important;
+    bottom:144px !important;
+    transform:translateX(-50%) !important;
+    z-index:70 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    padding:0 !important;
+  }
+
 </style>
 </head>
 <body>
@@ -1034,17 +1214,15 @@
       <div id="lobbyTankName" class="lobbyTankName">전차</div>
       <div id="lobbyTankMeta" class="lobbyTankMeta"></div>
       <div id="lobbyTankStats" class="lobbyTankStats" style="margin-top:10px;"></div>
+      <button id="tankDetailBtn" class="tankDetailButton" type="button">전차 상세 / 업그레이드</button>
     </div>
 
     <div class="lobbyCanvasWrap">
       <canvas id="lobbyTankCanvas" width="900" height="480"></canvas>
     </div>
-
-    <div class="lobbySidePanel">
-      <h3>전차 상세</h3>
-      <div id="garagePanel" class="garagePanel lobbyGarage"></div>
-    </div>
   </div>
+
+  <button id="tankSelectorToggle" class="tankSelectorToggle" type="button" title="전차 선택 열기">⌃</button>
 
   <div class="lobbyBottomBar">
     <div class="nationDock">
@@ -1052,7 +1230,7 @@
       <div id="nationButtons"></div>
     </div>
 
-    <div class="tankDock">
+    <div id="tankDock" class="tankDock collapsed">
       <div class="tankDockTitle">전차 선택</div>
       <div class="filterBar" style="display:none;">
         <select id="classFilterInput">
@@ -1080,7 +1258,6 @@
 
     <div class="lobbyStartPanel">
       <button id="startBtn" type="button">전투 시작</button>
-      <div class="small">전투 시작 후 세부 조건을 설정합니다.</div>
     </div>
   </div>
 
@@ -1092,6 +1269,18 @@
     </select>
     <div id="mapButtons"></div>
     <div id="mapTactic"></div>
+  </div>
+</div>
+
+<div id="tankDetailOverlay" class="lobbyOverlay hidden">
+  <div class="lobbyOverlayPanel detailOverlayPanel">
+    <div class="lobbyOverlayTop">
+      <div>
+        <h2>전차 상세 / 업그레이드</h2>
+      </div>
+      <button id="tankDetailCloseBtn" type="button">닫기</button>
+    </div>
+    <div id="garagePanel" class="garagePanel lobbyGarage"></div>
   </div>
 </div>
 
@@ -1303,18 +1492,13 @@
 <div id="resultOverlay" class="hidden">
   <div id="resultTitle"></div>
   <div id="resultBody"></div>
-  <button id="resultMenuBtn" class="resultBtn" type="button">메뉴로 돌아가기</button>
+  <button id="resultMenuBtn" class="resultBtn" type="button">전투 설정으로</button>
   <button id="resultRestartBtn" class="resultBtn" type="button">다시 전투</button>
 </div>
 
 <div id="combatLog"></div>
 <div id="aimInfo" class="hidden"></div>
 
-<div id="help">
-  WASD 이동 · 마우스 조준 · 좌클릭/Space 발사<br>
-  1 AP · 2 APCR · 3 HE · 4 연막 · F 수리 · Q 항공지원<br>
-  Shift 조준 확대 · M 메뉴 · R 재시작 · F2 오류 패널 · 조준점 위 적 정보 표시
-</div>
 
 <div id="debugPanel" class="hidden">
   <div class="debugTitle">오류 패널</div>
@@ -1361,6 +1545,11 @@ const lobbyTankName = document.getElementById("lobbyTankName");
 const lobbyTankMeta = document.getElementById("lobbyTankMeta");
 const lobbyTankStats = document.getElementById("lobbyTankStats");
 const lobbyBgInput = document.getElementById("lobbyBgInput");
+const tankDetailBtn = document.getElementById("tankDetailBtn");
+const tankDetailOverlay = document.getElementById("tankDetailOverlay");
+const tankDetailCloseBtn = document.getElementById("tankDetailCloseBtn");
+const tankSelectorToggle = document.getElementById("tankSelectorToggle");
+const tankDock = document.getElementById("tankDock");
 const battleSetupTitle = document.getElementById("battleSetupTitle");
 const freeSetupPanel = document.getElementById("freeSetupPanel");
 const campaignSetupPanel = document.getElementById("campaignSetupPanel");
@@ -1674,7 +1863,7 @@ const techTree = {
 
 const tierRoman = ["", "I", "II", "III"];
 const tierNames = ["", "1티어", "2티어", "3티어"];
-const nationColors = {"독일":"#716d60", "영국":"#556848", "소련":"#4f6545", "미국":"#6c7150"};
+const nationColors = {"독일":"#4b5358", "영국":"#8a6f45", "소련":"#2f4a32", "미국":"#66633e"};
 const classRole = {
   "경전차":"정찰·고속 기동",
   "중형전차":"균형형 주력전차",
@@ -5339,6 +5528,7 @@ let selectedBattleTime = 0;
 let selectedMinimapSize = "normal";
 let selectedSound = true;
 let selectedLobbyBg = "평지";
+let tankSelectorOpen = false;
 let customBattleReady = false;
 let customBattleDefaultsInitialized = false;
 let customBattleConfig = {
@@ -5690,6 +5880,8 @@ function closeBattleSetup() {
 function renderMenu() {
   renderBattleTabs();
   if (lobbyBgInput) lobbyBgInput.value = selectedLobbyBg;
+  if (tankDock) tankDock.classList.toggle("collapsed", !tankSelectorOpen);
+  if (tankSelectorToggle) tankSelectorToggle.textContent = tankSelectorOpen ? "⌄" : "⌃";
   nationButtons.innerHTML = "";
   for (const n of nations) {
     const b = document.createElement("button");
@@ -5707,6 +5899,7 @@ function renderMenu() {
       } else {
         selectedTank = selectDefaultTankForNation(n);
       }
+      tankSelectorOpen = false;
       renderMenuPreserveScroll();
     };
     nationButtons.appendChild(b);
@@ -5824,6 +6017,19 @@ if (campaignAutoRefillInput) campaignAutoRefillInput.onchange = () => {
 };
 
 if (settingsBtn) settingsBtn.onclick = () => lobbySettingsOverlay?.classList.remove("hidden");
+if (tankDetailBtn) tankDetailBtn.onclick = () => tankDetailOverlay?.classList.remove("hidden");
+if (tankDetailCloseBtn) tankDetailCloseBtn.onclick = () => tankDetailOverlay?.classList.add("hidden");
+if (tankDetailOverlay) {
+  tankDetailOverlay.addEventListener("click", e => {
+    if (e.target === tankDetailOverlay) tankDetailOverlay.classList.add("hidden");
+  });
+}
+if (tankSelectorToggle) {
+  tankSelectorToggle.onclick = () => {
+    tankSelectorOpen = !tankSelectorOpen;
+    renderMenuPreserveScroll();
+  };
+}
 if (settingsCloseBtn) settingsCloseBtn.onclick = () => lobbySettingsOverlay?.classList.add("hidden");
 if (lobbySettingsOverlay) {
   lobbySettingsOverlay.addEventListener("click", e => {
@@ -5954,66 +6160,119 @@ function drawLobbyTankPreview(now=0) {
   const g = lobbyTankCanvas.getContext("2d");
   const w = lobbyTankCanvas.width, h = lobbyTankCanvas.height;
   const bg = maps[selectedLobbyBg] || maps["평지"];
+
   g.clearRect(0,0,w,h);
   const grd = g.createLinearGradient(0,0,0,h);
-  grd.addColorStop(0, "#1a1d1c");
+  grd.addColorStop(0, "#151718");
   grd.addColorStop(1, bg?.bg || "#25281f");
   g.fillStyle = grd;
   g.fillRect(0,0,w,h);
-  g.globalAlpha = 0.16;
-  g.strokeStyle = "#d8c579";
-  for (let x=-80; x<w+80; x+=70) { g.beginPath(); g.moveTo(x, h*0.78); g.lineTo(x+220, h); g.stroke(); }
-  for (let y=h*0.58; y<h; y+=34) { g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
-  g.globalAlpha = 1;
+
+  g.save();
+  g.globalAlpha = 0.18;
+  g.strokeStyle = bg?.grid || "#555";
+  g.lineWidth = 1;
+  for (let x=-120; x<w+120; x+=80) { g.beginPath(); g.moveTo(x, h*0.70); g.lineTo(x+240, h); g.stroke(); }
+  for (let y=h*0.58; y<h; y+=36) { g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
+  g.restore();
 
   const unlocked = isTankUnlocked(selectedTank) || isCustomBattleMode() || (isCampaignMode() && campaignTankAllowed(selectedTank));
   const t = getEffectiveTank(selectedTank, unlocked);
   const [len, wid] = t.size;
-  const scale = Math.min(5.2, Math.max(3.7, 280 / Math.max(len, 1)));
-  const cx = w*0.52, cy = h*0.58;
-  const bodyL = len * scale, bodyW = wid * scale;
-  const turret = Math.sin(now/1200) * 0.25;
+  const zoom = Math.min(5.6, Math.max(4.2, 310 / Math.max(len, 1)));
+  const l = len * zoom, tw = wid * zoom;
+  const sx = w * 0.52, sy = h * 0.55;
+  const hullAngle = -0.05;
+  const turretAngle = hullAngle + Math.sin(now/1150) * 0.22;
+  const baseColor = t.color || nationColors[selectedTank.nation] || "#666";
+  const strokeColor = "#f0f0d8";
+
+  function rr(x,y,ww,hh,r) {
+    roundRect(g, x, y, ww, hh, r);
+  }
 
   g.save();
-  g.translate(cx, cy);
-  g.rotate(-0.06);
-  g.shadowColor = "rgba(0,0,0,.55)";
-  g.shadowBlur = 18;
-  g.shadowOffsetY = 14;
+  g.translate(sx+10, sy+14);
+  g.rotate(hullAngle);
+  g.globalAlpha = 0.34;
+  g.fillStyle = "#000";
+  rr(-l/2, -tw/2, l, tw, 5*zoom);
+  g.fill();
+  g.restore();
 
-  g.fillStyle = "rgba(0,0,0,.35)";
-  g.beginPath(); g.ellipse(0, bodyW*0.75, bodyL*0.62, bodyW*0.56, 0, 0, TAU); g.fill();
+  g.save();
+  g.translate(sx, sy);
+  g.rotate(hullAngle);
 
-  g.shadowBlur = 0;
-  g.fillStyle = "#222";
-  g.fillRect(-bodyL/2, -bodyW/2-8, bodyL, 12);
-  g.fillRect(-bodyL/2, bodyW/2-4, bodyL, 12);
+  const bevel = Math.min(l*0.16, 10*zoom);
+  g.fillStyle = baseColor;
+  g.strokeStyle = strokeColor;
+  g.lineWidth = 2.2;
+  g.beginPath();
+  g.moveTo(-l/2 + bevel, -tw/2);
+  g.lineTo(l/2 - bevel*0.55, -tw/2);
+  g.lineTo(l/2, -tw*0.25);
+  g.lineTo(l/2, tw*0.25);
+  g.lineTo(l/2 - bevel*0.55, tw/2);
+  g.lineTo(-l/2 + bevel, tw/2);
+  g.lineTo(-l/2, tw*0.28);
+  g.lineTo(-l/2, -tw*0.28);
+  g.closePath();
+  g.fill();
+  g.stroke();
 
-  g.fillStyle = t.color || nationColors[selectedTank.nation] || "#666";
-  g.strokeStyle = "#111";
-  g.lineWidth = 5;
-  roundRect(g, -bodyL/2, -bodyW/2, bodyL, bodyW, 16);
+  g.fillStyle = "rgba(15,15,15,.78)";
+  rr(-l*0.52, -tw*0.56, l*1.04, tw*0.20, 3*zoom); g.fill();
+  rr(-l*0.52, tw*0.36, l*1.04, tw*0.20, 3*zoom); g.fill();
+
+  g.fillStyle = "rgba(180,180,160,.28)";
+  for (let i=0;i<6;i++) {
+    const px = -l*0.36 + i*l*0.145;
+    g.beginPath(); g.arc(px, -tw*0.46, Math.max(2, 2.4*zoom), 0, TAU); g.fill();
+    g.beginPath(); g.arc(px, tw*0.46, Math.max(2, 2.4*zoom), 0, TAU); g.fill();
+  }
+
+  g.fillStyle = "rgba(255,255,255,.12)";
+  g.fillRect(-l*0.34, -tw*0.23, l*0.22, tw*0.46);
+  g.fillStyle = "rgba(0,0,0,.18)";
+  g.fillRect(l*0.20, -tw*0.28, l*0.22, tw*0.56);
+  g.restore();
+
+  g.save();
+  g.translate(sx, sy);
+  g.rotate(turretAngle);
+  const casemate = t.cls === "구축전차" || t.cls === "자주포";
+  const turretSize = casemate ? [l*0.66, tw*0.70] : [l*0.50, tw*0.84];
+  g.fillStyle = shade(baseColor, 20);
+  g.strokeStyle = strokeColor;
+  g.lineWidth = 1.8;
+  rr(-turretSize[0]*0.38, -turretSize[1]/2, turretSize[0], turretSize[1], 6*zoom);
   g.fill(); g.stroke();
 
-  g.fillStyle = "rgba(255,255,255,.08)";
-  roundRect(g, -bodyL*0.38, -bodyW*0.36, bodyL*0.38, bodyW*0.72, 8);
+  g.fillStyle = "rgba(25,25,25,.65)";
+  rr(turretSize[0]*0.10, -turretSize[1]*0.22, turretSize[0]*0.20, turretSize[1]*0.44, 3*zoom);
   g.fill();
 
-  g.save();
-  g.rotate(turret);
-  g.fillStyle = "#2b2b27";
-  roundRect(g, -bodyL*0.06, -bodyW*0.13, bodyL*0.72, bodyW*0.26, 8);
-  g.fill(); g.stroke();
-  g.fillStyle = t.color || "#67675c";
-  g.beginPath(); g.ellipse(-bodyL*0.08, 0, bodyL*0.23, bodyW*0.34, 0, 0, TAU); g.fill(); g.stroke();
+  const barrelLen = (t.cls === "자주포" ? len*0.70 : len*0.96) * zoom;
+  g.strokeStyle = "#151515";
+  g.lineWidth = Math.max(4.5, 5.5*zoom);
+  g.beginPath(); g.moveTo(turretSize[0]*0.18, 0); g.lineTo(barrelLen, 0); g.stroke();
+  g.strokeStyle = "#5f5f5f";
+  g.lineWidth = Math.max(1.6, 2.0*zoom);
+  g.beginPath(); g.moveTo(turretSize[0]*0.18, -1); g.lineTo(barrelLen, -1); g.stroke();
+  g.fillStyle = "#101010";
+  g.fillRect(barrelLen-3*zoom, -3*zoom, 7*zoom, 6*zoom);
+
+  if (!casemate) {
+    g.fillStyle = "rgba(0,0,0,.26)";
+    g.beginPath(); g.arc(-turretSize[0]*0.10, -turretSize[1]*0.10, Math.max(4, 5*zoom), 0, TAU); g.fill();
+  }
   g.restore();
 
-  g.restore();
-
-  g.fillStyle = "rgba(255,255,255,.82)";
+  g.fillStyle = "rgba(255,255,255,.84)";
   g.font = "bold 18px system-ui";
   g.textAlign = "center";
-  g.fillText(`${selectedTank.name} ${tierRoman[selectedTank.tier]}`, w/2, h-34);
+  g.fillText(`${selectedTank.name} ${tierRoman[selectedTank.tier]} · ${selectedTank.cls}`, w/2, h-34);
 }
 
 function lobbyPreviewLoop(now) {
@@ -6914,12 +7173,7 @@ function drawHitDirection() {
 
 function threatLabel(tank) {
   if (!tank || tank.team !== "enemy") return "";
-  if (tank.isAce) return "에이스";
-  if (tank.t.cls === "중전차") return "중전차 위협";
-  if (tank.t.cls === "구축전차") return "매복 구축";
-  if (tank.t.cls === "자주포") return "화력 지원";
-  if (tank.t.tier >= 3) return "정예";
-  return "";
+  return tank.t?.cls || "";
 }
 
 function setupCampaignSpecials(mission) {
@@ -7592,7 +7846,8 @@ function selectNextCampaignAfterBattle() {
 }
 
 function returnToMenu() {
-  if (game && game.state === "over") selectNextCampaignAfterBattle();
+  const wasOver = !!(game && game.state === "over");
+  if (wasOver) selectNextCampaignAfterBattle();
   if (game) game.state = "menu";
   renderMenu();
   menu.classList.remove("hidden");
@@ -7602,8 +7857,11 @@ function returnToMenu() {
   if (resultOverlay) resultOverlay.classList.add("hidden");
   if (startBriefingOverlay) startBriefingOverlay.classList.add("hidden");
   if (msgBox) msgBox.innerHTML = "";
+  if (wasOver) {
+    renderBattleSetup();
+    if (customBattleOverlay) customBattleOverlay.classList.remove("hidden");
+  }
 }
-window.returnToMenu = returnToMenu;
 
 function restartBattle() {
   if (!game) return;
@@ -9210,7 +9468,7 @@ function drawTank(tank) {
     return;
   }
 
-  const baseColor = tank.team === "enemy" ? "#71504d" : tank.team === "ally" ? shade(tank.t.color, 10) : tank.t.color;
+  const baseColor = tank.team === "ally" ? shade(tank.t.color, 10) : tank.t.color;
   const strokeColor = tank.team === "enemy" ? "#ffc0b8" : tank.team === "ally" ? "#b9d7ff" : "#f0f0d8";
 
   // shadow
@@ -9323,7 +9581,7 @@ function drawTank(tank) {
     const nameLine = (tank.team === "ally" ? "아군 " : "") + tank.t.name + " " + (tank.t.tierRoman || tierRoman[tank.t.tier] || "");
     ctx.fillText(nameLine, s.x, s.y - w/2 - 20);
     if (threat) {
-      ctx.fillStyle = tank.isAce ? "#ffd56a" : "#ff9a86";
+      ctx.fillStyle = "#ff9a86";
       ctx.font = "bold 11px system-ui";
       ctx.fillText(threat, s.x, s.y - w/2 - 34);
     }
