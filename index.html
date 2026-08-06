@@ -3766,10 +3766,10 @@ function playSound(kind) {
     const gain = audioCtx.createGain();
     const now = audioCtx.currentTime;
     const cfg = {
-      fire:[95,0.11,0.055], pen:[220,0.08,0.035], bounce:[660,0.05,0.025],
+      fire:[95,0.11,0.055], rifle:[760,0.035,0.008], pen:[220,0.08,0.035], bounce:[660,0.05,0.025],
       boom:[55,0.18,0.080], reload:[520,0.06,0.020]
     }[kind] || [180,0.06,0.025];
-    osc.type = kind === "boom" ? "sawtooth" : kind === "bounce" ? "square" : "triangle";
+    osc.type = kind === "boom" ? "sawtooth" : (kind === "bounce" || kind === "rifle") ? "square" : "triangle";
     osc.frequency.setValueAtTime(cfg[0], now);
     osc.frequency.exponentialRampToValueAtTime(Math.max(30, cfg[0]*0.45), now + cfg[1]);
     const volume = game?.settings?.soundVolume ?? selectedSoundVolume ?? 0.6;
@@ -10057,13 +10057,13 @@ function makeAntiTankGun(raw, team="enemy") {
 const OPERATION_SUPPORT_SPECS = {
   infantry:{
     label:"보병분대", cls:"보병", role:"엄폐지 수색 · 거점 확보", size:[34,28], hp:92,
-    speed:66, accel:105, turn:2.8, pen:82, dmg:13, shell:360, reload:6.8,
-    range:390, sight:760, color:"#687653", canSecure:true
+    speed:66, accel:105, turn:2.8, pen:2, dmg:1.1, shell:720, reload:0.95,
+    range:390, sight:760, color:"#687653", canSecure:true, smallArms:true
   },
   motorized:{
     label:"차량화보병", cls:"차량화보병", role:"신속 전개 · 거점 확보", size:[48,30], hp:118,
-    speed:142, accel:185, turn:2.35, pen:76, dmg:12, shell:410, reload:6.1,
-    range:440, sight:820, color:"#637457", canSecure:true
+    speed:142, accel:185, turn:2.35, pen:2, dmg:1.0, shell:760, reload:1.05,
+    range:440, sight:820, color:"#637457", canSecure:true, smallArms:true
   },
   recon:{
     label:"정찰차", cls:"정찰차", role:"장거리 관측 · 대전차포 탐지", size:[43,27], hp:86,
@@ -10075,6 +10075,7 @@ const OPERATION_SUPPORT_SPECS = {
 function makeOperationSupportUnit(kind, team, x, y, sector=null, slot=0) {
   const spec = OPERATION_SUPPORT_SPECS[kind] || OPERATION_SUPPORT_SPECS.infantry;
   const friendly = isFriendlyTeam(team);
+  const unarmoredInfantry = kind === "infantry" || kind === "motorized";
   const template = {
     name:friendly ? `아군 ${spec.label}` : `적 ${spec.label}`,
     nation:"",
@@ -10084,7 +10085,9 @@ function makeOperationSupportUnit(kind, team, x, y, sector=null, slot=0) {
     tierRoman:"",
     size:[...spec.size],
     color:friendly ? spec.color : "#76564b",
-    armor:{front:kind === "infantry" ? 0 : 14, side:kind === "infantry" ? 0 : 9, rear:kind === "infantry" ? 0 : 6},
+    armor:unarmoredInfantry
+      ? {front:0, side:0, rear:0}
+      : {front:14, side:9, rear:6},
     hp:spec.hp,
     pen:spec.pen,
     dmg:spec.dmg,
@@ -10098,7 +10101,8 @@ function makeOperationSupportUnit(kind, team, x, y, sector=null, slot=0) {
     accel:spec.accel,
     turn:spec.turn,
     accuracy:kind === "recon" ? 0.78 : 0.68,
-    splash:0
+    splash:0,
+    smallArms:!!spec.smallArms
   };
   const unit = makeTank(template, clamp(x,70,WORLD_W-70), clamp(y,70,WORLD_H-70), team);
   unit.isSupportUnit = true;
@@ -12530,9 +12534,12 @@ function fireShell(shooter, targetPos=null) {
     return false;
   }
 
-  let ammoKey = shooter.team === "player" ? game.currentAmmo : (t.cls === "자주포" ? "HE" : (Math.random() < 0.18 ? "APCR" : "AP"));
+  const smallArms = !!t.smallArms;
+  let ammoKey = smallArms ? "SMALL_ARMS" : shooter.team === "player" ? game.currentAmmo : (t.cls === "자주포" ? "HE" : (Math.random() < 0.18 ? "APCR" : "AP"));
   if (t.cls === "자주포" && ammoKey === "APCR") ammoKey = "AP";
-  const ammo = ammoTypes[ammoKey] || ammoTypes.AP;
+  const ammo = smallArms
+    ? {pen:1, dmg:1, shell:1, splash:0, smoke:false, maxRange:1}
+    : (ammoTypes[ammoKey] || ammoTypes.AP);
   let angle = shooter.turretAngle;
   if (targetPos && Number.isFinite(targetPos.x) && Number.isFinite(targetPos.y)) {
     angle = Math.atan2(targetPos.y - shooter.y, targetPos.x - shooter.x);
@@ -12545,7 +12552,7 @@ function fireShell(shooter, targetPos=null) {
   const acc = (t.accuracy || 1) * moduleGunFactor(shooter);
   const diff = game?.difficulty || difficulties["보통"];
   const spreadMult = shooter.team === "enemy" ? diff.enemySpread : shooter.team === "ally" ? diff.allySpread : 1;
-  const roleAcc = t.cls === "구축전차" ? 0.72 : t.cls === "자주포" ? 1.55 : t.cls === "경전차" ? 1.18 : 1.0;
+  const roleAcc = smallArms ? 1.75 : t.cls === "구축전차" ? 0.72 : t.cls === "자주포" ? 1.55 : t.cls === "경전차" ? 1.18 : 1.0;
   const err = rand(-0.018, 0.018) * spreadMult * roleAcc / acc;
   angle += err;
   const dmgScale = shooter.team === "enemy" ? diff.enemyDmg : 1;
@@ -12561,7 +12568,7 @@ function fireShell(shooter, targetPos=null) {
     team:shooter.team,
     age:0,
     range:0,
-    maxRange: (t.cls === "자주포" ? 1550 : 1250) * ammo.maxRange,
+    maxRange: smallArms ? (shooter.supportRange || 420) * 1.05 : (t.cls === "자주포" ? 1550 : 1250) * ammo.maxRange,
     pen:t.pen * ammo.pen * gunFactor,
     dmg:t.dmg * ammo.dmg * dmgScale * gunFactor,
     splash: ammoKey === "HE" ? Math.max(ammo.splash || 0, t.splash || 0) : 0,
@@ -12572,10 +12579,10 @@ function fireShell(shooter, targetPos=null) {
   shooter.reload = t.reload * moduleReloadFactor(shooter);
   shooter._reloadWasPositive = true;
   shooter.fireReveal = 3.0;
-  playSound("fire");
+  playSound(smallArms ? "rifle" : "fire");
   shooter.shots = (shooter.shots || 0) + 1;
   if (shooter.team === "player") game.playerShots = (game.playerShots || 0) + 1;
-  game.effects.push({type:"muzzle", x:muzzle.x, y:muzzle.y, age:0, life:0.18, angle});
+  game.effects.push({type:smallArms ? "smallMuzzle" : "muzzle", x:muzzle.x, y:muzzle.y, age:0, life:smallArms ? 0.07 : 0.18, angle});
   return true;
 }
 
@@ -12934,6 +12941,9 @@ function armorSide(target, incomingAngle) {
 }
 
 function hitTank(shell, tank) {
+  const smallArms = shell.caliber === "SMALL_ARMS";
+  const infantryTarget = tank.isSupportUnit && (tank.supportKind === "infantry" || tank.supportKind === "motorized");
+  const directGunHit = !smallArms && shell.caliber !== "SMOKE" && !shell.smoke;
   const side = armorSide(tank, shell.angle);
   const armor = tank.t.armor[side];
   const rangePenalty = clamp(1 - shell.range / 2200, 0.55, 1);
@@ -12965,40 +12975,55 @@ function hitTank(shell, tank) {
     text = "도탄";
   }
 
+  // 보병 계열에는 장갑 관통식보다 주포 직격 자체가 치명적이다.
+  // 소화기탄과 연막탄은 제외해 보병끼리의 교전은 낮은 피해를 유지한다.
+  if (infantryTarget && directGunHit) {
+    dmg = Math.max(dmg, tank.maxHp * 1.08);
+    text = "주포 직격";
+    penetrated = true;
+  }
+
   if (shell.shooter) shell.shooter.hits = (shell.shooter.hits || 0) + 1;
   if (shell.shooter && shell.shooter.team === "player") game.playerHits = (game.playerHits || 0) + 1;
 
   if (dmg > 0) {
     let modText = "";
-    if (penetrated) modText = applyModuleDamage(tank, side, shell, overmatch);
+    if (penetrated && !smallArms) modText = applyModuleDamage(tank, side, shell, overmatch);
     const ammoRackBoom = modText.includes("유폭");
     if (ammoRackBoom) dmg = tank.maxHp * 2;
     tank.hp = Math.max(0, tank.hp - dmg);
-    tank.lastHit = `${text}${modText} · 피해 ${Math.round(dmg)}`;
-    impactFeedback(shell, tank, penetrated, ammoRackBoom, dmg, side);
+    tank.lastHit = smallArms ? `소화기 피해 · ${dmg.toFixed(1)}` : `${text}${modText} · 피해 ${Math.round(dmg)}`;
+    if (smallArms) game.effects.push({type:"smallHit", x:shell.x, y:shell.y, age:0, life:0.12});
+    else impactFeedback(shell, tank, penetrated, ammoRackBoom, dmg, side);
     if (tank.team === "player") game.playerReceivedDamage = (game.playerReceivedDamage || 0) + dmg;
     if (shell.shooter) shell.shooter.damageDone = (shell.shooter.damageDone || 0) + dmg;
     if (shell.shooter && shell.shooter.team === "player") {
       game.playerDamage = (game.playerDamage || 0) + dmg;
       if (tank.isBaseTurret) game.playerTurretDamage = (game.playerTurretDamage || 0) + dmg;
-      if (penetrated) game.playerPenetrations = (game.playerPenetrations || 0) + 1;
+      if (penetrated && !smallArms) game.playerPenetrations = (game.playerPenetrations || 0) + 1;
     }
-    const logKind = shell.shooter && shell.shooter.team === "player" ? "good" : tank.team === "player" ? "bad" : "neutral";
-    addLog(`${shooterName} → ${targetName}: ${tank.lastHit} · 유효장갑 ${Math.round(effectiveArmor)} / 관통 ${Math.round(currentPen)}`, logKind);
-    playSound(penetrated || shell.caliber === "HE" ? "pen" : "bounce");
-    if (penetrated && shell.shooter) shell.shooter.penetrations = (shell.shooter.penetrations || 0) + 1;
+    if (!smallArms) {
+      const logKind = shell.shooter && shell.shooter.team === "player" ? "good" : tank.team === "player" ? "bad" : "neutral";
+      addLog(`${shooterName} → ${targetName}: ${tank.lastHit} · 유효장갑 ${Math.round(effectiveArmor)} / 관통 ${Math.round(currentPen)}`, logKind);
+      playSound(penetrated || shell.caliber === "HE" ? "pen" : "bounce");
+      if (penetrated && shell.shooter) shell.shooter.penetrations = (shell.shooter.penetrations || 0) + 1;
+    }
     if (tank.hp <= 0) destroyTank(tank, shell);
   } else {
-    tank.lastHit = text;
+    if (!smallArms) tank.lastHit = text;
     if (shell.shooter) shell.shooter.bounces = (shell.shooter.bounces || 0) + 1;
     if (shell.shooter && shell.shooter.team === "player") game.playerBounces = (game.playerBounces || 0) + 1;
-    const logKind = shell.shooter && shell.shooter.team === "player" ? "neutral" : tank.team === "player" ? "bad" : "neutral";
-    addLog(`${shooterName} → ${targetName}: ${text} · 유효장갑 ${Math.round(effectiveArmor)} / 관통 ${Math.round(currentPen)}`, logKind);
-    playSound("bounce");
-    game.effects.push({type:"spark", x:shell.x, y:shell.y, age:0, life:0.28});
-    impactFeedback(shell, tank, false, false, 0, side);
+    if (smallArms) {
+      game.effects.push({type:"smallHit", x:shell.x, y:shell.y, age:0, life:0.08});
+    } else {
+      const logKind = shell.shooter && shell.shooter.team === "player" ? "neutral" : tank.team === "player" ? "bad" : "neutral";
+      addLog(`${shooterName} → ${targetName}: ${text} · 유효장갑 ${Math.round(effectiveArmor)} / 관통 ${Math.round(currentPen)}`, logKind);
+      playSound("bounce");
+      game.effects.push({type:"spark", x:shell.x, y:shell.y, age:0, life:0.28});
+      impactFeedback(shell, tank, false, false, 0, side);
+    }
   }
-  game.effects.push({type:"hitText", x:tank.x, y:tank.y-38, age:0, life:1.0, text:tank.lastHit});
+  if (!smallArms) game.effects.push({type:"hitText", x:tank.x, y:tank.y-38, age:0, life:1.0, text:tank.lastHit});
 }
 
 function destroyTank(tank, shell) {
@@ -13011,7 +13036,7 @@ function destroyTank(tank, shell) {
   } else {
     tank.respawnTimer = game.mode === "capture" ? 7.0 : 0;
   }
-  playSound("boom");
+  if (!(tank.isSupportUnit && tank.supportKind === "infantry")) playSound("boom");
   const lossWord = tank.isSupportUnit ? "무력화" : "격파";
   addLog(`${tank.t.name} ${lossWord}`, tank.team === "enemy" ? "good" : tank.team === "player" ? "bad" : "neutral");
   if (!tank.killCounted) {
@@ -14644,16 +14669,17 @@ function drawShells() {
   for (const s of game.shells) {
     const a = worldToScreen(s.px, s.py);
     const b = worldToScreen(s.x, s.y);
-    ctx.strokeStyle = s.caliber === "SMOKE" ? "#d9d9d0" : s.caliber === "HE" ? "#ffd37a" : s.caliber === "APCR" ? "#cfe9ff" : "#fff5cc";
-    ctx.lineWidth = s.caliber === "HE" ? 3 : 2;
+    const smallArms = s.caliber === "SMALL_ARMS";
+    ctx.strokeStyle = smallArms ? "#e6cf9b" : s.caliber === "SMOKE" ? "#d9d9d0" : s.caliber === "HE" ? "#ffd37a" : s.caliber === "APCR" ? "#cfe9ff" : "#fff5cc";
+    ctx.lineWidth = smallArms ? Math.max(0.6, 0.85*c.zoom) : s.caliber === "HE" ? 3 : 2;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
 
-    ctx.fillStyle = "#fff";
+    ctx.fillStyle = smallArms ? "#f0d6a0" : "#fff";
     ctx.beginPath();
-    ctx.arc(b.x, b.y, Math.max(2, 3*c.zoom), 0, TAU);
+    ctx.arc(b.x, b.y, smallArms ? Math.max(0.65, 1.05*c.zoom) : Math.max(2, 3*c.zoom), 0, TAU);
     ctx.fill();
   }
 }
@@ -14662,7 +14688,22 @@ function drawEffects() {
   for (const e of game.effects) {
     const p = worldToScreen(e.x, e.y);
     const k = e.age / e.life;
-    if (e.type === "muzzle") {
+    if (e.type === "smallMuzzle") {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(e.angle);
+      ctx.globalAlpha = 0.8*(1-k);
+      ctx.fillStyle = "#f0d69b";
+      ctx.beginPath();
+      ctx.moveTo(0,0);
+      ctx.lineTo(7*(1-k), -2*(1-k));
+      ctx.lineTo(11*(1-k), 0);
+      ctx.lineTo(7*(1-k), 2*(1-k));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    } else if (e.type === "muzzle") {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(e.angle);
@@ -14695,6 +14736,11 @@ function drawEffects() {
         ctx.lineTo(p.x + Math.cos(a)*24*(1-k), p.y + Math.sin(a)*24*(1-k));
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
+    } else if (e.type === "smallHit") {
+      ctx.globalAlpha = 0.7*(1-k);
+      ctx.fillStyle = "#e7d4a6";
+      ctx.beginPath(); ctx.arc(p.x,p.y,0.7+1.8*(1-k),0,TAU); ctx.fill();
       ctx.globalAlpha = 1;
     } else if (e.type === "penetration") {
       ctx.globalAlpha = 1-k;
