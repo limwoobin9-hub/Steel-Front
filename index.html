@@ -2825,6 +2825,79 @@
     }
   }
 
+  /* 대규모 작전의 지원부대에는 세부 조작 대신 세 가지 전술 지시만 제공한다. */
+  #operationCommandPanel {
+    display:none;
+    position:fixed;
+    right:14px;
+    top:208px;
+    z-index:620;
+    width:196px;
+    padding:9px;
+    border:1px solid rgba(82,101,115,.86);
+    border-right:4px solid #6f9fbd;
+    border-radius:7px;
+    background:rgba(20,29,35,.90);
+    color:#e9f0f3;
+    box-shadow:0 6px 20px rgba(3,7,10,.34);
+    pointer-events:auto;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+  }
+  #operationCommandPanel.active { display:block; }
+  #operationCommandTitle {
+    margin:0 0 7px;
+    color:#b9d7e8;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.08em;
+  }
+  #operationCommandButtons {
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:5px;
+  }
+  .operationCommandButton {
+    min-width:0;
+    height:36px;
+    padding:0 4px;
+    border:1px solid #536875;
+    border-radius:5px;
+    background:#273740;
+    color:#d7e0e5;
+    font-size:11px;
+    font-weight:800;
+    touch-action:manipulation;
+  }
+  .operationCommandButton:hover { border-color:#7baac5; background:#315266; }
+  .operationCommandButton.active {
+    border-color:#9bc5dc;
+    background:#37627a;
+    color:#fff;
+    box-shadow:inset 0 0 0 1px rgba(210,236,249,.20);
+  }
+  #operationCommandState {
+    margin-top:7px;
+    color:#aebdc5;
+    font-size:10px;
+    line-height:1.35;
+  }
+  body.mobileControlMode #operationCommandPanel {
+    right:max(8px, env(safe-area-inset-right));
+    top:max(148px, calc(env(safe-area-inset-top) + 140px));
+    width:174px;
+    padding:7px;
+  }
+  body.mobileControlMode .operationCommandButton { height:32px; font-size:10px; }
+  body.mobileControlMode #operationCommandState { display:none; }
+  @media (orientation:portrait) {
+    body.mobileControlMode #operationCommandPanel {
+      top:max(310px, calc(env(safe-area-inset-top) + 298px));
+      width:164px;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -3163,6 +3236,16 @@
 </div>
 <button id="fullscreenBtn" class="hidden" type="button" aria-label="전체 화면 시작" title="전체 화면 시작">⛶</button>
 
+<div id="operationCommandPanel" aria-hidden="true">
+  <div id="operationCommandTitle">지원부대 전술 지시 · G</div>
+  <div id="operationCommandButtons" role="group" aria-label="대규모 작전 지원부대 전술 지시">
+    <button class="operationCommandButton" data-operation-order="rally" type="button">집결</button>
+    <button class="operationCommandButton active" data-operation-order="advance" type="button">진격</button>
+    <button class="operationCommandButton" data-operation-order="defend" type="button">방어</button>
+  </div>
+  <div id="operationCommandState">지원부대가 현재 작전 구역을 자율 지원합니다.</div>
+</div>
+
 <div id="artilleryControls" aria-hidden="true">
   <div id="artilleryModeLabel">곡사 조준 · 화살표로 관측 화면 이동</div>
   <div id="artilleryPanPad" aria-label="자주포 관측 화면 이동">
@@ -3246,6 +3329,7 @@
           <dt>1 ~ 4</dt><dd>탄종 변경</dd>
           <dt>F</dt><dd>정지 상태에서 길게 눌러 수리</dd>
           <dt>Q</dt><dd>조준 지점에 항공지원</dd>
+          <dt>G</dt><dd>대규모 작전 지원부대 지시 순환</dd>
           <dt>M</dt><dd>일시정지·계속</dd>
           <dt>⛶</dt><dd>브라우저 전체 화면 전환</dd>
           <dt>R</dt><dd>결과 화면에서 다시 전투</dd>
@@ -3260,7 +3344,8 @@
         <dl class="controlList">
           <dt>왼쪽 화면</dt><dd>이동 패드</dd>
           <dt>오른쪽 화면</dt><dd>드래그 조준</dd>
-          <dt>목표 고정</dt><dd>플레이어 전차와 가장 가까운 적 고정</dd>
+          <dt>목표 고정</dt><dd>현재 조준점에 가장 가까운 적 고정</dd>
+          <dt>집결 / 진격 / 방어</dt><dd>대규모 작전 지원부대에 간단한 전술 지시</dd>
           <dt>수리</dt><dd>정지 상태에서 길게 누르는 동안 수리</dd>
           <dt>조준 확대</dt><dd>확대 보기 전환</dd>
           <dt>일시정지</dt><dd>전투를 멈추고 메뉴 표시</dd>
@@ -3406,6 +3491,9 @@ const mobileAirBtn = document.getElementById("mobileAirBtn");
 const mobileRepairBtn = document.getElementById("mobileRepairBtn");
 const mobilePauseBtn = document.getElementById("mobilePauseBtn");
 const fullscreenBtn = document.getElementById("fullscreenBtn");
+const operationCommandPanel = document.getElementById("operationCommandPanel");
+const operationCommandState = document.getElementById("operationCommandState");
+const operationCommandButtons = [...document.querySelectorAll("[data-operation-order]")];
 const mobileAmmoButtons = [...document.querySelectorAll("[data-mobile-ammo]")];
 const artilleryControlsEl = document.getElementById("artilleryControls");
 const artilleryModeLabel = document.getElementById("artilleryModeLabel");
@@ -9317,7 +9405,7 @@ initMobileControls();
 
 function isBattleControlLongPressTarget(target) {
   if (!(target instanceof Element)) return false;
-  return !!target.closest("#mobileControls, #artilleryControls, body.battleActive #game");
+  return !!target.closest("#mobileControls, #artilleryControls, #operationCommandPanel, body.battleActive #game");
 }
 
 // 모바일 크롬의 길게 누르기 메뉴와 텍스트 선택이 게임 조작을 가로채지 않게 한다.
@@ -9439,6 +9527,11 @@ window.addEventListener("keydown", e => {
   if (!e.repeat && k === "m" && game?.state === "paused" && activeDialog === pauseOverlay) {
     e.preventDefault();
     toggleMenu();
+    return;
+  }
+  if (!e.repeat && k === "g" && game?.state === "play" && game.mode === "operation") {
+    e.preventDefault();
+    cycleOperationSupportOrder();
     return;
   }
   if (isEditableTarget(e.target)) return;
@@ -9961,6 +10054,275 @@ function makeAntiTankGun(raw, team="enemy") {
   };
 }
 
+const OPERATION_SUPPORT_SPECS = {
+  infantry:{
+    label:"보병분대", cls:"보병", role:"엄폐지 수색 · 거점 확보", size:[34,28], hp:92,
+    speed:66, accel:105, turn:2.8, pen:82, dmg:13, shell:360, reload:6.8,
+    range:390, sight:760, color:"#687653", canSecure:true
+  },
+  motorized:{
+    label:"차량화보병", cls:"차량화보병", role:"신속 전개 · 거점 확보", size:[48,30], hp:118,
+    speed:142, accel:185, turn:2.35, pen:76, dmg:12, shell:410, reload:6.1,
+    range:440, sight:820, color:"#637457", canSecure:true
+  },
+  recon:{
+    label:"정찰차", cls:"정찰차", role:"장거리 관측 · 대전차포 탐지", size:[43,27], hp:86,
+    speed:176, accel:215, turn:2.65, pen:46, dmg:9, shell:470, reload:3.5,
+    range:520, sight:1120, color:"#5f7359", canSecure:false
+  }
+};
+
+function makeOperationSupportUnit(kind, team, x, y, sector=null, slot=0) {
+  const spec = OPERATION_SUPPORT_SPECS[kind] || OPERATION_SUPPORT_SPECS.infantry;
+  const friendly = isFriendlyTeam(team);
+  const template = {
+    name:friendly ? `아군 ${spec.label}` : `적 ${spec.label}`,
+    nation:"",
+    cls:spec.cls,
+    role:spec.role,
+    tier:1,
+    tierRoman:"",
+    size:[...spec.size],
+    color:friendly ? spec.color : "#76564b",
+    armor:{front:kind === "infantry" ? 0 : 14, side:kind === "infantry" ? 0 : 9, rear:kind === "infantry" ? 0 : 6},
+    hp:spec.hp,
+    pen:spec.pen,
+    dmg:spec.dmg,
+    shell:spec.shell,
+    reload:spec.reload,
+    turret:2.8,
+    gunArc:TAU,
+    turreted:true,
+    speed:spec.speed,
+    reverse:spec.speed * 0.45,
+    accel:spec.accel,
+    turn:spec.turn,
+    accuracy:kind === "recon" ? 0.78 : 0.68,
+    splash:0
+  };
+  const unit = makeTank(template, clamp(x,70,WORLD_W-70), clamp(y,70,WORLD_H-70), team);
+  unit.isSupportUnit = true;
+  unit.supportKind = kind;
+  unit.supportRange = spec.range;
+  unit.supportSight = spec.sight;
+  unit.supportCanSecure = spec.canSecure;
+  unit.supportSlot = slot;
+  unit.operationSector = sector;
+  unit.repairKits = 0;
+  unit.modules = null;
+  unit.deployed = kind === "infantry";
+  unit.spotted = friendly;
+  unit.seenByEnemy = !friendly;
+  return unit;
+}
+
+function operationFinalZone() {
+  const zones = game?.map?.operationZones || [];
+  return zones.length ? zones[zones.length - 1] : null;
+}
+
+function operationCurrentZone() {
+  if (!game?.operation) return null;
+  return operationCombatZones()[game.operation.currentSector || 0] || operationFinalZone();
+}
+
+function operationSupportUnits(friendly=true, aliveOnly=true) {
+  if (!game) return [];
+  const list = friendly ? game.allies : game.enemies;
+  return list.filter(unit => unit.isSupportUnit && (!aliveOnly || unit.alive));
+}
+
+function spawnOperationFriendlySupport() {
+  if (!game || game.mode !== "operation") return;
+  const start = game.map.player;
+  const lineup = ["recon","motorized","motorized","infantry","infantry"];
+  lineup.forEach((kind, index) => {
+    const angle = index / lineup.length * TAU + Math.PI * 0.5;
+    const radius = kind === "recon" ? 230 : 170 + (index%2)*55;
+    const unit = makeOperationSupportUnit(
+      kind,
+      "ally",
+      start.x + Math.cos(angle)*radius,
+      start.y + Math.sin(angle)*radius,
+      null,
+      index
+    );
+    game.allies.push(unit);
+  });
+}
+
+function enemySupportLineupForSector(index) {
+  const lineups = [
+    ["infantry","infantry","recon"],
+    ["infantry","motorized","infantry"],
+    ["motorized","infantry","recon","infantry"],
+    ["infantry","infantry","recon","infantry"],
+    ["motorized","infantry","infantry","recon","infantry"]
+  ];
+  return lineups[index] || lineups[lineups.length-1];
+}
+
+function spawnOperationEnemySupport(index, zone) {
+  if (!game || !zone) return;
+  const lineup = enemySupportLineupForSector(index);
+  lineup.forEach((kind, slot) => {
+    const side = slot % 2 ? 1 : -1;
+    const row = Math.floor(slot / 2);
+    const unit = makeOperationSupportUnit(
+      kind,
+      "enemy",
+      zone.x + 120 + row*85,
+      zone.y + side*(170 + row*115),
+      index,
+      slot
+    );
+    unit.spotted = false;
+    unit.visibleMemory = 0;
+    game.enemies.push(unit);
+    initAIMission(unit, game.enemies.length - 1);
+  });
+}
+
+function spawnOperationFriendlyGunLine(zone, stage) {
+  if (!game || !zone || game.operation?.friendlyGunStages?.[stage]) return;
+  if (game.operation) game.operation.friendlyGunStages[stage] = true;
+  const offsets = stage === 0 ? [-300] : [-260, 270];
+  for (const yOffset of offsets) {
+    const gun = makeAntiTankGun({
+      x:clamp(zone.x-430, 180, WORLD_W-180),
+      y:clamp(zone.y+yOffset, 140, WORLD_H-140),
+      angle:0,
+      hidden:false,
+      pen:170 + stage*9,
+      dmg:37 + stage*2,
+      hp:125
+    }, "ally");
+    gun.operationSupport = true;
+    gun.operationSector = stage;
+    game.baseTurrets.push(gun);
+  }
+}
+
+function operationSupportTargetsFor(unit) {
+  if (!game || !unit) return [];
+  const friendly = isFriendlyTeam(unit.team);
+  const mobile = friendly
+    ? game.enemies.filter(target => target.alive && target.spotted)
+    : [game.player, ...game.allies].filter(target => target.alive && target.seenByEnemy);
+  const fixed = (game.baseTurrets || []).filter(target =>
+    target.alive && !sameSide(target.team, unit.team) &&
+    (!friendly || target.spotted || hasLineOfSight(unit, target))
+  );
+  return [...mobile, ...fixed]
+    .filter(target => Math.hypot(target.x-unit.x,target.y-unit.y) <= unit.supportRange*1.28)
+    .sort((a,b) => {
+      const score = target => {
+        const d = Math.hypot(target.x-unit.x,target.y-unit.y);
+        const threat = target.isAntiTankGun ? -150 : target.isSupportUnit ? 45 : 0;
+        return d + threat;
+      };
+      return score(a)-score(b);
+    });
+}
+
+function operationSupportGoal(unit) {
+  const op = game?.operation;
+  const zone = operationCurrentZone() || game.map.enemySpawn;
+  const lane = ((unit.supportSlot || 0)%5)-2;
+  if (!isFriendlyTeam(unit.team)) {
+    return {
+      x:clamp(zone.x + 90 + Math.floor((unit.supportSlot||0)/2)*70, 80, WORLD_W-80),
+      y:clamp(zone.y + lane*145, 100, WORLD_H-100)
+    };
+  }
+
+  const order = op?.supportOrder || "advance";
+  if (order === "rally") {
+    const p = game.player;
+    const behind = p.angle + Math.PI;
+    return {
+      x:clamp(p.x + Math.cos(behind)*210 + Math.cos(behind+Math.PI/2)*lane*92, 80, WORLD_W-80),
+      y:clamp(p.y + Math.sin(behind)*210 + Math.sin(behind+Math.PI/2)*lane*92, 80, WORLD_H-80)
+    };
+  }
+  if (order === "defend") {
+    const point = op?.supportCommandPoint || {x:game.player.x,y:game.player.y};
+    const angle = (unit.supportSlot || 0) / Math.max(1, operationSupportUnits(true).length) * TAU;
+    const ring = unit.supportKind === "recon" ? 310 : 180 + ((unit.supportSlot||0)%2)*65;
+    return {
+      x:clamp(point.x + Math.cos(angle)*ring, 80, WORLD_W-80),
+      y:clamp(point.y + Math.sin(angle)*ring, 80, WORLD_H-80)
+    };
+  }
+
+  const lead = unit.supportKind === "recon" ? 170 : unit.supportKind === "motorized" ? -65 : 35;
+  const armoredUnits = [game.player,...game.allies].filter(armor => armor.alive && !armor.isSupportUnit);
+  const spearhead = armoredUnits.sort((a,b) => b.x-a.x)[0] || game.player;
+  const screenGap = unit.supportKind === "recon" ? 230 : unit.supportKind === "motorized" ? 90 : 125;
+  const desiredX = zone.x + lead;
+  const screenedX = Math.min(desiredX,spearhead.x+screenGap);
+  const followingArmor = screenedX < desiredX-5;
+  return {
+    x:clamp(screenedX, 80, WORLD_W-80),
+    y:clamp((followingArmor ? spearhead.y : zone.y) + lane*(unit.supportKind === "recon" ? 170 : 115), 100, WORLD_H-100)
+  };
+}
+
+function updateOperationSupportUnit(unit, dt) {
+  if (!unit?.alive) return;
+  unit.fireReveal = Math.max(0, (unit.fireReveal || 0)-dt);
+  const targets = operationSupportTargetsFor(unit);
+  const target = targets[0] || null;
+  const targetDistance = target ? Math.hypot(target.x-unit.x,target.y-unit.y) : Infinity;
+  const goal = operationSupportGoal(unit);
+  let moveGoal = goal;
+
+  if (target && targetDistance < unit.supportRange*0.88) moveGoal = {x:unit.x,y:unit.y};
+  else if (target && targetDistance < unit.supportRange*1.45) {
+    const fromTarget = angleTo(target, unit);
+    moveGoal = {
+      x:target.x + Math.cos(fromTarget)*unit.supportRange*0.78,
+      y:target.y + Math.sin(fromTarget)*unit.supportRange*0.78
+    };
+  }
+
+  const distance = Math.hypot(moveGoal.x-unit.x,moveGoal.y-unit.y);
+  let desiredMove = distance > 8 ? angleTo(unit,moveGoal) : unit.angle;
+  desiredMove = obstacleAvoidanceAngle(unit, desiredMove, moveGoal);
+  unit.angle = moveAngle(unit.angle, desiredMove, unit.t.turn*dt);
+  const shouldMove = distance > (unit.supportKind === "infantry" ? 42 : 58) && !(target && targetDistance < unit.supportRange*0.88);
+  const terr = terrainAt(unit.x,unit.y);
+  const deployedSpeed = unit.supportKind === "motorized" && unit.deployed ? 0.44 : 1;
+  if (shouldMove) {
+    unit.vx += Math.cos(unit.angle)*unit.t.accel*0.72*dt;
+    unit.vy += Math.sin(unit.angle)*unit.t.accel*0.72*dt;
+  } else {
+    unit.vx *= Math.pow(0.12,dt);
+    unit.vy *= Math.pow(0.12,dt);
+  }
+  const maxSpeed = unit.t.speed*terr.speed*deployedSpeed;
+  const speed = Math.hypot(unit.vx,unit.vy);
+  if (speed > maxSpeed) {
+    unit.vx = unit.vx/speed*maxSpeed;
+    unit.vy = unit.vy/speed*maxSpeed;
+  }
+  unit.vx *= Math.pow(0.48,dt);
+  unit.vy *= Math.pow(0.48,dt);
+  unit.x = clamp(unit.x+unit.vx*dt,45,WORLD_W-45);
+  unit.y = clamp(unit.y+unit.vy*dt,45,WORLD_H-45);
+  unit.deployed = unit.supportKind === "infantry" || distance < 135 || !!(target && targetDistance < unit.supportRange);
+
+  if (!target) return;
+  const expected = aiLeadAimEnabledFor(unit.team) ? solveInterceptPoint(unit,target) : target;
+  const desiredGun = angleTo(unit,expected);
+  unit.turretAngle = moveAngle(unit.turretAngle,desiredGun,unit.t.turret*dt);
+  const gunError = Math.abs(normAng(unit.turretAngle-desiredGun));
+  if (targetDistance <= unit.supportRange && gunError < 0.18 && hasLineOfSight(unit,target) && unit.reload <= 0) {
+    const chance = unit.supportKind === "infantry" ? 0.36 : unit.supportKind === "motorized" ? 0.44 : 0.58;
+    if (Math.random() < chance) fireShell(unit, expected);
+  }
+}
+
 function initBaseTurrets(map, mode) {
   if (mode !== "assault") return [];
   const blue = (map.strongholds && map.strongholds.blue) || {id:"아군 진지", x:map.player.x+220, y:map.player.y, r:245};
@@ -10035,8 +10397,9 @@ function applyCampaignSuppliesAtStart(mission) {
 
 function configureWorldForBattle(mode) {
   if (mode === "operation") {
-    WORLD_W = BASE_WORLD_W * 2;
-    WORLD_H = BASE_WORLD_H * 2;
+    // 기존 대규모 작전보다 약 15% 넓혀 측면 기동과 지원부대 전개 공간을 확보한다.
+    WORLD_W = Math.round(BASE_WORLD_W * 2.30);
+    WORLD_H = Math.round(BASE_WORLD_H * 2.15);
   } else {
     WORLD_W = BASE_WORLD_W;
     WORLD_H = BASE_WORLD_H;
@@ -10070,6 +10433,7 @@ function cloneMapForBattle(baseMap, mission, mode=selectedBattleMode) {
 
 function cloneOperationMap(baseMap, mission) {
   const sx = WORLD_W / BASE_WORLD_W, sy = WORLD_H / BASE_WORLD_H;
+  const mid = WORLD_H * 0.50;
   const map = {
     ...baseMap,
     bg: baseMap.bg || "#68704c",
@@ -10082,42 +10446,58 @@ function cloneOperationMap(baseMap, mission) {
       return q;
     }),
     caps:[
-      {id:"A", x:1350, y:WORLD_H*0.50, r:190},
-      {id:"B", x:2650, y:WORLD_H*0.48, r:210},
-      {id:"C", x:3920, y:WORLD_H*0.52, r:220}
+      {id:"A", x:1240, y:mid*1.08, r:210},
+      {id:"B", x:2300, y:mid*0.76, r:220},
+      {id:"C", x:3370, y:mid*1.20, r:230},
+      {id:"D", x:4460, y:mid*0.78, r:240},
+      {id:"E", x:5480, y:mid*1.04, r:250}
     ],
-    player:{x:360, y:WORLD_H*0.50},
-    enemySpawn:{x:WORLD_W-430, y:WORLD_H*0.50},
-    breakthrough:{x:WORLD_W-250, y:WORLD_H*0.50, r:260},
+    player:{x:390, y:mid},
+    enemySpawn:{x:WORLD_W-440, y:mid},
+    breakthrough:{x:WORLD_W-250, y:mid, r:280},
     strongholds:{
-      blue:{id:"아군 집결지", x:560, y:WORLD_H*0.50, r:280},
-      red:{id:"최종 요새", x:WORLD_W-540, y:WORLD_H*0.50, r:340}
+      blue:{id:"아군 집결지", x:590, y:mid, r:300},
+      red:{id:"최종 요새", x:WORLD_W-520, y:mid, r:360}
     },
     sectorZones:[
-      {name:"서부 집결지", kind:"assembly", x:0, y:0, w:900, h:WORLD_H, color:"rgba(84,112,78,.18)", terrain:"field"},
-      {name:"중앙 평야", kind:"plain", x:900, y:0, w:1250, h:WORLD_H, color:"rgba(160,150,80,.12)", terrain:"field"},
-      {name:"폐허 시가지", kind:"city", x:2150, y:0, w:1100, h:WORLD_H, color:"rgba(80,80,80,.18)", terrain:"city"},
-      {name:"숲과 고지", kind:"forest", x:3250, y:0, w:950, h:WORLD_H, color:"rgba(46,90,55,.18)", terrain:"forest"},
-      {name:"최종 방어선", kind:"fort", x:4200, y:0, w:WORLD_W-4200, h:WORLD_H, color:"rgba(110,70,58,.18)", terrain:"fort"}
+      {name:"기갑 집결지", kind:"assembly", x:0, y:0, w:850, h:WORLD_H, color:"rgba(84,112,78,.18)", terrain:"field"},
+      {name:"농촌 전초선", kind:"plain", x:850, y:0, w:1100, h:WORLD_H, color:"rgba(139,132,76,.12)", terrain:"field"},
+      {name:"교차로 마을", kind:"city", x:1950, y:0, w:1150, h:WORLD_H, color:"rgba(80,80,80,.18)", terrain:"city"},
+      {name:"남부 개활지", kind:"plain", x:3100, y:0, w:1150, h:WORLD_H, color:"rgba(147,137,76,.10)", terrain:"field"},
+      {name:"숲 능선", kind:"forest", x:4250, y:0, w:900, h:WORLD_H, color:"rgba(46,90,55,.18)", terrain:"forest"},
+      {name:"요새 접근로", kind:"fort", x:5150, y:0, w:WORLD_W-5150, h:WORLD_H, color:"rgba(110,70,58,.18)", terrain:"fort"}
+    ],
+    operationRoutes:[
+      {name:"주 보급로", width:112, color:"rgba(42,42,38,.48)", points:[
+        {x:0,y:mid},{x:1160,y:mid*1.08},{x:2300,y:mid*0.76},{x:3370,y:mid*1.20},{x:4460,y:mid*0.78},{x:5480,y:mid*1.04},{x:WORLD_W,y:mid}
+      ]},
+      {name:"북부 우회로", width:58, color:"rgba(53,51,44,.36)", points:[
+        {x:520,y:mid-620},{x:1750,y:mid-760},{x:3000,y:mid-640},{x:4180,y:mid-850},{x:5480,y:mid-690}
+      ]},
+      {name:"남부 전차로", width:64, color:"rgba(53,51,44,.38)", points:[
+        {x:430,y:mid+690},{x:1660,y:mid+780},{x:3050,y:mid+700},{x:4320,y:mid+830},{x:5580,y:mid+650}
+      ]}
     ],
     operationZones:[
-      {stage:0, name:"전초 방어선", x:1200, y:WORLD_H*0.50, r:260, triggerX:1050, message:"전초 방어선 접근. 대전차포 위치를 조심하십시오."},
-      {stage:1, name:"중앙 평야 돌파", x:2250, y:WORLD_H*0.50, r:310, triggerX:2050, message:"중앙 평야 진입. 적 기갑 예비대가 움직입니다."},
-      {stage:2, name:"폐허 시가지 확보", x:3300, y:WORLD_H*0.50, r:320, triggerX:3050, message:"시가지 진입. 매복 대전차포와 구축전차를 주의하십시오."},
-      {stage:3, name:"최종 방어선", x:4400, y:WORLD_H*0.50, r:360, triggerX:4100, message:"최종 방어선 접근. 항공 지원과 중전차 예비대가 투입됩니다."},
-      {stage:4, name:"돌파 지점", x:WORLD_W-250, y:WORLD_H*0.50, r:260, triggerX:WORLD_W-430, message:"돌파 지점 도달. 작전을 마무리하십시오."}
+      {stage:0, name:"농촌 전초선", x:1240, y:mid*1.08, r:300, triggerX:980, message:"농촌 전초선 접근. 정찰차가 대전차 진지를 수색합니다."},
+      {stage:1, name:"교차로 마을", x:2300, y:mid*0.76, r:330, triggerX:2000, message:"교차로 마을 진입. 차량화보병이 건물 구역을 확보합니다."},
+      {stage:2, name:"남부 개활지", x:3370, y:mid*1.20, r:350, triggerX:3060, message:"남부 개활지 진입. 적 기갑 예비대와 공군 활동이 예상됩니다."},
+      {stage:3, name:"숲 능선", x:4460, y:mid*0.78, r:360, triggerX:4140, message:"숲 능선 접근. 보병 매복과 은폐 대전차포를 주의하십시오."},
+      {stage:4, name:"요새 접근로", x:5480, y:mid*1.04, r:390, triggerX:5150, message:"요새 접근로 진입. 전 병종이 최종 공격을 시작합니다."},
+      {stage:5, name:"돌파 지점", x:WORLD_W-250, y:mid, r:280, triggerX:WORLD_W-430, message:"돌파 지점 도달. 작전을 마무리하십시오."}
     ]
   };
 
-  // 작전 맵 전용 지형 / 장애물: 큰 구역이 비어 보이지 않게 배치
-  for (let i=0;i<11;i++) map.obstacles.push({type:i%2?"tree":"log", x:1050+i*95, y:700+(i%3)*410, r:42, solid:true, block:true, operation:true});
-  for (let i=0;i<9;i++) map.obstacles.push({type:i%3?"wreck":"sandbag", x:1850+i*80, y:WORLD_H*0.50-260+(i%4)*170, r:44, solid:true, block:true, operation:true});
-  for (let i=0;i<13;i++) map.obstacles.push({type:i%2?"building":"wreck", x:2320+(i%4)*210, y:980+Math.floor(i/4)*310, r:i%2?82:50, solid:true, block:true, operation:true});
-  for (let i=0;i<16;i++) map.obstacles.push({type:"tree", x:3320+(i%5)*155, y:520+Math.floor(i/5)*520, r:46, solid:true, block:true, operation:true});
-  for (let i=0;i<12;i++) map.obstacles.push({type:i%3?"sandbag":"boulder", x:4200+(i%6)*125, y:WORLD_H*0.50-350+Math.floor(i/6)*700, r:48, solid:true, block:true, operation:true});
-  map.terrain.push({x:1700,y:740,r:340,type:"hill"});
-  map.terrain.push({x:3670,y:1270,r:370,type:"hill"});
-  map.terrain.push({x:4550,y:WORLD_H*0.5,r:430,type:"rock"});
+  // 전선 사이에 북·남 우회 공간을 남기고, 중앙에는 보병이 활용할 엄폐물을 둔다.
+  for (let i=0;i<14;i++) map.obstacles.push({type:i%3?"tree":"log", x:930+i*72, y:mid-720+(i%4)*470, r:40, solid:true, block:true, operation:true});
+  for (let i=0;i<15;i++) map.obstacles.push({type:i%4?"building":"wreck", x:1980+(i%5)*150, y:mid-520+Math.floor(i/5)*430, r:i%4?72:46, solid:true, block:true, operation:true});
+  for (let i=0;i<12;i++) map.obstacles.push({type:i%3?"sandbag":"wreck", x:3040+i*105, y:mid+320+(i%3)*260, r:43, solid:true, block:true, operation:true});
+  for (let i=0;i<20;i++) map.obstacles.push({type:"tree", x:4160+(i%5)*165, y:mid-930+Math.floor(i/5)*480, r:45, solid:true, block:true, operation:true});
+  for (let i=0;i<14;i++) map.obstacles.push({type:i%3?"sandbag":"boulder", x:5110+(i%7)*115, y:mid-520+Math.floor(i/7)*910, r:47, solid:true, block:true, operation:true});
+  map.terrain.push({x:1560,y:mid-680,r:360,type:"hill"});
+  map.terrain.push({x:3520,y:mid+690,r:390,type:"hill"});
+  map.terrain.push({x:4580,y:mid-770,r:420,type:"hill"});
+  map.terrain.push({x:5480,y:mid,r:460,type:"rock"});
   return map;
 }
 
@@ -10197,6 +10577,7 @@ function secondaryObjectivesStatusText() {
 function battleReportHtml(result, money, xp, medals, secondary) {
   const destroyed = (game.playerKills || 0) + (game.friendlyKills || 0);
   const allyLoss = (game.missionStats?.allyLosses || 0) + (game.missionStats?.playerDeaths || 0);
+  const supportLoss = game.missionStats?.supportLosses || 0;
   const enemyLoss = game.missionStats?.enemyKills || 0;
   const acc = game.playerShots ? Math.round((game.playerHits || 0) / game.playerShots * 100) : 0;
   const next = game.campaignMission ? nextCampaignMission(game.campaignMission) : null;
@@ -10207,11 +10588,12 @@ function battleReportHtml(result, money, xp, medals, secondary) {
     ? secondary.lines.map(o => `${o.passed ? "성공" : "실패"}: ${o.label}`).join("<br>")
     : "없음";
   const medalText = medals && medals.length ? medals.join(", ") : "없음";
+  const enemyLossText = game.mode === "operation" ? `적 전력 ${enemyLoss}개 무력화` : `적 전차 ${enemyLoss}대 격파`;
   return `
     <div class="reportGrid">
       <div><b>작전 결과</b><br>${result} · ${rating}</div>
-      <div><b>전과</b><br>적 전차 ${enemyLoss}대 격파 · 직접 ${game.playerKills || 0}대</div>
-      <div><b>피해</b><br>아군 손실 ${allyLoss}대 · 받은 피해 ${Math.round(game.playerReceivedDamage || 0)}</div>
+      <div><b>전과</b><br>${enemyLossText} · 직접 ${game.playerKills || 0}개</div>
+      <div><b>피해</b><br>아군 기갑 손실 ${allyLoss}대${game.mode === "operation" ? ` · 지원부대 ${supportLoss}개` : ""} · 받은 피해 ${Math.round(game.playerReceivedDamage || 0)}</div>
       <div><b>사격</b><br>명중률 ${acc}% · 관통 ${game.playerPenetrations || 0} · 도탄 ${game.playerBounces || 0}</div>
       <div><b>보상</b><br>${money} 자금 · ${xp} 경험치</div>
       <div><b>다음 전투</b><br>${next ? `${next.year} ${next.title}` : (game.campaignMission ? "캠페인 마지막 임무" : "자유 전투")}</div>
@@ -10223,54 +10605,51 @@ function battleReportHtml(result, money, xp, medals, secondary) {
 
 function setupOperationBattle() {
   if (!game || game.mode !== "operation") return;
-  const reserveTemplates = game.enemies.map(t => t.t);
+  const reserveTemplates = game.enemies.filter(t => !t.isSupportUnit).map(t => t.t);
   game.enemies.length = 0;
   game.baseTurrets.length = 0;
   game.operation = {
     stage:0,
     currentSector:0,
-    maxSector:3,
+    maxSector:4,
     stageTriggered:{},
     cleared:{},
     secureTimer:0,
-    secureRequired:1.8,
+    secureRequired:6.0,
     allSectorsCleared:false,
     enemyTemplates:reserveTemplates,
-    sectorStrength:clamp(Math.ceil(Math.max(8, reserveTemplates.length) / 3), 3, 7),
+    sectorStrength:clamp(Math.ceil(Math.max(9, reserveTemplates.length) / 4), 3, 6),
     nextFriendlyAir:24,
     nextEnemyStrike:36,
-    finalReached:false
+    finalReached:false,
+    supportOrder:"advance",
+    supportCommandPoint:{x:game.map.player.x,y:game.map.player.y},
+    friendlyGunStages:{},
+    supportReinforcements:2
   };
+  spawnOperationFriendlySupport();
+  const firstZone = operationCombatZones()[0];
+  if (firstZone) spawnOperationFriendlyGunLine(firstZone, 0);
   activateOperationSector(0);
-  addRadio("대규모 작전 시작. 현재 구역을 소탕하면 부대가 다음 구역 후방 집결선으로 전진합니다.", "neutral");
+  refreshOperationCommandPanel();
+  addRadio("제병협동 작전 시작. 기갑부대가 돌파를 주도하고 보병·정찰·대전차포·공군이 자율 지원합니다.", "neutral");
 }
 
 function operationGunDefsFor(index) {
-  const mid = WORLD_H * 0.50;
-  const defs = {
-    0:[
-      {x:1320,y:mid-330,angle:Math.PI,hidden:true},
-      {x:1580,y:mid+300,angle:Math.PI,hidden:true}
-    ],
-    1:[
-      {x:2380,y:mid-420,angle:Math.PI,hidden:true,pen:185},
-      {x:2720,y:mid+370,angle:Math.PI,hidden:true,pen:185}
-    ],
-    2:[
-      {x:3380,y:mid-390,angle:Math.PI,hidden:true,pen:195},
-      {x:3720,y:mid+380,angle:Math.PI,hidden:true,pen:195}
-    ],
-    3:[
-      {x:4210,y:mid-430,angle:Math.PI,pen:205,dmg:45},
-      {x:4540,y:mid+420,angle:Math.PI,pen:205,dmg:45},
-      {x:4860,y:mid,angle:Math.PI,pen:215,dmg:48,hp:150}
-    ]
-  };
-  return defs[index] || [];
+  const zone = operationCombatZones()[index];
+  if (!zone) return [];
+  const basePen = 168 + index*11;
+  const defs = [
+    {x:zone.x+115,y:zone.y-320,angle:Math.PI,hidden:true,pen:basePen,dmg:37+index*2},
+    {x:zone.x+210,y:zone.y+315,angle:Math.PI,hidden:true,pen:basePen,dmg:37+index*2}
+  ];
+  if (index >= 3) defs.push({x:zone.x+330,y:zone.y+(index%2?-20:40),angle:Math.PI,hidden:index===3,pen:basePen+12,dmg:46+index,hp:145});
+  return defs;
 }
 
 function operationCombatZones() {
-  return (game?.map?.operationZones || []).filter(z => z.stage <= 3);
+  const zones = game?.map?.operationZones || [];
+  return zones.length > 1 ? zones.slice(0,-1) : zones;
 }
 
 function activateOperationSector(index) {
@@ -10286,22 +10665,34 @@ function activateOperationSector(index) {
     ["경전차","중형전차","구축전차"],
     ["중형전차","구축전차","자주포"],
     ["구축전차","중형전차","중전차","자주포"],
-    ["중전차","중형전차","구축전차","자주포"]
+    ["중전차","중형전차","구축전차","자주포"],
+    ["중전차","구축전차","중형전차","자주포"]
   ];
   spawnOperationEnemyGroup(zone.x + Math.min(260, zone.r * 0.7), zone.y, game.operation.sectorStrength, classLists[index] || classLists[3], index);
+  spawnOperationEnemySupport(index, zone);
   for (const raw of operationGunDefsFor(index)) {
     const gun = makeAntiTankGun(raw, "enemy");
     gun.operationSector = index;
     game.baseTurrets.push(gun);
   }
+  if (index === 2) {
+    callAirStrike("enemy", {x:zone.x-120,y:zone.y+rand(-160,160)}, "strafe");
+    addRadio("적 전술기가 작전 구역을 수색합니다. 정지하지 마십시오.", "bad");
+  }
+  if (index === 4) {
+    callAirStrike("ally", {x:zone.x+120,y:zone.y}, "rocket");
+    addRadio("최종 공격 준비사격. 아군 공격기가 요새 접근로로 진입합니다.", "good");
+  }
   for (const tank of game.allies) tank.aiThink = 0;
-  addRadio(`${zone.name} 활성화. 구역 내 적 전차와 대전차포를 제거하십시오.`, index >= 2 ? "bad" : "neutral");
+  addRadio(`${zone.name} 활성화. 적 기갑과 지원 병력을 제압한 뒤 보병이 구역을 확보합니다.`, index >= 2 ? "bad" : "neutral");
 }
 
 function operationSectorHostiles(index) {
-  const tanks = game.enemies.filter(t => t.alive && t.operationSector === index);
+  const mobile = game.enemies.filter(t => t.alive && t.operationSector === index);
+  const tanks = mobile.filter(t => !t.isSupportUnit);
+  const supports = mobile.filter(t => t.isSupportUnit);
   const guns = (game.baseTurrets || []).filter(t => t.alive && !isFriendlyTeam(t.team) && t.operationSector === index);
-  return {tanks, guns, total:tanks.length + guns.length};
+  return {tanks, supports, guns, total:tanks.length + supports.length + guns.length};
 }
 
 function clearOperationSector(index) {
@@ -10313,13 +10704,22 @@ function clearOperationSector(index) {
   addRadio(`${zone?.name || `${index+1}구역`} 소탕 완료. 전선을 다음 구역 후방으로 이동합니다.`, "good");
   if (index < game.operation.maxSector) {
     const next = index + 1;
-    if (next === 2 || next === 3) spawnOperationAllyReinforcements(zone.x - 120, zone.y + rand(-150,150), 2);
+    if (next === 2 || next === 4) spawnOperationAllyReinforcements(zone.x - 120, zone.y + rand(-150,150), 2);
+    if ((next === 2 || next === 4)) spawnOperationFriendlyGunLine(zone, next);
+    if (operationSupportUnits(true).length <= 2 && game.operation.supportReinforcements > 0) {
+      const reinforcement = makeOperationSupportUnit("motorized", "ally", zone.x-330, zone.y+rand(-180,180), null, game.allies.length);
+      game.allies.push(reinforcement);
+      initAIMission(reinforcement, game.allies.length-1);
+      game.operation.supportReinforcements -= 1;
+      addRadio("차량화보병 보충대가 전선에 합류했습니다.", "good");
+    }
     activateOperationSector(next);
   } else {
     game.operation.allSectorsCleared = true;
-    game.operation.currentSector = 4;
-    game.operation.stage = 4;
-    game.operation.stageTriggered[4] = true;
+    const finalStage = operationFinalZone()?.stage ?? (game.operation.maxSector+1);
+    game.operation.currentSector = finalStage;
+    game.operation.stage = finalStage;
+    game.operation.stageTriggered[finalStage] = true;
     addRadio("모든 전투 구역 소탕 완료. 최종 후방 돌파 지점으로 집결하십시오.", "good");
   }
   for (const tank of game.allies) tank.aiThink = 0;
@@ -10371,11 +10771,21 @@ function updateOperationBattle(dt) {
 
   if (!op.allSectorsCleared) {
     const hostiles = operationSectorHostiles(op.currentSector);
+    const zone = operationCombatZones()[op.currentSector];
     if (hostiles.total <= 0) {
-      op.secureTimer += dt;
+      const infantryInside = operationSupportUnits(true).filter(unit =>
+        unit.supportCanSecure && zone && Math.hypot(unit.x-zone.x,unit.y-zone.y) < zone.r
+      ).length;
+      const playerInside = zone && Math.hypot(p.x-zone.x,p.y-zone.y) < zone.r;
+      const secureRate = infantryInside > 0 ? 1 : playerInside ? 0.45 : 0;
+      op.secureTimer = secureRate > 0 ? op.secureTimer + dt*secureRate : Math.max(0,op.secureTimer-dt*0.20);
+      op.securingWithInfantry = infantryInside > 0;
+      op.securingWithPlayer = !op.securingWithInfantry && !!playerInside;
       if (op.secureTimer >= op.secureRequired) clearOperationSector(op.currentSector);
     } else {
       op.secureTimer = 0;
+      op.securingWithInfantry = false;
+      op.securingWithPlayer = false;
     }
   }
 
@@ -10397,7 +10807,7 @@ function updateOperationBattle(dt) {
     op.nextEnemyStrike = 54;
   }
 
-  const final = game.map.operationZones?.[4];
+  const final = operationFinalZone();
   if (op.allSectorsCleared && final && Math.hypot(p.x-final.x, p.y-final.y) < final.r) op.finalReached = true;
 }
 
@@ -10517,6 +10927,26 @@ function drawAirstrikes() {
     ctx.font = "bold 13px system-ui";
     ctx.textAlign = "center";
     ctx.fillText(a.kind === "strafe" ? "기총소사" : a.kind === "rocket" ? "로켓 공격" : "폭격 경고", p.x, p.y - r - 8);
+    if (warn) {
+      const progress = clamp(a.age/a.delay,0,1);
+      const direction = a.team === "ally" ? 1 : -1;
+      const approach = Math.min(W*0.48+180,720);
+      const planeX = p.x-direction*approach*(1-progress);
+      const planeY = p.y-r*0.38-Math.sin(progress*Math.PI)*46;
+      ctx.save();
+      ctx.translate(planeX,planeY);
+      ctx.rotate(direction > 0 ? 0 : Math.PI);
+      ctx.globalAlpha = 0.72+progress*0.24;
+      ctx.fillStyle = a.team === "ally" ? "#a8c9dc" : "#d59a8e";
+      ctx.strokeStyle = "rgba(14,20,24,.88)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(24,0); ctx.lineTo(5,-4); ctx.lineTo(-5,-18); ctx.lineTo(-11,-18);
+      ctx.lineTo(-7,-4); ctx.lineTo(-24,-2); ctx.lineTo(-24,2); ctx.lineTo(-7,4);
+      ctx.lineTo(-11,18); ctx.lineTo(-5,18); ctx.lineTo(5,4); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.restore();
+    }
     ctx.restore();
   }
 }
@@ -10576,20 +11006,81 @@ function drawEnemyArtilleryTargetWarning() {
 
 function operationStatusText() {
   if (!game || game.mode !== "operation" || !game.operation) return "";
-  const zones = game.map.operationZones || [];
-  const current = zones[Math.min(game.operation.currentSector || 0, zones.length - 1)] || zones[zones.length-1];
-  const active = game.operation.allSectorsCleared ? {tanks:[],guns:[],total:0} : operationSectorHostiles(game.operation.currentSector || 0);
+  const zones = operationCombatZones();
+  const totalSectors = zones.length;
+  const current = game.operation.allSectorsCleared
+    ? operationFinalZone()
+    : zones[Math.min(game.operation.currentSector || 0, zones.length - 1)] || operationFinalZone();
+  const active = game.operation.allSectorsCleared ? {tanks:[],supports:[],guns:[],total:0} : operationSectorHostiles(game.operation.currentSector || 0);
   const d = current ? Math.round(Math.hypot(game.player.x-current.x, game.player.y-current.y)) : 0;
   const reserves = Math.max(0, game.operationRespawnsLeft || 0);
   const cleared = Object.keys(game.operation.cleared || {}).filter(k => game.operation.cleared[k]).length;
-  const secure = active.total <= 0 && !game.operation.allSectorsCleared ? ` · 구역 확인 ${game.operation.secureTimer.toFixed(1)}/${game.operation.secureRequired.toFixed(1)}초` : "";
-  return `<br>작전 구역 ${Math.min(cleared+1, 4)}/4: ${current ? current.name : "돌파"} · 거리 ${d} · 현재 적 ${active.tanks.length}대 / 대전차포 ${active.guns.length}문${secure} · 예비 전차 ${reserves}대`;
+  const friendlySupport = operationSupportUnits(true).length;
+  const secure = active.total <= 0 && !game.operation.allSectorsCleared
+    ? ` · ${game.operation.securingWithInfantry ? "보병 확보" : game.operation.securingWithPlayer ? "전차 단독 확보" : "구역 확보 대기"} ${game.operation.secureTimer.toFixed(1)}/${game.operation.secureRequired.toFixed(1)}`
+    : "";
+  return `<br>작전 구역 ${Math.min(cleared+1, totalSectors)}/${totalSectors}: ${current ? current.name : "돌파"} · 거리 ${d}<br>적 기갑 ${active.tanks.length}대 / 지원 ${active.supports.length}개 / 대전차포 ${active.guns.length}문${secure}<br>아군 지원 ${friendlySupport}개 · 지시 ${operationOrderLabel(game.operation.supportOrder)} · 예비 전차 ${reserves}대`;
+}
+
+function operationOrderLabel(order) {
+  return order === "rally" ? "집결" : order === "defend" ? "방어" : "진격";
+}
+
+function refreshOperationCommandPanel() {
+  const active = !!(game && game.mode === "operation" && (game.state === "play" || game.state === "paused"));
+  if (!operationCommandPanel) return;
+  operationCommandPanel.classList.toggle("active", active);
+  operationCommandPanel.setAttribute("aria-hidden", active ? "false" : "true");
+  const order = game?.operation?.supportOrder || "advance";
+  for (const button of operationCommandButtons) {
+    const selected = button.getAttribute("data-operation-order") === order;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  }
+  if (operationCommandState) {
+    operationCommandState.textContent = order === "rally"
+      ? "보병과 정찰차가 플레이어 기갑부대 후방으로 집결합니다."
+      : order === "defend"
+        ? "지원부대가 명령 당시 위치 주변을 방어합니다."
+        : "지원부대가 현재 작전 구역을 자율 수색·확보합니다.";
+  }
+}
+
+function setOperationSupportOrder(order, announce=true) {
+  if (!game?.operation || game.mode !== "operation" || !["rally","advance","defend"].includes(order)) return;
+  game.operation.supportOrder = order;
+  if (order === "defend") game.operation.supportCommandPoint = {x:game.player.x,y:game.player.y};
+  for (const unit of operationSupportUnits(true)) unit.aiThink = 0;
+  refreshOperationCommandPanel();
+  if (announce) {
+    const text = order === "rally"
+      ? "지원부대 집결 지시. 플레이어 기갑부대 후방으로 이동합니다."
+      : order === "defend"
+        ? "지원부대 방어 지시. 현재 위치 주변에 방어선을 형성합니다."
+        : "지원부대 진격 지시. 정찰과 구역 확보를 자율 수행합니다.";
+    addRadio(text, order === "advance" ? "good" : "neutral");
+  }
+}
+
+function cycleOperationSupportOrder() {
+  if (!game?.operation || game.mode !== "operation") return;
+  const orders = ["rally","advance","defend"];
+  const index = Math.max(0,orders.indexOf(game.operation.supportOrder));
+  setOperationSupportOrder(orders[(index+1)%orders.length]);
+}
+
+for (const button of operationCommandButtons) {
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOperationSupportOrder(button.getAttribute("data-operation-order"));
+  });
 }
 
 function modeBriefingText(mode) {
   if (mode === "capture") return "여러 거점을 점령해 목표 점수에 먼저 도달하십시오.";
   if (mode === "assault") return "아군 진지를 지키면서 적 진지 포탑이나 적 전차부대를 파괴하십시오.";
-  if (mode === "operation") return "전장을 4개 구역으로 나누어 현재 구역을 소탕하고, 다음 구역 후방 집결선으로 순차 전진하십시오.";
+  if (mode === "operation") return "넓어진 5개 전선 구역을 기갑부대로 돌파하십시오. 보병·차량화보병·정찰차·대전차포·공군은 자율 지원하며, G 또는 전술 패널로 집결·진격·방어만 지시할 수 있습니다.";
   if (mode === "escort") return "별표로 표시된 아군 지휘차량을 보호하고 적 지휘차량을 먼저 격파하십시오.";
   if (mode === "survival") return "계속 도착하는 적 증원에 맞서 제한 시간 동안 생존하십시오.";
   if (mode === "withdrawal") return "전방에서 버틴 뒤 철수 명령이 내려오면 후방 철수 지점으로 복귀하십시오.";
@@ -11435,7 +11926,7 @@ function startBattle() {
     campaignMission:activeCampaignMission,
     missionObjective:createMissionObjective(activeCampaignMission, map),
     campaignEvents:activeCampaignMission ? (activeCampaignMission.events || []).map(e => ({...e, done:false})) : [],
-    missionStats:{enemyKills:0, allyLosses:0, playerDeaths:0, classKills:{}, reached:false, objectiveProgress:0},
+    missionStats:{enemyKills:0, allyLosses:0, supportLosses:0, playerDeaths:0, classKills:{}, reached:false, objectiveProgress:0},
     missionSightMult:1,
     radioJammedUntil:0,
     playerDebuffUntil:0,
@@ -11492,6 +11983,7 @@ function startBattle() {
   }
   if (operationMode) setupOperationBattle();
   else setupAdditionalBattleMode();
+  refreshOperationCommandPanel();
   assignAIMissions();
   showStartBriefing(activeCampaignMission);
   prepareMobileBattle();
@@ -11538,6 +12030,7 @@ function returnToMenu() {
   if (resultOverlay) resultOverlay.classList.add("hidden");
   if (startBriefingOverlay) startBriefingOverlay.classList.add("hidden");
   if (msgBox) msgBox.innerHTML = "";
+  refreshOperationCommandPanel();
   if (wasOver) {
     openBattleSetup();
   }
@@ -11681,6 +12174,7 @@ function processRepair(tank, dt, active) {
   }
 }
 function tankSightRange(tank) {
+  if (tank?.isSupportUnit && Number.isFinite(tank.supportSight)) return tank.supportSight;
   const cls = tank.t.cls;
   const base = cls === "경전차" ? 900 : cls === "구축전차" ? 760 : cls === "중전차" ? 560 : cls === "자주포" ? 520 : 680;
   const terr = terrainAt(tank.x, tank.y);
@@ -11716,6 +12210,7 @@ function updateVisibility(dt) {
   if (game.settings && !game.settings.vision) {
     for (const e of game.enemies) { e.visibleMemory = 99; e.spotted = e.alive; }
     for (const f of friendlies) { f.enemyMemory = 99; f.seenByEnemy = f.alive; }
+    for (const fixed of (game.baseTurrets || [])) { fixed.visibleMemory = 99; fixed.spotted = fixed.alive; }
     return;
   }
 
@@ -11735,6 +12230,19 @@ function updateVisibility(dt) {
     const seen = enemies.some(e => hasLineOfSight(e, f)) || (f.fireReveal > 0 && enemies.some(e => Math.hypot(f.x-e.x, f.y-e.y) < 900));
     if (seen) f.enemyMemory = 1.6;
     f.seenByEnemy = f.enemyMemory > 0;
+  }
+  for (const fixed of (game.baseTurrets || [])) {
+    if (isFriendlyTeam(fixed.team)) {
+      fixed.spotted = true;
+      fixed.visibleMemory = 99;
+      continue;
+    }
+    if (!fixed.alive) continue;
+    const seen = friendlies.some(f => hasLineOfSight(f,fixed)) ||
+      (fixed.fireReveal > 0 && friendlies.some(f => Math.hypot(f.x-fixed.x,f.y-fixed.y) < 1050));
+    if (seen) fixed.visibleMemory = 4.0;
+    fixed.visibleMemory = Math.max(0,(fixed.visibleMemory || 0)-dt);
+    fixed.spotted = fixed.visibleMemory > 0;
   }
 }
 function operationRespawnPoint() {
@@ -12098,7 +12606,10 @@ function closestTargetFor(tank) {
 
   if (game && (game.mode === "assault" || game.mode === "operation") && game.baseTurrets) {
     if (game.mode === "operation") {
-      const fixedTargets = game.baseTurrets.filter(t => t.alive && !sameSide(t.team, tank.team) && hasLineOfSight(tank, t));
+      const fixedTargets = game.baseTurrets.filter(t =>
+        t.alive && !sameSide(t.team, tank.team) &&
+        (!isFriendlyTeam(tank.team) || t.spotted) && hasLineOfSight(tank, t)
+      );
       candidates.push(...fixedTargets);
     } else {
       const base = isFriendlyTeam(tank.team) ? enemyBaseTurret() : friendlyBaseTurret();
@@ -12109,7 +12620,9 @@ function closestTargetFor(tank) {
   let best = null, bestD = Infinity;
   for (const c of candidates) {
     const d = Math.hypot(c.x - tank.x, c.y - tank.y);
-    const priorityDistance = game?.mode === "escort" && c.isCommander ? d * 0.72 : d;
+    let priorityDistance = game?.mode === "escort" && c.isCommander ? d * 0.72 : d;
+    // 기갑은 가능하면 적 기갑과 대전차 화력을 먼저 상대하고 보조 병종은 부차적으로 공격한다.
+    if (c.isSupportUnit) priorityDistance *= 1.28;
     if (priorityDistance < bestD) { best = c; bestD = priorityDistance; }
   }
   return best;
@@ -12499,7 +13012,8 @@ function destroyTank(tank, shell) {
     tank.respawnTimer = game.mode === "capture" ? 7.0 : 0;
   }
   playSound("boom");
-  addLog(`${tank.t.name} 격파`, tank.team === "enemy" ? "good" : tank.team === "player" ? "bad" : "neutral");
+  const lossWord = tank.isSupportUnit ? "무력화" : "격파";
+  addLog(`${tank.t.name} ${lossWord}`, tank.team === "enemy" ? "good" : tank.team === "player" ? "bad" : "neutral");
   if (!tank.killCounted) {
     tank.killCounted = true;
     if (game && game.missionStats) {
@@ -12508,7 +13022,8 @@ function destroyTank(tank, shell) {
         const cls = tank.t?.cls || "기타";
         game.missionStats.classKills[cls] = (game.missionStats.classKills[cls] || 0) + 1;
       } else if (tank.team === "ally") {
-        game.missionStats.allyLosses = (game.missionStats.allyLosses || 0) + 1;
+        if (tank.isSupportUnit) game.missionStats.supportLosses = (game.missionStats.supportLosses || 0) + 1;
+        else game.missionStats.allyLosses = (game.missionStats.allyLosses || 0) + 1;
       } else if (tank.team === "player") {
         game.missionStats.playerDeaths = (game.missionStats.playerDeaths || 0) + 1;
       }
@@ -12520,7 +13035,7 @@ function destroyTank(tank, shell) {
       } else game.friendlyKills = (game.friendlyKills || 0) + 1;
     }
   }
-  game.effects.push({type:"boom", x:tank.x, y:tank.y, age:0, life:0.9});
+  game.effects.push({type:tank.isSupportUnit && tank.supportKind === "infantry" ? "dust" : "boom", x:tank.x, y:tank.y, age:0, life:0.9});
 }
 
 function shellExplosion(shell) {
@@ -12678,7 +13193,7 @@ function updateArtilleryGuardAssignments(force=false) {
 
   for (const friendly of [true, false]) {
     const sideUnits = sideUnitsForArtilleryGuard(friendly);
-    const aiUnits = (friendly ? game.allies : game.enemies).filter(t => t.alive);
+    const aiUnits = (friendly ? game.allies : game.enemies).filter(t => t.alive && !t.isSupportUnit);
     const artillery = sideUnits.filter(t => t.t?.cls === "자주포");
     const guards = aiUnits.filter(t => t.t?.cls !== "자주포");
 
@@ -12975,6 +13490,10 @@ function aiCanFireAt(tank, target, d, gunError) {
 
 function updateTankAI(tank, dt) {
   if (!tank.alive) return;
+  if (tank.isSupportUnit) {
+    updateOperationSupportUnit(tank, dt);
+    return;
+  }
   tank.fireReveal = Math.max(0, (tank.fireReveal || 0) - dt);
   const t = tank.t;
   const role = t.cls;
@@ -13406,7 +13925,7 @@ function checkEnd() {
       game.result = "패배"; game.state = "over"; awardBattle("패배"); return;
     }
 
-    const final = game.map.operationZones?.[4];
+    const final = operationFinalZone();
     const reached = final && Math.hypot(game.player.x-final.x, game.player.y-final.y) < final.r;
     if (game.operation?.allSectorsCleared && (reached || game.operation?.finalReached) && !game.result) {
       game.result = "승리"; game.state = "over"; awardBattle("승리"); return;
@@ -13471,7 +13990,7 @@ function update(dt) {
   updateScreenFeedback(dt);
   updateStartBriefing();
   const p = game.player;
-  for (const t of [p, ...game.allies, ...game.enemies]) t.fireReveal = Math.max(0, (t.fireReveal || 0) - dt);
+  for (const t of [p, ...game.allies, ...game.enemies, ...(game.baseTurrets || [])]) t.fireReveal = Math.max(0, (t.fireReveal || 0) - dt);
   if (game.state === "play") {
     updateCampaignEvents(dt);
     updateCampaignObjective(dt);
@@ -13634,7 +14153,7 @@ function drawObjectiveZones(map) {
       ctx.font = "bold 17px system-ui";
       ctx.textAlign = "center";
       ctx.fillText(z.name, sp.x, sp.y + 6);
-      if (active && z.stage <= 3) {
+      if (active && z.stage <= (game.operation?.maxSector ?? 4)) {
         const rear = worldToScreen(z.x - Math.min(420, z.r * 1.05), z.y);
         ctx.strokeStyle = "rgba(158,216,255,.72)";
         ctx.lineWidth = 2;
@@ -13733,11 +14252,23 @@ function drawTerrain() {
       ctx.textAlign = "center";
       ctx.fillText(s.name, p.x + s.w*c.zoom/2, p.y + 34);
     }
-    // 작전 맵 주 보급로
-    ctx.fillStyle = "rgba(42,42,38,.40)";
-    const roadY = WORLD_H*0.5 - 54;
-    const rp = worldToScreen(0, roadY);
-    ctx.fillRect(rp.x, rp.y, WORLD_W*c.zoom, 108*c.zoom);
+    // 작전 맵의 주 보급로와 우회 전차로. 구역마다 길이 휘어져 측면 기동이 가능하다.
+    for (const route of (game.map.operationRoutes || [])) {
+      if (!route.points || route.points.length < 2) continue;
+      ctx.save();
+      ctx.strokeStyle = route.color || "rgba(42,42,38,.42)";
+      ctx.lineWidth = Math.max(3, (route.width || 72) * c.zoom);
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      route.points.forEach((point, index) => {
+        const p = worldToScreen(point.x, point.y);
+        if (index === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+      ctx.restore();
+    }
   } else if (game.mapName === "시가전") {
     const roads = [
       {x:0,y:950,w:WORLD_W,h:120},
@@ -13807,6 +14338,7 @@ function drawObstacle(o) {
 }
 
 function drawBaseTurret(turret) {
+  if (game?.mode === "operation" && turret.isAntiTankGun && !isFriendlyTeam(turret.team) && !turret.spotted) return;
   const c = game.camera;
   const s = worldToScreen(turret.x, turret.y);
   const r = (turret.isAntiTankGun ? 22 : 32) * c.zoom;
@@ -13853,6 +14385,88 @@ function drawBaseTurret(turret) {
   ctx.textAlign = "center";
   ctx.fillText(turret.isAntiTankGun ? (friendly ? "아군 대전차포" : "적 대전차포") : (friendly ? "아군 진지" : "적 진지"), s.x, s.y - r*1.75);
   ctx.globalAlpha = 1;
+}
+
+function drawOperationSupportUnit(unit) {
+  const c = game.camera;
+  const s = worldToScreen(unit.x,unit.y);
+  const friendly = isFriendlyTeam(unit.team);
+  const color = friendly ? "#66805d" : "#76584c";
+  const outline = friendly ? "#9bc9e3" : "#e49a8a";
+  const scale = c.zoom;
+  const deadAlpha = unit.alive ? 1 : 0.42;
+
+  ctx.save();
+  ctx.translate(s.x,s.y);
+  ctx.rotate(unit.angle);
+  ctx.globalAlpha = deadAlpha;
+
+  if (unit.supportKind === "infantry") {
+    const soldiers = [[-9,-7],[-8,8],[8,-8],[9,7]];
+    for (let i=0;i<soldiers.length;i++) {
+      const [x,y] = soldiers[i];
+      ctx.fillStyle = unit.alive ? color : "#222";
+      ctx.strokeStyle = outline;
+      ctx.lineWidth = Math.max(1,1.2*scale);
+      ctx.beginPath(); ctx.arc(x*scale,y*scale,Math.max(2.5,4.2*scale),0,TAU); ctx.fill(); ctx.stroke();
+      if (unit.alive) {
+        ctx.strokeStyle = "#20251e";
+        ctx.lineWidth = Math.max(1,1.5*scale);
+        ctx.beginPath(); ctx.moveTo((x+2)*scale,y*scale); ctx.lineTo((x+12)*scale,y*scale); ctx.stroke();
+      }
+    }
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = Math.max(1,1.4*scale);
+    ctx.setLineDash([3*scale,3*scale]);
+    ctx.beginPath(); ctx.arc(0,0,21*scale,0,TAU); ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (unit.supportKind === "motorized") {
+    const l = 46*scale, w = 27*scale;
+    ctx.fillStyle = unit.alive ? color : "#202020";
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = Math.max(1.3,1.7*scale);
+    roundRect(ctx,-l/2,-w/2,l,w,4*scale); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgba(20,25,22,.72)";
+    ctx.fillRect(l*0.08,-w*0.38,l*0.25,w*0.76);
+    ctx.fillStyle = "#151817";
+    for (const x of [-l*0.30,l*0.30]) for (const y of [-w*0.53,w*0.53]) {
+      ctx.beginPath(); ctx.arc(x,y,Math.max(2,3.2*scale),0,TAU); ctx.fill();
+    }
+    if (unit.alive && unit.deployed) {
+      ctx.fillStyle = color;
+      ctx.strokeStyle = outline;
+      for (const y of [-w*0.88,w*0.88]) {
+        ctx.beginPath(); ctx.arc(-l*0.16,y,Math.max(2,3.3*scale),0,TAU); ctx.fill(); ctx.stroke();
+      }
+    }
+  } else {
+    const l = 41*scale, w = 25*scale;
+    ctx.fillStyle = unit.alive ? color : "#202020";
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = Math.max(1.3,1.7*scale);
+    ctx.beginPath();
+    ctx.moveTo(l/2,0); ctx.lineTo(l*0.24,-w/2); ctx.lineTo(-l/2,-w*0.38);
+    ctx.lineTo(-l/2,w*0.38); ctx.lineTo(l*0.24,w/2); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "rgba(20,25,22,.72)";
+    ctx.beginPath(); ctx.arc(2*scale,0,7*scale,0,TAU); ctx.fill();
+    ctx.strokeStyle = "#232722";
+    ctx.lineWidth = Math.max(2,3*scale);
+    ctx.beginPath(); ctx.moveTo(5*scale,0); ctx.lineTo(27*scale,0); ctx.stroke();
+  }
+  ctx.restore();
+  ctx.globalAlpha = 1;
+
+  if (!unit.alive) return;
+  const barW = 42*scale;
+  ctx.fillStyle = "rgba(0,0,0,.66)";
+  ctx.fillRect(s.x-barW/2,s.y-27*scale,barW,5);
+  ctx.fillStyle = friendly ? "#74a8df" : "#d76558";
+  ctx.fillRect(s.x-barW/2,s.y-27*scale,barW*clamp(unit.hp/unit.maxHp,0,1),5);
+  ctx.fillStyle = "#eef1eb";
+  ctx.font = "bold 10px system-ui";
+  ctx.textAlign = "center";
+  ctx.fillText(unit.t.name,s.x,s.y-31*scale);
 }
 
 function drawTank(tank) {
@@ -14129,7 +14743,7 @@ function drawEffects() {
 function aimTargetUnderCursor() {
   if (!game || !game.player) return null;
   const aim = screenToWorld(mouse.x, mouse.y);
-  const candidates = [...game.enemies.filter(e => e.alive && e.spotted), ...(game.baseTurrets || []).filter(t => t.alive && !isFriendlyTeam(t.team))];
+  const candidates = [...game.enemies.filter(e => e.alive && e.spotted), ...(game.baseTurrets || []).filter(t => t.alive && !isFriendlyTeam(t.team) && t.spotted)];
   let best = null, bestD = Infinity;
   for (const t of candidates) {
     const r = Math.max(t.t.size[0], t.t.size[1]) * 0.65;
@@ -14309,6 +14923,21 @@ function drawMinimapUnit(unit, p, color) {
     ctx.lineTo(p.x + 5, p.y - 5);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
+  } else if (cls === "보병") {
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(p.x-4,p.y); ctx.lineTo(p.x+4,p.y);
+    ctx.moveTo(p.x,p.y-4); ctx.lineTo(p.x,p.y+4);
+    ctx.strokeStyle = color;
+    ctx.stroke();
+  } else if (cls === "차량화보병") {
+    ctx.beginPath(); ctx.rect(p.x-5,p.y-3,10,6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#eef1eb";
+    ctx.beginPath(); ctx.arc(p.x,p.y,1.5,0,TAU); ctx.fill();
+  } else if (cls === "정찰차") {
+    ctx.beginPath();
+    ctx.moveTo(p.x,p.y-5); ctx.lineTo(p.x+5,p.y); ctx.lineTo(p.x,p.y+5); ctx.lineTo(p.x-5,p.y); ctx.closePath();
+    ctx.fill(); ctx.stroke();
   } else {
     ctx.beginPath(); ctx.arc(p.x,p.y,4,0,TAU); ctx.fill(); ctx.stroke();
   }
@@ -14344,6 +14973,18 @@ function drawMinimap() {
   function mp(t) {
     return {x:x + t.x/WORLD_W*w, y:y + t.y/WORLD_H*h};
   }
+  for (const route of (game.map.operationRoutes || [])) {
+    if (!route.points || route.points.length < 2) continue;
+    ctx.strokeStyle = "rgba(205,198,163,.42)";
+    ctx.lineWidth = route.width > 90 ? 2 : 1;
+    ctx.beginPath();
+    route.points.forEach((point,index) => {
+      const rp = mp(point);
+      if (index === 0) ctx.moveTo(rp.x,rp.y);
+      else ctx.lineTo(rp.x,rp.y);
+    });
+    ctx.stroke();
+  }
   for (const z of game.map.terrain) {
     const p = {x:x+z.x/WORLD_W*w, y:y+z.y/WORLD_H*h};
     ctx.fillStyle = z.type === "swamp" ? "#263d36" : z.type === "mountain" ? "#555" : "#777";
@@ -14368,6 +15009,7 @@ function drawMinimap() {
   }
   if (game.baseTurrets) {
     for (const t of game.baseTurrets) {
+      if (!t.alive || (!isFriendlyTeam(t.team) && !t.spotted)) continue;
       const tp = mp(t);
       ctx.fillStyle = isFriendlyTeam(t.team) ? "#74a8df" : "#d76558";
       ctx.strokeStyle = "#fff";
@@ -14485,6 +15127,7 @@ function objectiveStatusText() {
 let nextHudDomUpdate = 0;
 function drawHUD() {
   if (!game) return;
+  refreshOperationCommandPanel();
   const p = game.player;
   const hudNow = performance.now();
   if (hudNow >= nextHudDomUpdate || game.state === "over") {
@@ -14493,6 +15136,7 @@ function drawHUD() {
     const aliveEnemies = game.enemies.filter(e=>e.alive).length;
     const spottedEnemies = game.enemies.filter(e=>e.alive && e.spotted).length;
     const aliveAllies = game.allies.filter(a=>a.alive).length;
+    const friendlyCountLabel = game.mode === "operation" ? "아군 전력" : "아군";
     const ammo = ammoTypes[game.currentAmmo] || ammoTypes.AP;
     const repairInfo = p.repairing > 0 ? ` · 수리 중 ${p.repairing.toFixed(1)}초` : canRepair(p) ? " · F 길게 수리" : "";
     const airInfo = game.airSupportCooldown <= 0 ? "Q 항공지원 준비" : `Q 항공지원 ${Math.ceil(game.airSupportCooldown)}초`;
@@ -14509,7 +15153,7 @@ function drawHUD() {
     const timeText = game.settings?.battleTime ? ` · 남은 시간 ${formatSeconds(game.settings.battleTime - game.time)}` : "";
     setHtmlIfChanged(topRight, `
       <span class="hudPrimary">${game.campaignMission ? `${game.campaignMission.year} ${game.campaignMission.title}<br>` : ""}${game.mapName} · ${modeLabel(game.mode)}${timeText}<br>
-      아군 ${aliveAllies}/${game.allies.length} · 적 발견 ${spottedEnemies}/${aliveEnemies}${capText}</span>
+      ${friendlyCountLabel} ${aliveAllies}/${game.allies.length} · 적 발견 ${spottedEnemies}/${aliveEnemies}${capText}</span>
       <span class="hudDetail"><br>난이도 ${game.difficulty.label} · 적 ${game.enemyNationMode} · ${game.settings?.vision ? "시야 켜짐" : "시야 꺼짐"} · ${game.settings?.friendlyFire ? "아군 피해 켜짐" : "아군 피해 꺼짐"}${p.lastHit ? `<br>최근 상태 ${p.lastHit}` : ""}</span>
     `);
     renderCombatLog();
@@ -14570,7 +15214,7 @@ function render() {
   drawShells();
 
   const all = [game.player, ...game.allies, ...game.enemies].sort((a,b)=>a.y-b.y);
-  for (const t of all) drawTank(t);
+  for (const t of all) t.isSupportUnit ? drawOperationSupportUnit(t) : drawTank(t);
   for (const t of (game.baseTurrets || [])) drawBaseTurret(t);
 
   drawEffects();
