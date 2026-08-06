@@ -724,7 +724,7 @@
     font-size: 14px;
   }
   #fullscreenBtn {
-    position:absolute;
+    position:fixed;
     left:50%;
     top:max(10px, env(safe-area-inset-top));
     transform:translateX(-50%);
@@ -1057,7 +1057,7 @@
     display:none;
     position:fixed;
     inset:0;
-    z-index:390;
+    z-index:410;
     pointer-events:none;
     user-select:none;
     -webkit-user-select:none;
@@ -1920,7 +1920,6 @@
 </div>
 
 <div id="hud" class="hidden">
-  <button id="fullscreenBtn" type="button" aria-label="전체 화면 시작" title="전체 화면 시작">⛶</button>
   <div id="topLeft"></div>
   <div id="topRight"></div>
   <div id="message"></div>
@@ -1929,6 +1928,7 @@
     <div id="reloadBarOuter"><div id="reloadFill"></div><div id="reloadText">장전 완료</div></div>
   </div>
 </div>
+<button id="fullscreenBtn" class="hidden" type="button" aria-label="전체 화면 시작" title="전체 화면 시작">⛶</button>
 
 
 <div id="mobileControls" aria-hidden="true">
@@ -7237,6 +7237,8 @@ async function toggleFullscreen() {
     }
   } catch (error) {
     reportGameError("FULLSCREEN_ERROR", error);
+  } finally {
+    fullscreenBtn?.blur();
   }
 }
 
@@ -7708,7 +7710,8 @@ function bindMobilePointerButton(el, onDown, onUp=null) {
 }
 
 function initMobileControls() {
-  if (!mobileInput.enabled) return;
+  if (initMobileControls.initialized) return;
+  initMobileControls.initialized = true;
 
   if (mobileMoveZone) {
     mobileMoveZone.addEventListener("pointerdown", e => {
@@ -9765,6 +9768,7 @@ function startBattle() {
 
   menu.classList.add("hidden");
   hud.classList.remove("hidden");
+  if (fullscreenBtn) fullscreenBtn.classList.remove("hidden");
   customBattleReady = false;
   last = performance.now();
 }
@@ -9795,6 +9799,7 @@ function returnToMenu() {
   renderMenu();
   menu.classList.remove("hidden");
   hud.classList.add("hidden");
+  if (fullscreenBtn) fullscreenBtn.classList.add("hidden");
   if (aimInfoEl) aimInfoEl.classList.add("hidden");
   if (combatLogEl) combatLogEl.innerHTML = "";
   if (resultOverlay) resultOverlay.classList.add("hidden");
