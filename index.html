@@ -1001,6 +1001,19 @@
     pointer-events:none;
     user-select:none;
     -webkit-user-select:none;
+    -webkit-touch-callout:none;
+  }
+  #artilleryControls *,
+  #mobileControls * {
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-user-drag:none;
+  }
+  body.battleActive #game {
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
   }
   #artilleryControls.active { display:block; }
   #artilleryModeLabel {
@@ -8945,42 +8958,28 @@ function findDesktopLockCandidate() {
 
 function findArtilleryLockCandidate() {
   if (!game || !game.player) return null;
-  const maxRange = artilleryRangeFor(game.player).max;
-  const candidates = mobileAimCandidates().filter(target =>
-    Math.hypot(target.x-game.player.x, target.y-game.player.y) <= maxRange
-  );
+  const candidates = mobileAimCandidates();
   if (!candidates.length) return null;
 
-  let best = null;
-  let bestDistance = 260;
-  for (const target of candidates) {
-    const p = worldToScreen(target.x, target.y);
-    const distance = Math.hypot(p.x-W/2, p.y-H/2);
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = target;
-    }
-  }
-  return best;
+  // 자주포의 위치가 아니라 현재 관측 화면 정중앙의 곡사 조준점을 기준으로 고른다.
+  // 사거리 판정은 포격할 때만 적용하며, 고정된 뒤에만 탄착 예상점을 추적한다.
+  const reticle = screenToWorld(W / 2, H / 2);
+  return candidates
+    .slice()
+    .sort((a, b) =>
+      Math.hypot(a.x-reticle.x, a.y-reticle.y) -
+      Math.hypot(b.x-reticle.x, b.y-reticle.y)
+    )[0] || null;
 }
 
 function updateArtilleryTargetLock() {
   if (!isPlayerArtilleryIndirect() || !game.artillery.lockedTarget || game.state !== "play") return;
   const target = game.artillery.lockedTarget;
-  const maxRange = artilleryRangeFor(game.player).max;
-  const valid = target.alive &&
-    (target.team !== "enemy" || target.spotted) &&
-    Math.hypot(game.player.x-target.x, game.player.y-target.y) <= maxRange;
-  if (valid) return;
-
-  if (mobileInput.enabled) {
-    const next = findArtilleryLockCandidate();
-    game.artillery.lockedTarget = next || null;
-    addLog(next ? `목표 자동 전환: ${next.t.name}` : "고정한 목표를 잃었습니다.", "neutral");
-  } else {
-    game.artillery.lockedTarget = null;
-    addLog("고정한 목표를 잃었습니다.", "neutral");
-  }
+  // 포격 뒤 관측 기억이 잠시 끊기거나 목표가 사거리 경계를 넘더라도
+  // 살아 있는 목표를 다른 전차로 자동 교체하지 않는다.
+  if (target.alive) return;
+  game.artillery.lockedTarget = null;
+  addLog("고정한 목표가 파괴되었습니다.", "neutral");
 }
 
 function toggleDesktopTargetLock() {
@@ -9270,12 +9269,22 @@ function initMobileControls() {
     mobileInput.repairHeld = false;
     mobileInput.aimPointer = null;
   });
-  document.addEventListener("contextmenu", e => {
-    if (mobileControlsEl && mobileControlsEl.classList.contains("mobileVisible")) e.preventDefault();
-  });
 }
 
 initMobileControls();
+
+function isBattleControlLongPressTarget(target) {
+  if (!(target instanceof Element)) return false;
+  return !!target.closest("#mobileControls, #artilleryControls, body.battleActive #game");
+}
+
+// 모바일 크롬의 길게 누르기 메뉴와 텍스트 선택이 게임 조작을 가로채지 않게 한다.
+// 캡처 단계에서 막아 화살표·수리처럼 계속 누르는 입력도 중단되지 않게 한다.
+for (const eventName of ["contextmenu", "selectstart", "dragstart"]) {
+  document.addEventListener(eventName, e => {
+    if (isBattleControlLongPressTarget(e.target)) e.preventDefault();
+  }, true);
+}
 
 function refreshArtilleryPanVector() {
   if (!game || !game.artillery || game.artillery.direct) return;
