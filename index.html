@@ -2801,6 +2801,30 @@
     }
   }
 
+  /* 모바일 전투 기록은 왼쪽 아래 조작 영역을 피해서 상단 HUD 아래에 표시 */
+  body.mobileControlMode #combatLog {
+    left:max(10px, env(safe-area-inset-left));
+    top:max(112px, calc(env(safe-area-inset-top) + 104px));
+    bottom:auto;
+    width:min(360px, 42vw);
+    max-height:min(150px, 28dvh);
+  }
+  @media (orientation:landscape) and (max-height:520px) {
+    body.mobileControlMode #combatLog {
+      top:max(86px, calc(env(safe-area-inset-top) + 78px));
+      bottom:auto;
+      width:min(320px, 38vw);
+      max-height:100px;
+    }
+  }
+  @media (orientation:portrait) {
+    body.mobileControlMode #combatLog {
+      top:max(142px, calc(env(safe-area-inset-top) + 132px));
+      width:min(340px, 64vw);
+      max-height:140px;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -2991,7 +3015,9 @@
       <label class="settingCard"><span>인공지능 선행 조준</span>
         <select id="hardcoreAimInput">
           <option value="off" selected>끄기</option>
-          <option value="on">켜기 · 양측 인공지능 적용</option>
+          <option value="ally">아군만 적용</option>
+          <option value="enemy">적군만 적용</option>
+          <option value="both">양측 인공지능 적용</option>
         </select>
       </label>
     </div>
@@ -7131,7 +7157,7 @@ function newSaveData() {
     preferences:{
       map:"평지", allyCount:2, enemyCount:5, enemyNation:"랜덤", difficulty:"보통", battleMode:"annihilation",
       damageMode:"module", vision:true, friendlyFire:false, turretHp:420, rewardMult:1, battleTime:0,
-      sound:true, soundVolume:0.6, hudMode:"detailed", screenShake:1, minimapSize:"normal", hardcoreAim:false, lobbyBg:"평지",
+      sound:true, soundVolume:0.6, hudMode:"detailed", screenShake:1, minimapSize:"normal", hardcoreAim:"off", lobbyBg:"평지",
       controlMode:"auto"
     }
   };
@@ -7229,7 +7255,9 @@ function normalizeSaveData(input) {
     hudMode:preferences.hudMode === "compact" ? "compact" : "detailed",
     screenShake:[0,0.5,1].includes(Number(preferences.screenShake)) ? Number(preferences.screenShake) : 1,
     minimapSize:["small","normal","large"].includes(preferences.minimapSize) ? preferences.minimapSize : "normal",
-    hardcoreAim:preferences.hardcoreAim === true,
+    hardcoreAim:["off","ally","enemy","both"].includes(preferences.hardcoreAim)
+      ? preferences.hardcoreAim
+      : preferences.hardcoreAim === true || preferences.hardcoreAim === "on" ? "both" : "off",
     lobbyBg:Object.prototype.hasOwnProperty.call(maps, preferences.lobbyBg) ? preferences.lobbyBg : "평지",
     controlMode:["auto","desktop","mobile"].includes(preferences.controlMode) ? preferences.controlMode : "auto"
   };
@@ -7846,7 +7874,9 @@ let selectedSound = saveData.preferences?.sound !== false;
 let selectedSoundVolume = saveData.preferences?.soundVolume ?? 0.6;
 let selectedHudMode = saveData.preferences?.hudMode || "detailed";
 let selectedScreenShake = saveData.preferences?.screenShake ?? 1;
-let selectedHardcoreAim = saveData.preferences?.hardcoreAim === true;
+let selectedHardcoreAim = ["off","ally","enemy","both"].includes(saveData.preferences?.hardcoreAim)
+  ? saveData.preferences.hardcoreAim
+  : saveData.preferences?.hardcoreAim === true ? "both" : "off";
 let selectedLobbyBg = saveData.preferences?.lobbyBg || "평지";
 let selectedControlMode = saveData.preferences?.controlMode || "auto";
 let tankSelectorOpen = false;
@@ -7892,7 +7922,7 @@ function syncPreferenceInputs() {
   if (soundVolumeInput) soundVolumeInput.value = String(selectedSoundVolume);
   if (hudModeInput) hudModeInput.value = selectedHudMode;
   if (screenShakeInput) screenShakeInput.value = String(selectedScreenShake);
-  if (hardcoreAimInput) hardcoreAimInput.value = selectedHardcoreAim ? "on" : "off";
+  if (hardcoreAimInput) hardcoreAimInput.value = selectedHardcoreAim;
   if (controlModeInput) controlModeInput.value = selectedControlMode;
   if (lobbyBgInput) lobbyBgInput.value = selectedLobbyBg;
   document.body.classList.toggle("compactHud", selectedHudMode === "compact");
@@ -8610,6 +8640,18 @@ function artilleryAimPointForTarget(target, shooter=game?.player) {
     time = artilleryFlightTime(shooter, {x, y});
   }
   return {x, y, time};
+}
+
+function aiArtilleryAimPointForTarget(shooter, target) {
+  if (!shooter || !target) return null;
+  if (!aiLeadAimEnabledFor(shooter.team)) {
+    return {
+      x:clamp(target.x, 35, WORLD_W - 35),
+      y:clamp(target.y, 35, WORLD_H - 35),
+      time:artilleryFlightTime(shooter, target)
+    };
+  }
+  return artilleryAimPointForTarget(target, shooter);
 }
 
 function prepareArtilleryBattle() {
@@ -9640,7 +9682,9 @@ function readBattleSettings() {
   selectedSoundVolume = Number(soundVolumeInput?.value ?? selectedSoundVolume) || 0.6;
   selectedHudMode = hudModeInput?.value === "compact" ? "compact" : "detailed";
   selectedScreenShake = clamp(Number(screenShakeInput?.value ?? selectedScreenShake), 0, 1);
-  selectedHardcoreAim = hardcoreAimInput ? hardcoreAimInput.value === "on" : selectedHardcoreAim;
+  selectedHardcoreAim = hardcoreAimInput && ["off","ally","enemy","both"].includes(hardcoreAimInput.value)
+    ? hardcoreAimInput.value
+    : selectedHardcoreAim;
   selectedControlMode = ["auto","desktop","mobile"].includes(controlModeInput?.value) ? controlModeInput.value : selectedControlMode;
   if (isCustomBattleMode() && customMapInput?.value) selectedMap = customMapInput.value;
   else if (!isCampaignMode() && setupMapInput?.value) selectedMap = setupMapInput.value;
@@ -9953,10 +9997,9 @@ function updateBaseTurrets(dt) {
     const target = turretTargetsFor(turret)[0];
     if (!target) continue;
 
-    const expectedTarget =
-      game.settings && game.settings.hardcoreAim
-        ? solveInterceptPoint(turret, target, "AP")
-        : target;
+    const expectedTarget = aiLeadAimEnabledFor(turret.team)
+      ? solveInterceptPoint(turret, target, "AP")
+      : target;
 
     const desired = angleTo(turret, expectedTarget);
     turret.turretAngle = moveAngle(turret.turretAngle, desired, turret.t.turret * dt);
@@ -11894,10 +11937,12 @@ function requestPlayerArtilleryMission() {
 function requestAIArtilleryMission(tank, target) {
   if (!tank || !target || !target.alive || tank.reload > 0) return false;
   const range = artilleryRangeFor(tank);
-  const distance = Math.hypot(target.x - tank.x, target.y - tank.y);
-  if (distance < range.min || distance > range.max) return false;
-  const predicted = artilleryAimPointForTarget(target, tank);
+  const predicted = aiArtilleryAimPointForTarget(tank, target);
   if (!predicted) return false;
+  const distance = Math.hypot(predicted.x - tank.x, predicted.y - tank.y);
+  if (distance < range.min || distance > range.max) return false;
+  const friendlyRisk = artilleryFriendlyBlastRisk(tank, predicted);
+  if (game.settings?.friendlyFire && friendlyRisk.danger) return false;
   const diff = game.difficulty || difficulties["보통"];
   const fired = queueArtilleryMission(tank, predicted, "HE", {
     dispersionMult:tank.team === "enemy" ? diff.enemySpread * 0.92 : diff.allySpread * 0.90,
@@ -11905,12 +11950,12 @@ function requestAIArtilleryMission(tank, target) {
     trackedTarget:target
   });
   if (fired) {
-    const away = angleTo(target, tank) + rand(-0.72, 0.72);
-    tank.aiRelocateUntil = game.time + rand(5.5, 8.5);
-    tank.aiRelocatePoint = {
-      x:clamp(tank.x + Math.cos(away) * rand(190, 330), 70, WORLD_W - 70),
-      y:clamp(tank.y + Math.sin(away) * rand(190, 330), 70, WORLD_H - 70)
-    };
+    tank.aiArtilleryLastTarget = target;
+    tank.aiArtilleryLastShotAt = game.time;
+    tank.aiRelocatePoint = artilleryRelocationPointFor(tank, target);
+    tank.aiRelocateUntil = tank.aiRelocatePoint
+      ? game.time + clamp(tank.reload * 0.72, 3.2, 5.4)
+      : 0;
     tank.aiThink = 0;
   }
   return fired;
@@ -12032,6 +12077,14 @@ function isFriendlyTeam(team) {
 function sameSide(a, b) {
   return isFriendlyTeam(a) === isFriendlyTeam(b);
 }
+function aiLeadAimEnabledFor(team) {
+  const raw = game?.settings?.hardcoreAim ?? selectedHardcoreAim ?? "off";
+  const mode = raw === true || raw === "on" ? "both" : raw === false ? "off" : raw;
+  if (mode === "both") return true;
+  if (mode === "ally") return isFriendlyTeam(team);
+  if (mode === "enemy") return !isFriendlyTeam(team);
+  return false;
+}
 function allLivingTanks() {
   return [game.player, ...game.allies, ...game.enemies].filter(t => t.alive);
 }
@@ -12058,6 +12111,221 @@ function closestTargetFor(tank) {
     const d = Math.hypot(c.x - tank.x, c.y - tank.y);
     const priorityDistance = game?.mode === "escort" && c.isCommander ? d * 0.72 : d;
     if (priorityDistance < bestD) { best = c; bestD = priorityDistance; }
+  }
+  return best;
+}
+
+function observedTargetsForArtillery(tank) {
+  if (!game || !tank) return [];
+  const friendly = isFriendlyTeam(tank.team);
+  const mobileTargets = friendly
+    ? game.enemies.filter(target => target.alive && target.spotted)
+    : [game.player, ...game.allies].filter(target => target.alive && target.seenByEnemy);
+  const fixedTargets = (game.baseTurrets || []).filter(target => {
+    if (!target.alive || sameSide(target.team, tank.team)) return false;
+    return friendly ? !!target.spotted : hasLineOfSight(tank, target);
+  });
+  return [...new Set([...mobileTargets, ...fixedTargets])];
+}
+
+function artilleryFriendlyBlastRisk(tank, point) {
+  if (!game || !tank || !point) return {danger:false, count:0, nearest:Infinity};
+  const splash = Math.max(ARTILLERY_INDIRECT_MIN_SPLASH, (tank.t.splash || 0) * 1.12);
+  const friendlies = [game.player, ...game.allies, ...game.enemies, ...(game.baseTurrets || [])]
+    .filter(unit => unit !== tank && unit.alive && sameSide(unit.team, tank.team));
+  let count = 0;
+  let nearest = Infinity;
+  for (const unit of friendlies) {
+    const distance = Math.hypot(unit.x - point.x, unit.y - point.y);
+    if (distance < splash * 1.08) count += 1;
+    nearest = Math.min(nearest, distance);
+  }
+  return {danger:nearest < splash * 0.82, count, nearest};
+}
+
+function artilleryTargetRoleScore(target) {
+  const role = target?.t?.cls || "";
+  const scores = {
+    "자주포":390,
+    "대전차포":320,
+    "진지":275,
+    "구축전차":220,
+    "중전차":205,
+    "중형전차":135,
+    "경전차":75
+  };
+  return scores[role] || 95;
+}
+
+function artilleryPendingSupport(tank, target) {
+  const missions = (game?.artilleryMissions || []).filter(mission =>
+    !mission.smoke && sameSide(mission.team, tank.team) && mission.trackedTarget === target
+  );
+  return {
+    count:missions.length,
+    estimatedDamage:missions.reduce((sum, mission) => sum + (mission.dmg || 0) * 0.36, 0)
+  };
+}
+
+function artilleryProtectedUnitDistance(tank, target) {
+  const protectedUnits = isFriendlyTeam(tank.team)
+    ? [game.player, ...game.allies]
+    : game.enemies;
+  let nearest = Infinity;
+  for (const unit of protectedUnits) {
+    if (!unit.alive || unit === tank || unit.t?.cls === "자주포") continue;
+    nearest = Math.min(nearest, Math.hypot(unit.x - target.x, unit.y - target.y));
+  }
+  return nearest;
+}
+
+function scoreAIArtilleryTarget(tank, target, predicted, candidates) {
+  const distance = Math.hypot(predicted.x - tank.x, predicted.y - tank.y);
+  const range = artilleryRangeFor(tank);
+  const idealDistance = clamp(range.max * 0.62, 1050, 1550);
+  const hpRatio = clamp((target.hp || 0) / Math.max(1, target.maxHp || target.hp || 1), 0, 1);
+  const pending = artilleryPendingSupport(tank, target);
+  const splash = Math.max(ARTILLERY_INDIRECT_MIN_SPLASH, (tank.t.splash || 0) * 1.12);
+  const friendlyRisk = artilleryFriendlyBlastRisk(tank, predicted);
+
+  let clusterScore = 0;
+  for (const other of candidates) {
+    if (other === target || !other.alive) continue;
+    const separation = Math.hypot(other.x - predicted.x, other.y - predicted.y);
+    if (separation < splash * 1.55) {
+      clusterScore += 145 * (1 - separation / (splash * 1.55));
+    }
+  }
+
+  let score = artilleryTargetRoleScore(target);
+  score += clusterScore;
+  score += (1 - hpRatio) * 125;
+  score -= Math.abs(distance - idealDistance) * 0.038;
+  score -= pending.count * 430;
+  if (pending.estimatedDamage >= (target.hp || 1) * 0.78) score -= 780;
+  if (target.isAce) score += 330;
+  if (target.isCommander) score += 300;
+  if (target.isBaseTurret) score += 160;
+  if (target === tank.aiArtilleryLastTarget) score += 35;
+
+  const protectedDistance = artilleryProtectedUnitDistance(tank, target);
+  if (protectedDistance < 900) score += (900 - protectedDistance) * 0.24;
+
+  if (game.settings?.friendlyFire) {
+    if (friendlyRisk.danger) score -= 1800;
+    else score -= friendlyRisk.count * 240;
+  }
+  return {score, pending, clusterScore, friendlyRisk};
+}
+
+function selectAIArtilleryTarget(tank) {
+  if (!game || !tank || !tank.alive || tank.t?.cls !== "자주포") return null;
+  const range = artilleryRangeFor(tank);
+  const candidates = observedTargetsForArtillery(tank);
+  let direct = null;
+  let directScore = -Infinity;
+  let indirect = null;
+  let indirectScore = -Infinity;
+  let indirectMeta = null;
+
+  for (const target of candidates) {
+    const currentDistance = Math.hypot(target.x - tank.x, target.y - tank.y);
+    if (currentDistance < range.min && hasLineOfSight(tank, target)) {
+      const score = 1600 - currentDistance * 2.1 + artilleryTargetRoleScore(target);
+      if (score > directScore) {
+        direct = target;
+        directScore = score;
+      }
+    }
+
+    const predicted = aiArtilleryAimPointForTarget(tank, target);
+    if (!predicted) continue;
+    const predictedDistance = Math.hypot(predicted.x - tank.x, predicted.y - tank.y);
+    if (predictedDistance < range.min || predictedDistance > range.max) continue;
+    const meta = scoreAIArtilleryTarget(tank, target, predicted, candidates);
+    if (meta.score > indirectScore) {
+      indirect = {target, aimPoint:predicted};
+      indirectScore = meta.score;
+      indirectMeta = meta;
+    }
+  }
+
+  if (direct && (!indirect || Math.hypot(direct.x - tank.x, direct.y - tank.y) < range.min * 0.92)) {
+    return {target:direct, mode:"direct", score:directScore, aimPoint:{x:direct.x, y:direct.y}};
+  }
+  if (indirect) {
+    return {
+      ...indirect,
+      mode:"indirect",
+      score:indirectScore,
+      pending:indirectMeta.pending.count,
+      clusterScore:indirectMeta.clusterScore
+    };
+  }
+  if (direct) return {target:direct, mode:"direct", score:directScore, aimPoint:{x:direct.x, y:direct.y}};
+  return null;
+}
+
+function artilleryRelocationPointFor(tank, firedTarget=null) {
+  if (!game || !tank) return null;
+  const observed = observedTargetsForArtillery(tank);
+  const incoming = (game.artilleryMissions || [])
+    .filter(mission => !sameSide(mission.team, tank.team) && (
+      mission.trackedTarget === tank || Math.hypot(mission.impact.x-tank.x, mission.impact.y-tank.y) < 420
+    ))
+    .sort((a,b) => Math.hypot(a.impact.x-tank.x, a.impact.y-tank.y) - Math.hypot(b.impact.x-tank.x, b.impact.y-tank.y))[0];
+  const nearestThreat = observed
+    .slice()
+    .sort((a,b) => Math.hypot(a.x-tank.x, a.y-tank.y) - Math.hypot(b.x-tank.x, b.y-tank.y))[0] || null;
+  const danger = incoming?.impact || nearestThreat || firedTarget;
+  const dangerDistance = danger ? Math.hypot(danger.x-tank.x, danger.y-tank.y) : Infinity;
+  const urgent = !!incoming || dangerDistance < Math.max(620, artilleryRangeFor(tank).min * 2.2);
+  const threatBearing = danger ? angleTo(tank, danger) : tank.angle;
+  const baseAngle = danger
+    ? urgent
+      ? threatBearing + Math.PI
+      : threatBearing + (tank.aiRouteBias || 1) * Math.PI * 0.5
+    : tank.angle + (tank.aiRouteBias || 1) * Math.PI * 0.5;
+  const support = artillerySupportPostFor(tank);
+  const sameSideArtillery = (isFriendlyTeam(tank.team) ? [game.player, ...game.allies] : game.enemies)
+    .filter(unit => unit !== tank && unit.alive && unit.t?.cls === "자주포");
+  const enemyMissions = (game.artilleryMissions || []).filter(mission => !sameSide(mission.team, tank.team));
+  const offsets = [0, 0.38, -0.38, 0.76, -0.76, 1.12, -1.12];
+  const distances = [180, 235, 290];
+  let best = null;
+  let bestScore = Infinity;
+
+  for (const distance of distances) {
+    for (const offset of offsets) {
+      const angle = baseAngle + offset;
+      const point = {
+        x:clamp(tank.x + Math.cos(angle) * distance, 75, WORLD_W - 75),
+        y:clamp(tank.y + Math.sin(angle) * distance, 75, WORLD_H - 75)
+      };
+      let score = pathCollisionScore(tank, angle, point);
+      for (const obstacle of (game.map.obstacles || [])) {
+        if (!obstacleBlocksMovement(obstacle)) continue;
+        const clearance = obstacleCollisionRadius(obstacle) + tankRadius(tank) + 28;
+        const separation = Math.hypot(point.x-obstacle.x, point.y-obstacle.y);
+        if (separation < clearance) score += 2400 + (clearance-separation) * 18;
+      }
+      if (danger) score -= Math.hypot(point.x-danger.x, point.y-danger.y) * (urgent ? 0.52 : 0.14);
+      if (support) score += Math.hypot(point.x-support.x, point.y-support.y) * (urgent ? 0.18 : 0.46);
+      const edgeDistance = Math.min(point.x, point.y, WORLD_W-point.x, WORLD_H-point.y);
+      if (edgeDistance < 220) score += (220-edgeDistance) * (urgent ? 1.4 : 4.2);
+      for (const gun of sameSideArtillery) {
+        const separation = Math.hypot(point.x-gun.x, point.y-gun.y);
+        if (separation < 300) score += (300-separation) * 2.4;
+      }
+      for (const mission of enemyMissions) {
+        const separation = Math.hypot(point.x-mission.impact.x, point.y-mission.impact.y);
+        if (separation < 360) score += (360-separation) * 2.8;
+      }
+      if (score < bestScore) {
+        bestScore = score;
+        best = point;
+      }
+    }
   }
   return best;
 }
@@ -12549,6 +12817,48 @@ function assignedOperationObjectiveFor(tank) {
   };
 }
 
+function artillerySupportPostFor(tank) {
+  if (!game || !tank || tank.t?.cls !== "자주포") return null;
+  if (game.mode === "operation") return assignedOperationObjectiveFor(tank);
+
+  const friendly = isFriendlyTeam(tank.team);
+  const start = friendly
+    ? (game.map.player || {x:180, y:WORLD_H/2})
+    : (game.map.enemySpawn || {x:WORLD_W-180, y:WORLD_H/2});
+  const objective = objectiveTargetFor(tank) || (friendly
+    ? (game.map.enemySpawn || {x:WORLD_W-180, y:WORLD_H/2})
+    : (game.map.player || {x:180, y:WORLD_H/2}));
+  const dx = objective.x - start.x;
+  const dy = objective.y - start.y;
+  const total = Math.max(1, Math.hypot(dx, dy));
+  const ux = dx / total;
+  const uy = dy / total;
+  const ownUnits = (friendly ? [game.player, ...game.allies] : game.enemies)
+    .filter(unit => unit !== tank && unit.alive && unit.t?.cls !== "자주포");
+
+  let lead = null;
+  let leadProgress = 0;
+  for (const unit of ownUnits) {
+    const progress = (unit.x-start.x) * ux + (unit.y-start.y) * uy;
+    if (!lead || progress > leadProgress) {
+      lead = unit;
+      leadProgress = progress;
+    }
+  }
+
+  const rearGap = game.mode === "capture" || game.mode === "assault" ? 560 : 500;
+  const supportProgress = clamp(leadProgress - rearGap, 0, Math.max(0, total - 480));
+  const lane = tank.aiLane ?? 0;
+  const lateral = lane * 118 + (tank.aiPersonalOffset || 0) * 85;
+  const leadLateral = lead
+    ? clamp((lead.x-start.x) * -uy + (lead.y-start.y) * ux, -340, 340) * 0.35
+    : 0;
+  return {
+    x:clamp(start.x + ux * supportProgress - uy * (lateral + leadLateral), 85, WORLD_W-85),
+    y:clamp(start.y + uy * supportProgress + ux * (lateral + leadLateral), 85, WORLD_H-85)
+  };
+}
+
 function fallbackObjectiveFor(tank) {
   if (!game) return null;
   const friendly = isFriendlyTeam(tank.team);
@@ -12557,7 +12867,7 @@ function fallbackObjectiveFor(tank) {
     return artilleryGuardPostFor(tank, tank.aiGuardTarget);
   }
 
-  if (game.mode === "escort" && game.escort) {
+  if (game.mode === "escort" && game.escort && tank.t?.cls !== "자주포") {
     const commander = friendly ? game.escort.enemy : game.escort.friendly;
     if (commander?.alive) return commander;
   }
@@ -12572,6 +12882,11 @@ function fallbackObjectiveFor(tank) {
   if (game.mode === "operation") {
     const obj = assignedOperationObjectiveFor(tank);
     if (obj) return obj;
+  }
+
+  if (tank.t?.cls === "자주포") {
+    const support = artillerySupportPostFor(tank);
+    if (support) return support;
   }
 
   if (game.mode === "capture" || game.mode === "assault") {
@@ -12661,6 +12976,11 @@ function aiCanFireAt(tank, target, d, gunError) {
 function updateTankAI(tank, dt) {
   if (!tank.alive) return;
   tank.fireReveal = Math.max(0, (tank.fireReveal || 0) - dt);
+  const t = tank.t;
+  const role = t.cls;
+  const diff = game.difficulty || difficulties["보통"];
+  const terr = terrainAt(tank.x, tank.y);
+  const moveMult = tank.team === "enemy" ? diff.enemyMove : diff.allyMove;
 
   if (tank.team !== "enemy" && canRepair(tank) && tank.hp < tank.maxHp*0.38 && Math.random() < 0.48) {
     processRepair(tank, dt, true);
@@ -12669,16 +12989,23 @@ function updateTankAI(tank, dt) {
   }
   if (tank.repairing > 0) return;
 
+  if (role === "자주포" && tank.aiRelocatePoint) {
+    const relocateDistance = Math.hypot(tank.aiRelocatePoint.x-tank.x, tank.aiRelocatePoint.y-tank.y);
+    if (relocateDistance < 72 || game.time >= (tank.aiRelocateUntil || 0)) {
+      tank.aiRelocatePoint = null;
+      tank.aiRelocateUntil = 0;
+      tank.aiThink = 0;
+    }
+  }
+
   const guardGun = tank.aiGuardTarget?.alive && tank.aiGuardTarget.t?.cls === "자주포"
     ? tank.aiGuardTarget
     : null;
   const guardThreat = guardGun ? artilleryGuardThreatFor(tank, guardGun) : null;
-  const target = guardGun ? guardThreat : closestTargetFor(tank);
-  const t = tank.t;
-  const diff = game.difficulty || difficulties["보통"];
-  const terr = terrainAt(tank.x, tank.y);
-  const role = t.cls;
-  const moveMult = tank.team === "enemy" ? diff.enemyMove : diff.allyMove;
+  const artilleryDecision = role === "자주포" ? selectAIArtilleryTarget(tank) : null;
+  const target = guardGun ? guardThreat : (artilleryDecision?.target || closestTargetFor(tank));
+  tank.aiArtilleryTarget = artilleryDecision?.target || null;
+  tank.aiArtilleryMode = artilleryDecision?.mode || "";
 
   if (tank.aiPersonalOffset === undefined) tank.aiPersonalOffset = rand(-0.24, 0.24);
   if (tank.aiFlankAngle === undefined) tank.aiFlankAngle = rand(0, TAU);
@@ -12686,13 +13013,23 @@ function updateTankAI(tank, dt) {
 
   const movedSinceLast = Math.hypot(tank.x - (tank.aiLastX ?? tank.x), tank.y - (tank.aiLastY ?? tank.y));
   tank.aiLastX = tank.x; tank.aiLastY = tank.y;
-  tank.aiStuck = movedSinceLast < 0.70 ? (tank.aiStuck || 0) + dt : 0;
 
   const d = target ? Math.hypot(target.x - tank.x, target.y - tank.y) : Infinity;
-  const desired = desiredEngagementRange(role, game.mapName);
   const artilleryRange = role === "자주포" ? artilleryRangeFor(tank) : null;
-  const artilleryObserved = !!(target && role === "자주포" && d >= artilleryRange.min && d <= artilleryRange.max);
+  const artilleryObserved = !!(target && role === "자주포" && artilleryDecision?.mode === "indirect");
   const hasTargetLine = target ? (artilleryObserved || hasLineOfSight(tank, target)) : false;
+  const relocating = role === "자주포" && tank.aiRelocateUntil > game.time && !!tank.aiRelocatePoint;
+  const intentionallyHolding = artilleryObserved && !relocating;
+  tank.aiStuck = !intentionallyHolding && movedSinceLast < 0.70 ? (tank.aiStuck || 0) + dt : 0;
+
+  let desired = desiredEngagementRange(role, game.mapName);
+  if (role === "자주포") {
+    desired = {
+      min:artilleryRange.min + 85,
+      ideal:clamp(artilleryRange.max * 0.62, 1050, 1550),
+      max:Math.max(artilleryRange.min + 240, artilleryRange.max - 120)
+    };
+  }
 
   tank.aiThink -= dt;
   const mustReplan = tank.aiThink <= 0 || tank.aiStuck > 0.85 || !Number.isFinite(tank.targetX) || !Number.isFinite(tank.targetY);
@@ -12706,7 +13043,7 @@ function updateTankAI(tank, dt) {
       tank.aiUnstuckUntil = game.time + 1.1;
     }
 
-    if (role === "자주포" && tank.aiRelocateUntil > game.time && tank.aiRelocatePoint) {
+    if (relocating) {
       tank.targetX = tank.aiRelocatePoint.x;
       tank.targetY = tank.aiRelocatePoint.y;
     } else if (target) {
@@ -12714,29 +13051,46 @@ function updateTankAI(tank, dt) {
       const toTarget = angleTo(tank, target);
       const side = Math.sin((tank.aiFlankAngle || 0) + game.time * 0.20) >= 0 ? 1 : -1;
 
-      // 목표 주변의 '교전 거리 링'으로 이동한다.
-      // 너무 멀면 접근, 너무 가까우면 뒤로 후진하지 않고 측면으로 빠져 거리 확보.
-      let ring = desired.ideal;
-      if (!hasTargetLine) ring *= role === "자주포" ? 0.78 : 0.70;
-      if (d > desired.max) ring = desired.ideal * 0.72;
-      if (d < desired.min) ring = desired.min * 1.15;
+      let goal;
+      if (artilleryObserved) {
+        // 곡사 가능한 자리에 이미 있으면 조준 중 불필요하게 전진하지 않는다.
+        // 최소·최대 사거리 가장자리에서만 짧게 안전 여유를 만든다.
+        if (d >= artilleryRange.min + 95 && d <= artilleryRange.max - 150) {
+          goal = {x:tank.x, y:tank.y};
+        } else {
+          const ring = d < artilleryRange.min + 95
+            ? artilleryRange.min + 260
+            : artilleryRange.max - 330;
+          const ringAngle = fromTarget + side * 0.16 + (tank.aiPersonalOffset || 0) * 0.25;
+          goal = {
+            x:target.x + Math.cos(ringAngle) * ring,
+            y:target.y + Math.sin(ringAngle) * ring
+          };
+        }
+      } else {
+        // 목표 주변의 교전 거리 링으로 이동한다.
+        let ring = desired.ideal;
+        if (!hasTargetLine) ring *= role === "자주포" ? 0.88 : 0.70;
+        if (d > desired.max) ring = desired.ideal * 0.86;
+        if (d < desired.min) ring = desired.min * 1.15;
 
-      let orbit = role === "경전차" ? 0.78 : role === "중형전차" ? 0.45 : role === "중전차" ? 0.20 : role === "구축전차" ? 0.28 : 0.22;
-      if (!hasTargetLine) orbit *= 1.45;
-      if (d < desired.min) orbit = 1.05;
+        let orbit = role === "경전차" ? 0.78 : role === "중형전차" ? 0.45 : role === "중전차" ? 0.20 : role === "구축전차" ? 0.28 : 0.22;
+        if (!hasTargetLine) orbit *= 1.45;
+        if (d < desired.min) orbit = 1.05;
 
-      const ringAngle = fromTarget + side * orbit + (tank.aiPersonalOffset || 0);
-      let goal = {
-        x: target.x + Math.cos(ringAngle) * ring,
-        y: target.y + Math.sin(ringAngle) * ring
-      };
-
-      // 너무 붙었을 때는 현재 위치 기준 측면 탈출 지점을 우선한다.
-      if (d < desired.min * 0.82) {
+        const ringAngle = fromTarget + side * orbit + (tank.aiPersonalOffset || 0);
         goal = {
-          x: tank.x + Math.cos(toTarget + side * Math.PI/2) * desired.min * 0.92,
-          y: tank.y + Math.sin(toTarget + side * Math.PI/2) * desired.min * 0.92
+          x:target.x + Math.cos(ringAngle) * ring,
+          y:target.y + Math.sin(ringAngle) * ring
         };
+
+        // 너무 붙었을 때는 현재 위치 기준 측면 탈출 지점을 우선한다.
+        if (d < desired.min * 0.82) {
+          goal = {
+            x:tank.x + Math.cos(toTarget + side * Math.PI/2) * desired.min * 0.92,
+            y:tank.y + Math.sin(toTarget + side * Math.PI/2) * desired.min * 0.92
+          };
+        }
       }
 
       tank.targetX = goal.x;
@@ -12757,7 +13111,7 @@ function updateTankAI(tank, dt) {
       }
     }
 
-    const spreadGoal = guardGun && !target
+    const spreadGoal = (guardGun && !target) || artilleryObserved
       ? {x:tank.targetX, y:tank.targetY}
       : spreadGoalForTank(tank, {x:tank.targetX, y:tank.targetY}, target);
     tank.targetX = clamp(spreadGoal.x, 70, WORLD_W-70);
@@ -12802,7 +13156,7 @@ function updateTankAI(tank, dt) {
     throttle = Math.min(throttle, role === "경전차" ? 0.34 : role === "중형전차" ? 0.26 : role === "중전차" ? 0.20 : role === "구축전차" ? 0.16 : 0.10);
   }
 
-  if (role === "자주포" && tank.aiRelocateUntil > game.time && tank.aiRelocatePoint) {
+  if (relocating) {
     throttle = moveDist > 75 ? Math.max(throttle, 0.72) : 0;
   }
 
@@ -12830,7 +13184,7 @@ function updateTankAI(tank, dt) {
   tank.vx *= Math.pow(0.52, dt);
   tank.vy *= Math.pow(0.52, dt);
 
-  if (Math.hypot(tank.vx, tank.vy) < 1.1 && (game.time - (tank.lastForcedMove || 0)) > 1.7) {
+  if (!intentionallyHolding && moveDist > 90 && Math.hypot(tank.vx, tank.vy) < 1.1 && (game.time - (tank.lastForcedMove || 0)) > 1.7) {
     tank.aiRouteBias *= -1;
     tank.aiFlankAngle += tank.aiRouteBias * rand(0.8, 1.6);
     tank.aiThink = 0;
@@ -12844,22 +13198,22 @@ function updateTankAI(tank, dt) {
   if (!target) return;
 
   if (role === "자주포" && artilleryObserved) {
-    const desiredGun = angleTo(tank, target);
+    const desiredGun = angleTo(tank, artilleryDecision.aimPoint || target);
     let visualGun = desiredGun;
     if (t.gunArc < TAU * 0.99) {
       const lim = clamp(normAng(visualGun - tank.angle), -t.gunArc, t.gunArc);
       visualGun = tank.angle + lim;
     }
     tank.turretAngle = moveAngle(tank.turretAngle, visualGun, t.turret * moduleTurretFactor(tank) * dt);
-    if (tank.reload <= 0 && (!tank.aiRelocateUntil || game.time >= tank.aiRelocateUntil)) {
+    const stable = Math.hypot(tank.vx, tank.vy) < 9;
+    if (tank.reload <= 0 && !relocating && stable) {
       const fireMult = tank.team === "enemy" ? diff.enemyFire : diff.allyFire;
       if (Math.random() < clamp(0.52 * fireMult, 0.20, 0.90)) requestAIArtilleryMission(tank, target);
     }
     return;
   }
 
-  const hardcoreAim = !!(game.settings && game.settings.hardcoreAim);
-  const expectedTarget = hardcoreAim ? solveInterceptPoint(tank, target) : target;
+  const expectedTarget = aiLeadAimEnabledFor(tank.team) ? solveInterceptPoint(tank, target) : target;
   let desiredGun = angleTo(tank, expectedTarget);
   if (t.gunArc < TAU * 0.99) {
     const lim = clamp(normAng(desiredGun - tank.angle), -t.gunArc, t.gunArc);
@@ -14081,7 +14435,8 @@ function setTextIfChanged(element, value) {
 function renderCombatLog() {
   if (!combatLogEl || !game || !game.log) return;
   const now = game.time || 0;
-  const rows = game.log.slice(-6).map(e => {
+  const rowLimit = mobileInput.enabled ? 4 : 6;
+  const rows = game.log.slice(-rowLimit).map(e => {
     const age = Math.max(0, now - e.t);
     const alpha = clamp(1 - age / 12, 0.25, 1);
     const kind = ["good","bad","neutral"].includes(e.kind) ? e.kind : "neutral";
