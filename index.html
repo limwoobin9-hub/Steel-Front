@@ -3888,6 +3888,7 @@ document.addEventListener("keydown", e => {
 
 const SUPABASE_URL = "https://kokysdjdcooxbcnrprsv.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_sQN2QsK0R8E_Ib9Meh9aHQ_2q-WwDho";
+const AUTH_CONFIRM_REDIRECT_URL = `${SUPABASE_URL}/functions/v1/steel-front-auth-complete`;
 let supabaseClient = null;
 let authMode = "login";
 let currentAuthSession = null;
@@ -4078,7 +4079,10 @@ if (authForm) authForm.onsubmit = async e => {
       const {data, error} = await supabaseClient.auth.signUp({
         email,
         password,
-        options:{data:{nickname}}
+        options:{
+          data:{nickname},
+          emailRedirectTo:AUTH_CONFIRM_REDIRECT_URL
+        }
       });
       if (error) throw error;
       if (data?.session) {
@@ -4086,7 +4090,7 @@ if (authForm) authForm.onsubmit = async e => {
         setAuthMessage(authUserStatus, "회원가입과 로그인이 완료되었습니다.", "success");
       } else {
         setAuthMode("login");
-        setAuthMessage(authStatus, "회원가입이 완료되었습니다. 받은 이메일의 인증 링크를 누른 뒤 로그인하세요.", "success");
+        setAuthMessage(authStatus, "회원가입이 완료되었습니다. 이메일 인증을 마치면 완료 화면이 표시됩니다. 게임으로 돌아와 로그인하세요.", "success");
       }
     } else {
       const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
