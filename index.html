@@ -3077,6 +3077,25 @@
     border-radius:8px;
     background:#141b21;
   }
+  .authSyncCard {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin:12px 0;
+    padding:10px 11px;
+    border:1px solid var(--ui-border);
+    border-radius:7px;
+    background:#11181d;
+    color:#aeb9c1;
+    font-size:12px;
+    line-height:1.4;
+  }
+  .authSyncCard button {
+    flex:0 0 auto;
+    min-height:34px;
+    padding:0 11px;
+  }
   .authUserCard strong { color:#edf3f6; font-size:18px; }
   .authUserCard span { color:#9eabb3; font-size:12px; overflow-wrap:anywhere; }
   .authActions {
@@ -3224,6 +3243,10 @@
       <div class="authUserCard">
         <strong id="authCurrentNickname">신병</strong>
         <span id="authCurrentEmail"></span>
+      </div>
+      <div class="authSyncCard">
+        <span id="authSyncStatus" role="status" aria-live="polite">서버 진행 정보를 확인하고 있습니다.</span>
+        <button id="authSyncBtn" type="button">다시 동기화</button>
       </div>
       <form id="nicknameForm" class="authForm" novalidate>
         <label class="authField">
@@ -3724,6 +3747,8 @@ const authSubmitBtn = document.getElementById("authSubmitBtn");
 const authStatus = document.getElementById("authStatus");
 const authCurrentNickname = document.getElementById("authCurrentNickname");
 const authCurrentEmail = document.getElementById("authCurrentEmail");
+const authSyncStatus = document.getElementById("authSyncStatus");
+const authSyncBtn = document.getElementById("authSyncBtn");
 const nicknameForm = document.getElementById("nicknameForm");
 const nicknameEditInput = document.getElementById("nicknameEditInput");
 const nicknameSaveBtn = document.getElementById("nicknameSaveBtn");
@@ -3893,6 +3918,16 @@ let supabaseClient = null;
 let authMode = "login";
 let currentAuthSession = null;
 let currentPlayerNickname = "";
+let serverSyncReady = false;
+let serverSyncInFlight = null;
+let serverSettingsTimer = 0;
+let applyingServerState = false;
+let serverMutationBusy = false;
+let serverGlobalExperience = 0;
+let serverOwnedTankCodes = new Set();
+let serverTankCodeByIdentity = new Map();
+let serverTankProgressByCode = new Map();
+let serverCampaignStatus = new Map();
 const safeAuthStorage = {
   getItem(key) {
     try { return window.localStorage.getItem(key); }
@@ -3908,6 +3943,194 @@ const safeAuthStorage = {
   }
 };
 
+function serverTankIdentity(nation, name) {
+  return `${String(nation || "")}::${String(name || "")}`;
+}
+
+function serverTankCodeFor(tank) {
+  if (!tank) return "";
+  const known = serverTankCodeByIdentity.get(serverTankIdentity(tank.nation, tank.name));
+  if (known) return known;
+  const nationCode = {"독일":"germany","영국":"uk","소련":"ussr","미국":"usa"}[tank.nation];
+  const classCode = {"경전차":"light","중형전차":"medium","중전차":"heavy","구축전차":"tank_destroyer","자주포":"spg"}[tank.cls];
+  return nationCode && classCode && tank.tier ? `${nationCode}_${classCode}_${tank.tier}` : "";
+}
+
+function setServerSyncStatus(message, tone="") {
+  if (!authSyncStatus) return;
+  authSyncStatus.textContent = message;
+  authSyncStatus.style.color = tone === "error" ? "#f2a39b" : tone === "success" ? "#94d7a4" : tone === "warning" ? "#e3c376" : "#aeb9c1";
+}
+
+function serverErrorText(error, action="동기화") {
+  const raw = String(error?.message || "").toLowerCase();
+  if (raw.includes("not enough money")) return "자금이 부족합니다.";
+  if (raw.includes("not enough tank experience")) return "전차 경험치가 부족합니다.";
+  if (raw.includes("already maxed")) return "이미 최대 단계입니다.";
+  if (raw.includes("not owned")) return "보유하지 않은 전차입니다.";
+  if (raw.includes("mission is locked")) return "아직 해금되지 않은 캠페인입니다.";
+  if (raw.includes("supply already full")) return "이미 최대 보급입니다.";
+  if (raw.includes("failed to fetch") || raw.includes("network")) return "서버에 연결하지 못했습니다. 인터넷 연결을 확인하세요.";
+  return `${action}에 실패했습니다.`;
+}
+
+function pendingBattleStorageKey() {
+  const userId = currentAuthSession?.user?.id;
+  return userId ? `steelFrontPendingBattlesV1:${userId}` : "";
+}
+
+function readPendingBattles() {
+  const key = pendingBattleStorageKey();
+  if (!key) return [];
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "[]");
+    return Array.isArray(value) ? value.filter(x => x && typeof x === "object").slice(-20) : [];
+  } catch (_) { return []; }
+}
+
+function writePendingBattles(items) {
+  const key = pendingBattleStorageKey();
+  if (!key) return;
+  try { localStorage.setItem(key, JSON.stringify(items.slice(-20))); } catch (_) {}
+}
+
+function queuePendingBattle(payload) {
+  const items = readPendingBattles().filter(x => x.clientBattleId !== payload.clientBattleId);
+  items.push(payload);
+  writePendingBattles(items);
+}
+
+function removePendingBattle(clientBattleId) {
+  writePendingBattles(readPendingBattles().filter(x => x.clientBattleId !== clientBattleId));
+}
+
+function applyServerState(state) {
+  if (!state || typeof state !== "object" || !state.account) throw new Error("invalid server state");
+  applyingServerState = true;
+  try {
+    serverOwnedTankCodes = new Set();
+    serverTankCodeByIdentity = new Map();
+    serverTankProgressByCode = new Map();
+    const serverTanks = Array.isArray(state.tanks) ? state.tanks : [];
+    const nextTanks = {};
+    for (const row of serverTanks) {
+      const code = String(row.tankCode || "");
+      const nation = String(row.nationName || "");
+      const name = String(row.displayName || "");
+      if (!code || !name) continue;
+      serverOwnedTankCodes.add(code);
+      serverTankCodeByIdentity.set(serverTankIdentity(nation, name), code);
+      const localTank = tanks.find(t => !t.hiddenOpponent && t.nation === nation && t.name === name);
+      if (!localTank) continue;
+      const upgrades = {};
+      for (const id of Object.keys(moduleDefs)) upgrades[id] = clamp(Math.round(Number(row.upgrades?.[id]) || 1), 1, moduleDefs[id].max);
+      const progress = {xp:clamp(Math.round(Number(row.tankExperience) || 0), 0, 100_000_000), upgrades};
+      serverTankProgressByCode.set(code, progress);
+      nextTanks[tankKey(localTank)] = progress;
+    }
+
+    saveData.money = clamp(Math.round(Number(state.account.money) || 0), 0, 1_000_000_000);
+    serverGlobalExperience = clamp(Math.round(Number(state.account.experience) || 0), 0, 1_000_000_000);
+    saveData.tanks = nextTanks;
+    ensureCampaignData();
+    saveData.campaign.completed = {};
+    saveData.campaign.failed = {};
+    serverCampaignStatus = new Map();
+    for (const row of (Array.isArray(state.campaign) ? state.campaign : [])) {
+      const id = String(row.missionCode || "");
+      const status = String(row.status || "locked");
+      if (!id) continue;
+      serverCampaignStatus.set(id, status);
+      if (status === "completed") saveData.campaign.completed[campaignKey(id)] = true;
+      const failures = clamp(Math.round(Number(row.failureCount) || 0), 0, 9999);
+      if (failures) saveData.campaign.failed[campaignKey(id)] = failures;
+    }
+
+    const aux = state.gameState && typeof state.gameState === "object" ? state.gameState : {};
+    if (aux.crew && typeof aux.crew === "object") saveData.crew = aux.crew;
+    if (aux.supplies && typeof aux.supplies === "object") saveData.supplies = aux.supplies;
+    if (aux.medals && typeof aux.medals === "object") saveData.medals = aux.medals;
+    if (aux.preferences && typeof aux.preferences === "object" && Object.keys(aux.preferences).length) {
+      saveData.preferences = {...saveData.preferences, ...aux.preferences};
+    }
+    if (aux.campaignSettings && typeof aux.campaignSettings === "object") {
+      saveData.campaign.settings = {
+        supplyLimit:aux.campaignSettings.supplyLimit === "basic" ? "basic" : "expanded",
+        autoRefill:aux.campaignSettings.autoRefill === true
+      };
+    }
+    saveProgress();
+    serverSyncReady = true;
+    setServerSyncStatus(`서버 동기화 완료 · 전차 ${serverOwnedTankCodes.size}대 · 전체 경험치 ${serverGlobalExperience}`, "success");
+    renderMenu();
+  } finally {
+    applyingServerState = false;
+  }
+}
+
+async function synchronizeServerState(announce=true) {
+  if (!supabaseClient || !currentAuthSession?.user?.id) return false;
+  if (serverSyncInFlight) return serverSyncInFlight;
+  serverSyncInFlight = (async () => {
+    if (announce) setServerSyncStatus("서버 진행 정보를 불러오고 있습니다.");
+    const {data, error} = await supabaseClient.rpc("steel_front_get_state");
+    if (error) throw error;
+    applyServerState(data);
+    return true;
+  })();
+  try { return await serverSyncInFlight; }
+  catch (error) {
+    serverSyncReady = false;
+    setServerSyncStatus(serverErrorText(error, "서버 동기화"), "error");
+    throw error;
+  } finally { serverSyncInFlight = null; }
+}
+
+function scheduleServerSettingsSync() {
+  if (applyingServerState || !serverSyncReady || !supabaseClient || !currentAuthSession?.user?.id) return;
+  clearTimeout(serverSettingsTimer);
+  serverSettingsTimer = setTimeout(async () => {
+    try {
+      const {error} = await supabaseClient.rpc("steel_front_save_settings", {
+        p_campaign_settings:saveData.campaign?.settings || {},
+        p_preferences:saveData.preferences || {}
+      });
+      if (error) throw error;
+    } catch (error) {
+      setServerSyncStatus(serverErrorText(error, "설정 저장"), "warning");
+    }
+  }, 700);
+}
+
+async function submitBattlePayload(payload, updateCurrentReport=false) {
+  if (!supabaseClient || !currentAuthSession?.user?.id) return null;
+  const {data, error} = await supabaseClient.rpc("steel_front_record_battle", {p_payload:payload});
+  if (error) throw error;
+  removePendingBattle(payload.clientBattleId);
+  if (updateCurrentReport && game?.clientBattleId === payload.clientBattleId) {
+    const actualMoney = Math.round(Number(data?.moneyEarned) || 0);
+    const actualXp = Math.round(Number(data?.experienceEarned) || 0);
+    const refill = Number(data?.autoRefillBought) > 0 ? ` · 자동 보급 ${data.autoRefillBought}개` : "";
+    game.rewardText = `서버 저장 완료: ${actualMoney} 자금 / ${actualXp} ${selectedTank.name} 경험치${refill}`;
+    game.battleReportHtml = battleReportHtml(game.result, actualMoney, actualXp, [], game.secondaryReport);
+  }
+  await synchronizeServerState(false);
+  return data;
+}
+
+async function flushPendingBattles() {
+  const items = readPendingBattles();
+  if (!items.length) return;
+  setServerSyncStatus(`저장 대기 전투 ${items.length}개를 서버에 반영하고 있습니다.`);
+  for (const payload of items) {
+    try { await submitBattlePayload(payload, false); }
+    catch (error) {
+      setServerSyncStatus(serverErrorText(error, "대기 전투 저장"), "warning");
+      return;
+    }
+  }
+}
+
 function setAuthMessage(target, message="", tone="") {
   if (!target) return;
   target.textContent = message;
@@ -3916,7 +4139,7 @@ function setAuthMessage(target, message="", tone="") {
 }
 
 function setAuthBusy(busy) {
-  for (const el of [authSubmitBtn, nicknameSaveBtn, authLogoutBtn, authLoginTab, authSignupTab]) {
+  for (const el of [authSubmitBtn, nicknameSaveBtn, authLogoutBtn, authSyncBtn, authLoginTab, authSignupTab]) {
     if (el) el.disabled = !!busy;
   }
 }
@@ -3960,6 +4183,11 @@ function setAuthMode(mode) {
 function renderSignedOutAuth() {
   currentAuthSession = null;
   currentPlayerNickname = "";
+  serverSyncReady = false;
+  serverOwnedTankCodes = new Set();
+  serverTankCodeByIdentity = new Map();
+  serverTankProgressByCode = new Map();
+  serverCampaignStatus = new Map();
   authSignedOutPanel?.classList.remove("authHidden");
   authSignedInPanel?.classList.add("authHidden");
   accountBtn?.classList.remove("signedIn");
@@ -3969,6 +4197,7 @@ function renderSignedOutAuth() {
   }
   if (authPasswordInput) authPasswordInput.value = "";
   if (authPasswordConfirmInput) authPasswordConfirmInput.value = "";
+  setServerSyncStatus("로그인하면 진행 정보를 서버에서 불러옵니다.");
 }
 
 async function loadPlayerProfile(session) {
@@ -4002,6 +4231,12 @@ async function renderSignedInAuth(session) {
     accountBtn.textContent = nickname;
     accountBtn.title = `${nickname} 계정`;
     accountBtn.classList.add("signedIn");
+  }
+  try {
+    await synchronizeServerState(true);
+    await flushPendingBattles();
+  } catch (error) {
+    setAuthMessage(authUserStatus, "로그인은 완료됐지만 서버 진행 정보를 불러오지 못했습니다. 다시 동기화를 눌러 주세요.", "warning");
   }
 }
 
@@ -4039,6 +4274,21 @@ if (authOverlay) authOverlay.addEventListener("click", e => {
 });
 if (authLoginTab) authLoginTab.onclick = () => setAuthMode("login");
 if (authSignupTab) authSignupTab.onclick = () => setAuthMode("signup");
+if (authSyncBtn) authSyncBtn.onclick = async () => {
+  if (!currentAuthSession?.user?.id || serverMutationBusy) return;
+  serverMutationBusy = true;
+  setAuthBusy(true);
+  try {
+    await synchronizeServerState(true);
+    await flushPendingBattles();
+    setAuthMessage(authUserStatus, "서버 진행 정보를 다시 불러왔습니다.", "success");
+  } catch (error) {
+    setAuthMessage(authUserStatus, serverErrorText(error, "서버 동기화"), "error");
+  } finally {
+    serverMutationBusy = false;
+    setAuthBusy(false);
+  }
+};
 
 if (authForm) authForm.onsubmit = async e => {
   e.preventDefault();
@@ -7848,15 +8098,27 @@ function normalizeSaveData(input) {
   const sourceTanks = plainObject(input.tanks) ? input.tanks : {};
   const knownTankNames = new Set(tanks.filter(t => !t.hiddenOpponent).map(t => t.name));
   for (const [oldName, raw] of Object.entries(sourceTanks)) {
-    const name = tankNameAliases[oldName] || oldName;
+    let name = oldName;
+    let outputKey = oldName;
+    if (oldName.includes("::")) {
+      const splitAt = oldName.indexOf("::");
+      const nation = oldName.slice(0, splitAt);
+      name = tankNameAliases[oldName.slice(splitAt + 2)] || oldName.slice(splitAt + 2);
+      const matched = tanks.find(t => !t.hiddenOpponent && t.nation === nation && t.name === name);
+      if (!matched) continue;
+      outputKey = tankKey(matched);
+    } else {
+      name = tankNameAliases[oldName] || oldName;
+      outputKey = name;
+    }
     if (!knownTankNames.has(name) || !plainObject(raw)) continue;
     const upgrades = plainObject(raw.upgrades) ? raw.upgrades : {};
-    out.tanks[name] = {
+    out.tanks[outputKey] = {
       xp:clamp(Number.isFinite(raw.xp) ? Math.round(raw.xp) : 0, 0, 100_000_000),
       upgrades:{}
     };
     for (const id of Object.keys(moduleDefs)) {
-      out.tanks[name].upgrades[id] = clamp(Math.round(Number(upgrades[id]) || 1), 1, moduleDefs[id].max);
+      out.tanks[outputKey].upgrades[id] = clamp(Math.round(Number(upgrades[id]) || 1), 1, moduleDefs[id].max);
     }
   }
 
@@ -7949,6 +8211,7 @@ function saveProgress() {
   try {
     saveData.version = SAVE_VERSION;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(saveData));
+    scheduleServerSettingsSync();
     return true;
   } catch (error) {
     reportGameError("SAVE_WRITE_ERROR", error);
@@ -7956,7 +8219,10 @@ function saveProgress() {
   }
 }
 
-function tankKey(name) { return name; }
+function tankKey(tankOrName) {
+  if (tankOrName && typeof tankOrName === "object") return `${tankOrName.nation}::${tankOrName.name}`;
+  return String(tankOrName || "");
+}
 
 function ensureCampaignData() {
   saveData.campaign = saveData.campaign || {completed:{}, failed:{}, penalties:{}};
@@ -8121,6 +8387,7 @@ function campaignKey(id) {
 
 function isMissionCompleted(id) {
   ensureCampaignData();
+  if (currentAuthSession?.user?.id && serverSyncReady) return serverCampaignStatus.get(id) === "completed";
   return !!saveData.campaign.completed[campaignKey(id)];
 }
 
@@ -8134,6 +8401,10 @@ function nextCampaignMission(mission) {
 
 function isMissionUnlocked(mission) {
   if (!mission) return false;
+  if (currentAuthSession?.user?.id && serverSyncReady) {
+    const status = serverCampaignStatus.get(mission.id);
+    return status === "available" || status === "completed";
+  }
   const nation = mission.nation || selectedCampaignNation || selectedNation;
   const arr = campaignDefs[nation] || [];
   const idx = arr.findIndex(m => m.id === mission.id);
@@ -8198,7 +8469,7 @@ function evaluateMedals(result) {
   return got;
 }
 
-function buyCampaignSupply(type) {
+async function buyCampaignSupply(type) {
   const m = currentMission();
   const nation = m ? m.nation : selectedNation;
   const supply = supplyFor(nation);
@@ -8206,6 +8477,18 @@ function buyCampaignSupply(type) {
   const max = campaignSupplyCap(type);
   if (supply[type] >= max) { alert("이미 최대 보급입니다."); return; }
   if (saveData.money < cost) { alert("자금이 부족합니다."); return; }
+  if (currentAuthSession?.user?.id) {
+    if (!serverSyncReady || serverMutationBusy) { alert("서버 동기화가 끝난 뒤 다시 시도하세요."); return; }
+    serverMutationBusy = true;
+    try {
+      const {error} = await supabaseClient.rpc("steel_front_buy_supply", {p_nation_name:nation, p_supply_type:type});
+      if (error) throw error;
+      await synchronizeServerState(false);
+    } catch (error) {
+      alert(serverErrorText(error, "보급 구매"));
+    } finally { serverMutationBusy = false; }
+    return;
+  }
   saveData.money -= cost;
   supply[type] += 1;
   saveProgress();
@@ -8214,6 +8497,7 @@ function buyCampaignSupply(type) {
 window.buyCampaignSupply = buyCampaignSupply;
 
 function resetCampaignProgress() {
+  if (currentAuthSession?.user?.id) { alert("로그인 계정의 캠페인 진행 정보는 서버에서 보호되므로 이 화면에서 초기화할 수 없습니다."); return; }
   if (!confirm("캠페인 완료 기록, 승무원, 보급품과 훈장을 모두 초기화하시겠습니까? 전차 업그레이드는 유지됩니다.")) return;
   saveData.campaign = {completed:{}, failed:{}, penalties:{}};
   saveData.crew = {};
@@ -8224,8 +8508,12 @@ function resetCampaignProgress() {
 }
 window.resetCampaignProgress = resetCampaignProgress;
 
-function ensureTankProgress(name) {
-  const key = tankKey(name);
+function ensureTankProgress(tankOrName) {
+  const key = tankKey(tankOrName);
+  const legacyName = tankOrName && typeof tankOrName === "object" ? tankOrName.name : "";
+  if (!saveData.tanks[key] && legacyName && saveData.tanks[legacyName]) {
+    saveData.tanks[key] = saveData.tanks[legacyName];
+  }
   if (!saveData.tanks[key]) {
     saveData.tanks[key] = {xp:0, upgrades:{gun:1, armor:1, engine:1, loader:1}};
   }
@@ -8240,11 +8528,11 @@ function ensureTankProgress(name) {
 }
 
 function getTier(base, id) {
-  return ensureTankProgress(base.name).upgrades[id] || 1;
+  return ensureTankProgress(base).upgrades[id] || 1;
 }
 
 function isTankFullyUpgraded(tank) {
-  const p = ensureTankProgress(tank.name);
+  const p = ensureTankProgress(tank);
   return Object.keys(moduleDefs).every(id => (p.upgrades[id] || 1) >= moduleDefs[id].max);
 }
 
@@ -8260,6 +8548,7 @@ function nextTierTank(tank) {
 
 function isTankUnlocked(tank) {
   if (!tank) return false;
+  if (currentAuthSession?.user?.id && serverSyncReady) return serverOwnedTankCodes.has(serverTankCodeFor(tank));
   if (tank.tier === 1) return true;
   const prev = previousTierTank(tank);
   return !!prev && isTankFullyUpgraded(prev);
@@ -8321,7 +8610,7 @@ function getEffectiveTank(base, useUpgrades=true) {
     t.upgradeText = `${tierNames[base.tier]} 기본형`;
     return applyClassIdentity(t);
   }
-  const p = ensureTankProgress(base.name);
+  const p = ensureTankProgress(base);
   const gun = (p.upgrades.gun || 1) - 1;
   const armor = (p.upgrades.armor || 1) - 1;
   const engine = (p.upgrades.engine || 1) - 1;
@@ -8354,12 +8643,27 @@ function getEffectiveTank(base, useUpgrades=true) {
   return applyClassIdentity(t);
 }
 
-function buyUpgrade(id) {
+async function buyUpgrade(id) {
   if (!tankCanUpgrade(selectedTank)) return;
-  const p = ensureTankProgress(selectedTank.name);
+  const p = ensureTankProgress(selectedTank);
   const c = costFor(selectedTank, id);
   if (!c) return;
   if (saveData.money < c.money || p.xp < c.xp) return;
+  if (currentAuthSession?.user?.id) {
+    if (!serverSyncReady || serverMutationBusy) { alert("서버 동기화가 끝난 뒤 다시 시도하세요."); return; }
+    const tankCode = serverTankCodeFor(selectedTank);
+    if (!tankCode) { alert("전차 정보를 서버와 연결하지 못했습니다."); return; }
+    serverMutationBusy = true;
+    try {
+      const {error} = await supabaseClient.rpc("steel_front_buy_upgrade", {p_tank_code:tankCode, p_upgrade_code:id});
+      if (error) throw error;
+      await synchronizeServerState(false);
+      renderMenuPreserveScroll();
+    } catch (error) {
+      alert(serverErrorText(error, "업그레이드"));
+    } finally { serverMutationBusy = false; }
+    return;
+  }
   saveData.money -= c.money;
   p.xp -= c.xp;
   p.upgrades[id] = c.next;
@@ -8368,6 +8672,7 @@ function buyUpgrade(id) {
 }
 
 function resetProgress() {
+  if (currentAuthSession?.user?.id) { alert("로그인 계정의 진행 정보는 서버에서 보호되므로 이 화면에서 초기화할 수 없습니다."); return; }
   if (!confirm("자금, 경험치와 전차 업그레이드를 모두 초기화하시겠습니까?")) return;
   saveData.money = newSaveData().money;
   saveData.tanks = {};
@@ -8456,7 +8761,7 @@ function renderGarage() {
     return;
   }
 
-  const p = ensureTankProgress(selectedTank.name);
+  const p = ensureTankProgress(selectedTank);
   const eff = getEffectiveTank(selectedTank, true);
   const base = selectedTank;
   const next = nextTierTank(base);
@@ -9049,7 +9354,7 @@ function renderMenu() {
     const customLoan = isCustomBattleMode() && !isTankUnlocked(t);
     const locked = !isTankUnlocked(t) && !campaignLoan && !isCustomBattleMode();
     const eff = getEffectiveTank(t, !locked);
-    const p = ensureTankProgress(t.name);
+    const p = ensureTankProgress(t);
     const card = document.createElement("button");
     card.type = "button";
     card.className = "tankCard" + (selectedTank.name === t.name ? " selected" : "") + (locked ? " locked" : "");
@@ -12901,6 +13206,10 @@ function campaignObjectiveStatusText() {
 }
 
 function startBattle() {
+  if (currentAuthSession?.user?.id && !serverSyncReady) {
+    alert("서버 진행 정보 동기화가 끝난 뒤 전투를 시작하세요.");
+    return;
+  }
   gameCrashed = false;
   nextHudDomUpdate = 0;
   ensureAudioReady();
@@ -12939,6 +13248,7 @@ function startBattle() {
           ? selectedEnemyNation
           : choose(nations.filter(n => n !== selectedTank.nation));
   game = {
+    clientBattleId:(globalThis.crypto?.randomUUID?.() || `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12,"0").slice(-12)}`),
     state:"play",
     mapName:selectedMap,
     map:map,
@@ -14973,25 +15283,67 @@ function awardBattle(result) {
   const secondary = evaluateSecondaryObjectives(result);
   const money = Math.round((victoryBonus + destroyed * 36 + (game.playerKills || 0) * 35 + modeBonus + secondary.money) * diffMult * rewardMult * campaignMult);
   const xp = Math.round(((result === "승리" ? 130 : 50) + destroyed * 22 + (game.playerKills || 0) * 48 + modeBonus + secondary.xp) * diffMult * rewardMult * campaignMult);
-  saveData.money += money;
-  const p = ensureTankProgress(selectedTank.name);
-  p.xp += xp;
-  const campaignText = completeCampaignMission(result);
+  const serverBattle = !!(currentAuthSession?.user?.id && serverSyncReady && supabaseClient);
+  if (!serverBattle) {
+    saveData.money += money;
+    const p = ensureTankProgress(selectedTank);
+    p.xp += xp;
+  }
+  const campaignText = serverBattle ? (game.campaignMission ? " · 캠페인 결과 서버 저장 중" : " · 서버 저장 중") : completeCampaignMission(result);
   const medals = evaluateMedals(result);
   game.secondaryReport = secondary;
   game.battleReportHtml = battleReportHtml(result, money, xp, medals, secondary);
-  saveProgress();
+  if (!serverBattle) saveProgress();
   const acc = game.playerShots ? Math.round((game.playerHits||0)/game.playerShots*100) : 0;
   const capSec = Math.round(game.playerCaptureContribution || 0);
   const unlockNext = nextTierTank(selectedTank);
   const unlockHint = unlockNext && isTankFullyUpgraded(selectedTank) ? ` · 해금됨: ${unlockNext.name} ${tierRoman[unlockNext.tier]}` : "";
   const medalText = medals.length ? ` · 훈장: ${medals.join(", ")}` : "";
   const secText = secondary.passed ? ` · 보조 목표 ${secondary.passed}/${secondary.total}` : "";
-  game.rewardText = `획득: ${money} 자금 / ${xp} ${selectedTank.name} 경험치${unlockHint}${campaignText}${medalText}${secText}`;
+  game.rewardText = `${serverBattle ? "서버 저장 대기" : "획득"}: ${money} 자금 / ${xp} ${selectedTank.name} 경험치${unlockHint}${campaignText}${medalText}${secText}`;
   game.resultStats = `격파 ${game.playerKills||0} · 도움 격파 ${game.friendlyKills||0} · 피해 ${Math.round(game.playerDamage||0)} · 받은 피해 ${Math.round(game.playerReceivedDamage||0)} · 명중률 ${acc}%`;
   game.resultDetails = `관통 ${game.playerPenetrations||0} · 도탄 ${game.playerBounces||0} · 점령 기여 ${capSec}초 · 진지 피해 ${Math.round(game.playerTurretDamage||0)} · 전투 시간 ${formatSeconds(game.time)}`;
   addLog(`${result}: ${game.rewardText}`, result === "승리" ? "good" : "bad");
   renderMenu();
+  if (serverBattle) {
+    const modeProgress = game.mode === "capture"
+      ? Math.round(game.capture?.blueScore || 0)
+      : game.mode === "operation"
+        ? Object.keys(game.operation?.cleared || {}).filter(k => game.operation.cleared[k]).length
+        : game.mode === "survival" ? Math.round(game.survival?.wave || 1) : 0;
+    const payload = {
+      clientBattleId:game.clientBattleId,
+      tankCode:serverTankCodeFor(selectedTank),
+      missionCode:game.campaignMission?.id || null,
+      battleMode:game.mode,
+      mapName:game.mapName,
+      difficulty:selectedDifficulty,
+      result:result === "승리" ? "victory" : result === "패배" ? "defeat" : "draw",
+      durationSeconds:Math.round(game.time || 0),
+      playerKills:Math.round(game.playerKills || 0),
+      friendlyKills:Math.round(game.friendlyKills || 0),
+      enemyKills:Math.round(game.missionStats?.enemyKills || 0),
+      allyLosses:Math.round((game.missionStats?.allyLosses || 0) + (game.missionStats?.playerDeaths || 0)),
+      playerDeaths:Math.round(game.missionStats?.playerDeaths || 0),
+      supportLosses:Math.round(game.missionStats?.supportLosses || 0),
+      shotsFired:Math.round(game.playerShots || 0),
+      shotsHit:Math.round(game.playerHits || 0),
+      penetrations:Math.round(game.playerPenetrations || 0),
+      ricochets:Math.round(game.playerBounces || 0),
+      damageDealt:Math.round(game.playerDamage || 0),
+      damageReceived:Math.round(game.playerReceivedDamage || 0),
+      modeProgress,
+      rewardMultiplier:rewardMult,
+      secondaryIds:(secondary.lines || []).filter(x => x.passed).map(x => x.id),
+      medals:Object.keys(saveData.medals || {}).filter(id => saveData.medals[id])
+    };
+    queuePendingBattle(payload);
+    submitBattlePayload(payload, true).catch(error => {
+      game.rewardText = `서버 저장 대기 · 인터넷 연결 후 로그인하거나 다시 동기화하면 자동 반영됩니다.`;
+      setServerSyncStatus(serverErrorText(error, "전투 기록 저장"), "warning");
+      reportGameError("BATTLE_SYNC_ERROR", error);
+    });
+  }
 }
 
 function concludeBattle(result) {
