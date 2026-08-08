@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<title>Steel Front 1944</title>
+<title>강철 전선 1944</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -3120,6 +3120,464 @@
     .authPanel { max-height:calc(100dvh - 12px); }
   }
 
+  /* UX 정돈: 게임 정체성, 선택 흐름, 설정 위계 */
+  .lobbyTopBar {
+    height:82px;
+    grid-template-columns:200px minmax(340px, 1fr) auto;
+    grid-template-areas:"brand tabs utility";
+    gap:14px;
+    padding:12px 18px;
+  }
+  .lobbyBrand {
+    grid-area:brand;
+    min-width:0;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding-left:12px;
+    border-left:3px solid var(--ui-red-bright);
+    line-height:1.05;
+  }
+  .lobbyBrand span {
+    margin-bottom:5px;
+    color:#8796a0;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.16em;
+  }
+  .lobbyBrand strong {
+    color:#f2f5f7;
+    font-size:20px;
+    font-weight:900;
+    letter-spacing:-.025em;
+    white-space:nowrap;
+  }
+  .lobbyBrand strong b {
+    color:#d6b768;
+    font-size:.76em;
+    letter-spacing:.04em;
+  }
+  .battleTabs {
+    grid-area:tabs;
+    min-width:0;
+  }
+  .battleTab {
+    min-width:0;
+    padding-inline:10px;
+  }
+  .lobbyUtility {
+    grid-area:utility;
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+  }
+  .lobbyTopTools {
+    width:auto;
+    min-width:0;
+  }
+  .lobbyTopTools .lobbySettingsBtn,
+  .lobbyTopTools .lobbyHelpBtn,
+  .lobbyTopTools .lobbyAccountBtn {
+    width:auto;
+    min-width:66px;
+    padding-inline:9px;
+    font-size:12px;
+  }
+  .lobbyRightTools {
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .lobbyRightTools select {
+    width:82px;
+    min-width:82px;
+  }
+  .lobbyStage {
+    top:82px;
+    bottom:154px;
+    grid-template-columns:320px minmax(480px, 1fr);
+    gap:28px;
+    padding:24px 28px 18px;
+  }
+  .lobbyStage .lobbySidePanel {
+    align-self:center;
+    max-height:100%;
+    overflow:auto;
+  }
+  .lobbyTankMeta {
+    margin-top:6px;
+    color:#aebac2;
+    line-height:1.45;
+  }
+  .tankStatGrid {
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:7px;
+    margin-top:14px;
+  }
+  .tankStatGrid span {
+    min-width:0;
+    display:grid;
+    gap:3px;
+    padding:9px 10px;
+    border:1px solid #33434e;
+    border-radius:6px;
+    background:#141c22;
+  }
+  .tankStatGrid small {
+    color:#83929c;
+    font-size:10px;
+    font-weight:750;
+  }
+  .tankStatGrid b {
+    overflow:hidden;
+    color:#edf2f5;
+    font-size:13px;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .tankStatNote {
+    margin-top:9px;
+    color:#8f9ca5;
+    font-size:11px;
+    line-height:1.4;
+  }
+  .tankDetailButton {
+    margin-top:14px;
+  }
+  .lobbyCanvasWrap {
+    width:min(790px, 57vw);
+    height:min(450px, 50vh);
+  }
+  .startPanelHint {
+    display:block;
+    color:#87959e;
+    font-size:10px;
+    line-height:1.35;
+    text-align:center;
+  }
+  .lobbyStartPanel {
+    gap:7px;
+  }
+  #tankSelectorToggle.tankSelectorToggle {
+    bottom:136px;
+    min-width:148px;
+  }
+  .filterBar {
+    align-items:end;
+  }
+  .filterField {
+    min-width:0;
+    display:grid;
+    gap:5px;
+  }
+  .filterField > span {
+    color:#8e9ba4;
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.06em;
+  }
+  .filterField select {
+    width:100%;
+  }
+  #tankDock.tankDock {
+    top:98px;
+    bottom:174px;
+  }
+
+  .settingsGroups {
+    display:grid;
+    grid-template-columns:minmax(0, 1.45fr) minmax(260px, .8fr);
+    gap:12px;
+  }
+  .settingsGroup {
+    min-width:0;
+    padding:12px;
+    border:1px solid var(--ui-border);
+    border-radius:8px;
+    background:#151d23;
+  }
+  .settingsGroup:first-child {
+    grid-column:1 / -1;
+  }
+  .settingsGroup h3 {
+    margin:0 0 10px;
+    color:#dbe3e8;
+    font-size:13px;
+    font-weight:850;
+  }
+  .settingsGrid {
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:8px;
+  }
+  .settingsGroup .settingCard {
+    min-height:72px;
+    padding:9px;
+  }
+  .lobbyOverlayPanel > .lobbyOverlayTop {
+    position:sticky;
+    top:-1px;
+    z-index:6;
+    background:var(--ui-surface);
+  }
+
+  .helpCard {
+    width:min(820px, 94vw);
+  }
+  .helpHeader {
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:14px;
+    padding-bottom:13px;
+    border-bottom:1px solid var(--ui-border);
+  }
+  .helpHeader h2 {
+    margin:0;
+  }
+  .helpHeader .sub {
+    margin:6px 0 0;
+  }
+  .helpHeader #helpCloseBtn {
+    min-width:82px;
+  }
+  .quickControls {
+    margin-top:0;
+  }
+  .quickControls section {
+    padding:14px;
+  }
+  .quickControls h3 {
+    margin-bottom:12px;
+  }
+  .advancedControls {
+    margin-top:12px;
+    border:1px solid var(--ui-border);
+    border-radius:7px;
+    background:#151d23;
+  }
+  .advancedControls summary {
+    padding:12px 14px;
+    color:#c8d2d8;
+    font-size:13px;
+    font-weight:850;
+    cursor:pointer;
+  }
+  .advancedControls[open] summary {
+    border-bottom:1px solid var(--ui-border);
+  }
+  .advancedControlGrid {
+    display:grid;
+    grid-template-columns:1fr 1.3fr;
+    gap:16px;
+    padding:14px;
+  }
+  .advancedControls > p {
+    margin:0 14px 14px;
+    color:#93a0a8;
+    font-size:11px;
+    line-height:1.5;
+  }
+
+  @media (max-width:960px) {
+    .lobbyTopBar {
+      grid-template-columns:180px minmax(0, 1fr);
+      grid-template-areas:"brand utility" "tabs tabs";
+      min-height:126px;
+      gap:9px 12px;
+    }
+    .lobbyUtility {
+      justify-content:flex-end;
+    }
+    .lobbyStage {
+      top:auto;
+      bottom:auto;
+      grid-template-columns:minmax(0, 1fr);
+      padding:12px;
+    }
+    .lobbyStage .lobbySidePanel {
+      align-self:stretch;
+    }
+    .tankStatGrid {
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+    }
+    #tankDock.tankDock {
+      top:auto;
+      bottom:auto;
+    }
+    #tankSelectorToggle.tankSelectorToggle {
+      bottom:auto;
+    }
+    .settingsGroups {
+      grid-template-columns:1fr;
+    }
+    .settingsGroup:first-child {
+      grid-column:auto;
+    }
+  }
+
+  @media (max-width:700px) {
+    .lobbyTopBar {
+      grid-template-columns:1fr;
+      grid-template-areas:"brand" "tabs" "utility";
+      min-height:174px;
+    }
+    .lobbyBrand {
+      align-items:center;
+      padding:0;
+      border-left:0;
+      text-align:center;
+    }
+    .lobbyBrand span {
+      display:none;
+    }
+    .lobbyBrand strong {
+      font-size:18px;
+    }
+    .lobbyUtility {
+      width:100%;
+      justify-content:space-between;
+    }
+    .lobbyRightTools span {
+      display:none;
+    }
+    .lobbyTopTools {
+      flex:1 1 auto;
+    }
+    .lobbyTopTools .lobbySettingsBtn,
+    .lobbyTopTools .lobbyHelpBtn,
+    .lobbyTopTools .lobbyAccountBtn {
+      flex:1 1 0;
+      min-width:0;
+    }
+    .settingsGrid {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+    .advancedControlGrid {
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (max-width:480px) {
+    .lobbyTopBar {
+      padding-inline:10px;
+    }
+    .lobbyRightTools {
+      display:none;
+    }
+    .battleTab {
+      min-width:104px;
+      font-size:11px;
+    }
+    .tankStatGrid {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+    }
+    .settingsGrid {
+      grid-template-columns:1fr;
+    }
+    .controlsGrid {
+      grid-template-columns:1fr;
+    }
+  }
+
+  @media (pointer:coarse) and (orientation:landscape) and (max-height:520px) {
+    .lobbyTopBar {
+      height:86px;
+      min-height:86px;
+      grid-template-columns:160px minmax(300px, 1fr) auto;
+      grid-template-areas:"brand tabs utility";
+      gap:7px;
+      padding:7px 10px;
+    }
+    .lobbyBrand {
+      padding-left:8px;
+    }
+    .lobbyBrand span {
+      margin-bottom:3px;
+      font-size:8px;
+    }
+    .lobbyBrand strong {
+      font-size:16px;
+    }
+    .lobbyRightTools {
+      display:none;
+    }
+    .lobbyTopTools .lobbySettingsBtn,
+    .lobbyTopTools .lobbyHelpBtn,
+    .lobbyTopTools .lobbyAccountBtn {
+      min-width:58px;
+      height:34px;
+      padding-inline:6px;
+      font-size:10px;
+    }
+    .lobbyStage {
+      top:86px;
+    }
+    .tankStatGrid {
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:4px;
+      margin-top:7px;
+    }
+    .tankStatGrid span {
+      padding:5px 6px;
+    }
+    .tankStatNote {
+      margin-top:5px;
+      font-size:9px;
+    }
+    .startPanelHint {
+      display:none;
+    }
+    #tankSelectorToggle.tankSelectorToggle {
+      position:fixed;
+      left:50%;
+      bottom:84px;
+      margin:0;
+      transform:translateX(-50%);
+    }
+    #tankDock.tankDock {
+      top:94px;
+      bottom:102px;
+    }
+  }
+
+  #startBriefingOverlay {
+    min-width:min(620px, 88vw);
+    max-width:min(760px, 92vw);
+    padding:16px 20px;
+  }
+  #startBriefingTitle {
+    margin-bottom:10px;
+    font-size:25px;
+  }
+  #startBriefingBody {
+    display:grid;
+    gap:7px;
+    font-size:13px;
+    line-height:1.4;
+  }
+  .briefingObjective {
+    color:#edf2f5;
+    font-size:14px;
+    font-weight:800;
+  }
+  .briefingTip {
+    color:#d3b96f;
+  }
+  .briefingControls {
+    color:#c1cbd1;
+  }
+  .briefingBonus {
+    padding-top:7px;
+    border-top:1px solid rgba(255,255,255,.11);
+    color:#8f9da6;
+    font-size:11px;
+  }
+
 </style>
 </head>
 <body>
@@ -3127,36 +3585,42 @@
 
 <div id="menu" class="lobbyMenu">
   <div class="lobbyTopBar">
-    <div class="lobbyTopTools">
-      <button id="settingsBtn" class="lobbySettingsBtn" type="button">설정</button>
-      <button id="helpBtn" class="lobbyHelpBtn" type="button">조작법</button>
-      <button id="accountBtn" class="lobbyAccountBtn" type="button">계정</button>
+    <div class="lobbyBrand" aria-label="강철 전선 1944">
+      <span>전차전 지휘소</span>
+      <strong>강철 전선 <b>1944</b></strong>
     </div>
     <div id="battleTypeButtons" class="battleTabs">
       <button class="battleTab selected" data-scope="free" type="button">자유 전투</button>
       <button class="battleTab" data-scope="campaign" type="button">역사적 캠페인</button>
-      <button class="battleTab" data-scope="custom" type="button">커스텀 전투</button>
+      <button class="battleTab" data-scope="custom" type="button">직접 편성</button>
     </div>
-    <div class="lobbyRightTools">
-      <span>로비 배경</span>
-      <select id="lobbyBgInput" aria-label="로비 배경">
-        <option value="평지" selected>평지</option>
-        <option value="사막">사막</option>
-        <option value="언덕">언덕</option>
-        <option value="산악">산악</option>
-        <option value="늪지">늪지</option>
-        <option value="시가전">시가전</option>
-      </select>
+    <div class="lobbyUtility">
+      <label class="lobbyRightTools">
+        <span>배경</span>
+        <select id="lobbyBgInput" aria-label="로비 배경">
+          <option value="평지" selected>평지</option>
+          <option value="사막">사막</option>
+          <option value="언덕">언덕</option>
+          <option value="산악">산악</option>
+          <option value="늪지">늪지</option>
+          <option value="시가전">시가전</option>
+        </select>
+      </label>
+      <div class="lobbyTopTools" aria-label="로비 메뉴">
+        <button id="settingsBtn" class="lobbySettingsBtn" type="button">환경 설정</button>
+        <button id="helpBtn" class="lobbyHelpBtn" type="button">조작 안내</button>
+        <button id="accountBtn" class="lobbyAccountBtn" type="button">계정</button>
+      </div>
     </div>
   </div>
 
   <div class="lobbyStage">
     <div class="lobbySidePanel">
-      <h3>선택 전차</h3>
+      <h3>현재 전차</h3>
       <div id="lobbyTankName" class="lobbyTankName">전차</div>
       <div id="lobbyTankMeta" class="lobbyTankMeta"></div>
       <div id="lobbyTankStats" class="lobbyTankStats" style="margin-top:10px;"></div>
-      <button id="tankDetailBtn" class="tankDetailButton" type="button">전차 상세 및 업그레이드</button>
+      <button id="tankDetailBtn" class="tankDetailButton" type="button">상세 정보 · 강화</button>
     </div>
 
     <div class="lobbyCanvasWrap">
@@ -3164,42 +3628,43 @@
     </div>
   </div>
 
-  <button id="tankSelectorToggle" class="tankSelectorToggle" type="button" title="전차 목록 열기">전차 목록 열기</button>
+  <button id="tankSelectorToggle" class="tankSelectorToggle" type="button" title="전차 목록">전차 목록</button>
 
   <div class="lobbyBottomBar">
     <div class="nationDock">
-      <div class="nationDockTitle">국가 선택</div>
+      <div class="nationDockTitle">소속 국가</div>
       <div id="nationButtons"></div>
     </div>
 
     <div id="tankDock" class="tankDock collapsed">
       <div class="tankDockTitle">전차 선택</div>
       <div class="filterBar" aria-label="전차 필터">
-        <select id="classFilterInput" aria-label="병과 필터">
-          <option value="전체" selected>전체</option>
+        <label class="filterField"><span>병과</span><select id="classFilterInput" aria-label="병과 필터">
+          <option value="전체" selected>모든 병과</option>
           <option value="경전차">경전차</option>
           <option value="중형전차">중형전차</option>
           <option value="중전차">중전차</option>
           <option value="구축전차">구축전차</option>
           <option value="자주포">자주포</option>
-        </select>
-        <select id="tierFilterInput" aria-label="티어 필터">
-          <option value="전체" selected>전체</option>
-          <option value="1">I</option>
-          <option value="2">II</option>
-          <option value="3">III</option>
-        </select>
-        <select id="unlockFilterInput" aria-label="해금 상태 필터">
-          <option value="전체" selected>전체</option>
+        </select></label>
+        <label class="filterField"><span>단계</span><select id="tierFilterInput" aria-label="단계 필터">
+          <option value="전체" selected>모든 단계</option>
+          <option value="1">I 단계</option>
+          <option value="2">II 단계</option>
+          <option value="3">III 단계</option>
+        </select></label>
+        <label class="filterField"><span>상태</span><select id="unlockFilterInput" aria-label="해금 상태 필터">
+          <option value="전체" selected>모든 전차</option>
           <option value="해금">해금됨</option>
           <option value="잠김">잠김</option>
-        </select>
+        </select></label>
       </div>
       <div id="tankGrid" class="tankGrid"></div>
     </div>
 
     <div class="lobbyStartPanel">
-      <button id="startBtn" type="button">전투 시작</button>
+      <span class="startPanelHint">전장을 확인한 뒤 출격합니다</span>
+      <button id="startBtn" type="button">전투 준비</button>
     </div>
   </div>
 
@@ -3209,8 +3674,8 @@
   <div class="lobbyOverlayPanel authPanel">
     <div class="lobbyOverlayTop">
       <div>
-        <h2 id="authTitle">Steel Front 계정</h2>
-        <div class="small">계정으로 전적과 진행 정보를 구분합니다.</div>
+        <h2 id="authTitle">강철 전선 계정</h2>
+        <div class="small">전적과 진행 상황을 이어서 플레이합니다.</div>
       </div>
       <button id="authCloseBtn" type="button">닫기</button>
     </div>
@@ -3241,7 +3706,7 @@
         <button id="authSubmitBtn" class="authPrimaryBtn" type="submit">로그인</button>
       </form>
       <p id="authStatus" class="authStatus" role="status" aria-live="polite"></p>
-      <p class="authSecurityNote">비밀번호는 게임 파일에 저장되지 않으며 Supabase 인증 서버에서 처리됩니다. 로그인 상태는 이 기기에 유지됩니다.</p>
+      <p class="authSecurityNote">비밀번호는 게임 파일에 저장되지 않습니다. 로그인 상태는 현재 기기에 유지됩니다.</p>
     </section>
 
     <section id="authSignedInPanel" class="authHidden">
@@ -3273,7 +3738,7 @@
   <div class="lobbyOverlayPanel detailOverlayPanel">
     <div class="lobbyOverlayTop">
       <div>
-        <h2 id="tankDetailTitle">전차 상세 및 업그레이드</h2>
+        <h2 id="tankDetailTitle">전차 상세 · 강화</h2>
       </div>
       <button id="tankDetailCloseBtn" type="button">닫기</button>
     </div>
@@ -3285,107 +3750,123 @@
   <div class="lobbyOverlayPanel">
     <div class="lobbyOverlayTop">
       <div>
-        <h2 id="settingsTitle">세부 규칙</h2>
+        <h2 id="settingsTitle">환경 설정</h2>
+        <div class="small">바꾼 설정은 닫을 때 적용됩니다.</div>
       </div>
       <button id="settingsCloseBtn" type="button">닫기</button>
     </div>
-    <div class="setupGrid">
-      <label class="settingCard"><span>조작 화면</span>
-        <select id="controlModeInput">
-          <option value="auto" selected>기기 자동 인식</option>
-          <option value="desktop">데스크톱으로 고정</option>
-          <option value="mobile">모바일로 고정</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>피해 시스템</span>
-        <select id="damageModeInput">
-          <option value="hp">체력바</option>
-          <option value="module" selected>부위 피해</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>시야 시스템</span>
-        <select id="visionInput">
-          <option value="on" selected>켜기</option>
-          <option value="off">끄기</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>아군 피해</span>
-        <select id="friendlyFireInput">
-          <option value="off" selected>끄기</option>
-          <option value="on">켜기</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>진지 내구도</span>
-        <select id="turretHpInput">
-          <option value="300">300</option>
-          <option value="420" selected>420</option>
-          <option value="600">600</option>
-          <option value="800">800</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>보상 배율</span>
-        <select id="rewardMultInput">
-          <option value="0.75">0.75배</option>
-          <option value="1" selected>1배</option>
-          <option value="1.5">1.5배</option>
-          <option value="2">2배</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>전투 시간</span>
-        <select id="battleTimeInput">
-          <option value="0" selected>제한 없음</option>
-          <option value="300">5분</option>
-          <option value="600">10분</option>
-          <option value="900">15분</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>미니맵</span>
-        <select id="minimapSizeInput">
-          <option value="small">작게</option>
-          <option value="normal" selected>보통</option>
-          <option value="large">크게</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>사운드</span>
-        <select id="soundInput">
-          <option value="on" selected>켜기</option>
-          <option value="off">끄기</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>사운드 음량</span>
-        <select id="soundVolumeInput">
-          <option value="0.3">작게</option>
-          <option value="0.6" selected>보통</option>
-          <option value="1">크게</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>HUD 정보량</span>
-        <select id="hudModeInput">
-          <option value="compact">간단히</option>
-          <option value="detailed" selected>자세히</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>화면 흔들림</span>
-        <select id="screenShakeInput">
-          <option value="0">끄기</option>
-          <option value="0.5">약하게</option>
-          <option value="1" selected>보통</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>인공지능 선행 조준</span>
-        <select id="hardcoreAimInput">
-          <option value="off" selected>끄기</option>
-          <option value="ally">아군만 적용</option>
-          <option value="enemy">적군만 적용</option>
-          <option value="both">양측 인공지능 적용</option>
-        </select>
-      </label>
-      <label class="settingCard"><span>데스크톱 예상점 추적</span>
-        <select id="desktopLockAssistInput">
-          <option value="on" selected>켜기 · 조준점 자동 추적</option>
-          <option value="off">끄기 · 예상점만 표시</option>
-        </select>
-      </label>
+    <div class="settingsGroups">
+      <section class="settingsGroup">
+        <h3>전투 규칙</h3>
+        <div class="setupGrid settingsGrid">
+          <label class="settingCard"><span>조작 방식</span>
+            <select id="controlModeInput">
+              <option value="auto" selected>자동</option>
+              <option value="desktop">키보드 · 마우스</option>
+              <option value="mobile">터치 조작</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>피해 방식</span>
+            <select id="damageModeInput">
+              <option value="hp">내구도</option>
+              <option value="module" selected>부위 피해</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>시야 제한</span>
+            <select id="visionInput">
+              <option value="on" selected>사용</option>
+              <option value="off">사용 안 함</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>아군 피해</span>
+            <select id="friendlyFireInput">
+              <option value="off" selected>사용 안 함</option>
+              <option value="on">사용</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>진지 내구도</span>
+            <select id="turretHpInput">
+              <option value="300">300</option>
+              <option value="420" selected>420</option>
+              <option value="600">600</option>
+              <option value="800">800</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>보상 배율</span>
+            <select id="rewardMultInput">
+              <option value="0.75">0.75배</option>
+              <option value="1" selected>1배</option>
+              <option value="1.5">1.5배</option>
+              <option value="2">2배</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>전투 시간</span>
+            <select id="battleTimeInput">
+              <option value="0" selected>제한 없음</option>
+              <option value="300">5분</option>
+              <option value="600">10분</option>
+              <option value="900">15분</option>
+            </select>
+          </label>
+        </div>
+      </section>
+      <section class="settingsGroup">
+        <h3>화면 · 소리</h3>
+        <div class="setupGrid settingsGrid">
+          <label class="settingCard"><span>미니맵 크기</span>
+            <select id="minimapSizeInput">
+              <option value="small">작게</option>
+              <option value="normal" selected>보통</option>
+              <option value="large">크게</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>효과음</span>
+            <select id="soundInput">
+              <option value="on" selected>켜기</option>
+              <option value="off">끄기</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>효과음 크기</span>
+            <select id="soundVolumeInput">
+              <option value="0.3">작게</option>
+              <option value="0.6" selected>보통</option>
+              <option value="1">크게</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>전투 정보</span>
+            <select id="hudModeInput">
+              <option value="compact">간단히</option>
+              <option value="detailed" selected>자세히</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>화면 흔들림</span>
+            <select id="screenShakeInput">
+              <option value="0">끄기</option>
+              <option value="0.5">약하게</option>
+              <option value="1" selected>보통</option>
+            </select>
+          </label>
+        </div>
+      </section>
+      <section class="settingsGroup">
+        <h3>조준 보조</h3>
+        <div class="setupGrid settingsGrid">
+          <label class="settingCard"><span>자동 선행 조준</span>
+            <select id="hardcoreAimInput">
+              <option value="off" selected>사용 안 함</option>
+              <option value="ally">아군만</option>
+              <option value="enemy">적군만</option>
+              <option value="both">양측 모두</option>
+            </select>
+          </label>
+          <label class="settingCard"><span>조준점 추적</span>
+            <select id="desktopLockAssistInput">
+              <option value="on" selected>목표 자동 추적</option>
+              <option value="off">예상점만 표시</option>
+            </select>
+          </label>
+        </div>
+      </section>
     </div>
   </div>
 </div>
@@ -3394,30 +3875,30 @@
   <div class="lobbyOverlayPanel">
     <div class="lobbyOverlayTop">
       <div>
-        <h2 id="battleSetupTitle">전투 설정</h2>
+        <h2 id="battleSetupTitle">전투 준비</h2>
       </div>
       <button id="setupCancelBtn" type="button">닫기</button>
     </div>
 
     <div id="freeSetupPanel" class="setupPanel">
       <div class="setupSection">
-        <h3>교전 조건</h3>
+        <h3>전투 구성</h3>
         <div class="setupGrid">
-          <label class="settingCard"><span>맵</span><select id="setupMapInput"></select></label>
-          <label class="settingCard"><span>플레이어 전차</span><select id="setupPlayerTankInput"></select></label>
-          <label class="settingCard"><span>아군 전차 수 · 플레이어 제외</span>
+          <label class="settingCard"><span>전장</span><select id="setupMapInput"></select></label>
+          <label class="settingCard"><span>내 전차</span><select id="setupPlayerTankInput"></select></label>
+          <label class="settingCard"><span>아군 전차 수</span>
             <select id="allyCountInput">
               <option value="0">0</option><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option>
             </select>
           </label>
-          <label class="settingCard"><span>적 전차 수</span>
+          <label class="settingCard"><span>적군 전차 수</span>
             <select id="enemyCountInput">
               <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
             </select>
           </label>
-          <label class="settingCard"><span>적 국가</span>
+          <label class="settingCard"><span>적군 국가</span>
             <select id="enemyNationInput">
-              <option value="랜덤" selected>랜덤 국가 · 전투마다 한 곳</option><option value="모든 국가 혼합">모든 국가 혼합 · 전차마다 선택</option><option value="비플레이 국가 포함 혼합">플레이 불가능 국가 포함 · 전차마다 선택</option><option value="독일">독일</option><option value="영국">영국</option><option value="소련">소련</option><option value="미국">미국</option>
+              <option value="랜덤" selected>무작위 국가 · 한 국가로 편성</option><option value="모든 국가 혼합">주요 국가 혼합</option><option value="비플레이 국가 포함 혼합">기타 국가 포함 혼합</option><option value="독일">독일</option><option value="영국">영국</option><option value="소련">소련</option><option value="미국">미국</option>
             </select>
           </label>
           <label class="settingCard"><span>난이도</span>
@@ -3459,7 +3940,7 @@
             </select>
           </label>
           <label class="settingCard"><span>전장</span><select id="campaignMissionInput"></select></label>
-          <label class="settingCard"><span>플레이어 전차</span><select id="campaignPlayerTankInput"></select></label>
+          <label class="settingCard"><span>내 전차</span><select id="campaignPlayerTankInput"></select></label>
           <label class="settingCard"><span>캠페인 보급 한도</span>
             <select id="campaignSupplyLimitInput">
               <option value="basic">기본</option>
@@ -3479,11 +3960,11 @@
 
     <div id="customSetupPanel" class="setupPanel hidden">
       <div class="setupSection">
-        <h3>전장과 플레이어</h3>
+        <h3>전장과 내 전차</h3>
         <div class="setupGrid">
-          <label class="settingCard"><span>맵</span><select id="customMapInput"></select></label>
-          <label class="settingCard"><span>플레이어 전차</span><select id="customPlayerTankInput"></select></label>
-          <label class="settingCard"><span>커스텀 전투 모드</span>
+          <label class="settingCard"><span>전장</span><select id="customMapInput"></select></label>
+          <label class="settingCard"><span>내 전차</span><select id="customPlayerTankInput"></select></label>
+          <label class="settingCard"><span>전투 모드</span>
             <select id="customBattleModeInput">
               <option value="annihilation" selected>전멸전</option>
               <option value="capture">거점점령전</option>
@@ -3509,18 +3990,18 @@
       <div class="customBattleGrid">
         <div class="customSideBox">
           <div class="customSideHeader">
-            <b>아군 전차부대 편제</b>
-            <button id="customAddAllyBtn" type="button">아군 편제 추가</button>
+            <b>아군 편성</b>
+            <button id="customAddAllyBtn" type="button">아군 추가</button>
           </div>
-          <div class="small" id="customAllyTotal">플레이어 1대 + 아군 인공지능 0대</div>
+          <div class="small" id="customAllyTotal">내 전차 1대 · 아군 0대</div>
           <div id="customAlliesRows" class="customRows"></div>
         </div>
         <div class="customSideBox">
           <div class="customSideHeader">
-            <b>적군 전차부대 편제</b>
-            <button id="customAddEnemyBtn" type="button">적군 편제 추가</button>
+            <b>적군 편성</b>
+            <button id="customAddEnemyBtn" type="button">적군 추가</button>
           </div>
-          <div class="small" id="customEnemyTotal">적군 인공지능 0대</div>
+          <div class="small" id="customEnemyTotal">적군 0대</div>
           <div id="customEnemiesRows" class="customRows"></div>
         </div>
       </div>
@@ -3528,7 +4009,7 @@
 
     <div class="setupActions">
       <div id="customLimitMessage" role="status"></div>
-      <button id="setupStartBtn" type="button">이 설정으로 전투 시작</button>
+      <button id="setupStartBtn" type="button">출격</button>
     </div>
   </div>
 </div>
@@ -3545,19 +4026,19 @@
 <button id="fullscreenBtn" class="hidden" type="button" aria-label="전체 화면 시작" title="전체 화면 시작">⛶</button>
 
 <div id="operationCommandPanel" aria-hidden="true">
-  <div id="operationCommandTitle">아군 부대 지휘 · G</div>
+  <div id="operationCommandTitle">아군 지휘 · G</div>
   <div id="operationCommandButtons" role="group" aria-label="대규모 작전 아군 부대 지휘">
     <button class="operationCommandButton" data-operation-order="rally" type="button">집결</button>
     <button class="operationCommandButton active" data-operation-order="advance" type="button">진격</button>
     <button class="operationCommandButton" data-operation-order="defend" type="button">방어</button>
   </div>
-  <div id="operationCommandState">아군 전차와 지원 병력이 현재 작전 목표로 진격합니다.</div>
+  <div id="operationCommandState">현재 명령: 목표 지점으로 진격</div>
 </div>
 
 <div id="artilleryControls" aria-hidden="true">
-  <div id="artilleryModeLabel">곡사 조준 · WASD·방향키 또는 터치 화살표로 관측 이동</div>
+  <div id="artilleryModeLabel">곡사 조준 · 이동 키로 관측점 이동</div>
   <div id="artilleryDesktopHelp" aria-hidden="true">
-    <div class="desktopArtilleryTitle">데스크톱 자주포 사격 통제</div>
+    <div class="desktopArtilleryTitle">자주포 사격 통제</div>
     <div class="desktopArtilleryRow"><kbd>WASD / 방향키</kbd><span>관측 화면 이동</span></div>
     <div class="desktopArtilleryRow"><kbd>T</kbd><span>목표 고정·해제</span></div>
     <div class="desktopArtilleryRow"><kbd>스페이스 / 클릭</kbd><span>현재 조준점 포격</span></div>
@@ -3619,69 +4100,73 @@
     <button id="mobileFireBtn" class="mobileActionButton" type="button">발사</button>
   </div>
 </div>
-<div id="mobileRotateHint" role="status">가로 화면에서 조작하기 편합니다.</div>
+<div id="mobileRotateHint" role="status">가로 화면을 권장합니다.</div>
 
 <div id="pauseOverlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
   <div class="modalCard">
     <h2 id="pauseTitle">일시정지</h2>
     <div class="sub">전투 시간이 멈췄습니다.</div>
     <div class="modalActions">
-      <button id="pauseSetupBtn" type="button">전투 설정으로</button>
-      <button id="pauseResumeBtn" type="button">전투 계속</button>
+      <button id="pauseSetupBtn" type="button">로비로</button>
+      <button id="pauseResumeBtn" type="button">계속하기</button>
     </div>
   </div>
 </div>
 
 <div id="helpOverlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-  <div class="modalCard">
-    <h2 id="helpTitle">조작법</h2>
-    <p class="sub">자주포는 기본적으로 관측 화면에서 곡사 사격하며, 직사 버튼으로 기존 전차 조작에 복귀합니다.</p>
-    <div class="controlsGrid">
+  <div class="modalCard helpCard">
+    <div class="helpHeader">
+      <div>
+        <h2 id="helpTitle">조작 안내</h2>
+        <p class="sub">기본 조작만 익히면 바로 전투할 수 있습니다.</p>
+      </div>
+      <button id="helpCloseBtn" type="button">닫기</button>
+    </div>
+    <div class="controlsGrid quickControls">
       <section>
-        <h3>데스크톱</h3>
+        <h3>키보드 · 마우스</h3>
         <dl class="controlList">
-          <dt>WASD</dt><dd>전진·후진·차체 회전</dd>
-          <dt>마우스</dt><dd>조준</dd>
-          <dt>클릭 / Space</dt><dd>주포 발사</dd>
+          <dt>WASD</dt><dd>이동 · 차체 회전</dd>
+          <dt>마우스</dt><dd>포탑 조준</dd>
+          <dt>클릭 · Space</dt><dd>주포 발사</dd>
           <dt>Shift</dt><dd>조준 확대</dd>
-          <dt>T</dt><dd>조준점에 가까운 목표 고정·해제</dd>
+          <dt>T</dt><dd>목표 고정 · 해제</dd>
           <dt>1 ~ 4</dt><dd>탄종 변경</dd>
           <dt>F</dt><dd>정지 상태에서 길게 눌러 수리</dd>
-          <dt>Q</dt><dd>조준 지점에 항공지원</dd>
-          <dt>G</dt><dd>대규모 작전 아군 부대 지휘 순환</dd>
-          <dt>Esc / M</dt><dd>일시정지 메뉴 열기·계속</dd>
-          <dt>⛶</dt><dd>브라우저 전체 화면 전환</dd>
-          <dt>R</dt><dd>결과 화면에서 다시 전투</dd>
-          <dt>자주포 WASD / 방향키</dt><dd>곡사 관측 화면 이동 · 전차는 정지</dd>
-          <dt>자주포 마우스 휠</dt><dd>곡사 관측 화면 축소·확대</dd>
-          <dt>자주포 T</dt><dd>화면 중앙 조준점에 가장 가까운 목표 고정·해제</dd>
-          <dt>자주포 스페이스 / 클릭</dt><dd>고정 없이도 현재 화면 중앙 조준점에 포격</dd>
-          <dt>자주포 Q / 항공지원</dt><dd>곡사 관측 화면 중앙에 항공지원 요청</dd>
-          <dt>자주포 V</dt><dd>기존 전차식 직사 조작으로 전환</dd>
+          <dt>Esc · M</dt><dd>일시정지</dd>
         </dl>
       </section>
       <section>
-        <h3>모바일</h3>
+        <h3>터치 조작</h3>
         <dl class="controlList">
-          <dt>왼쪽 화면</dt><dd>이동 패드</dd>
-          <dt>오른쪽 화면</dt><dd>드래그 조준</dd>
-          <dt>목표 고정</dt><dd>현재 조준점에 가장 가까운 적 고정</dd>
-          <dt>집결 / 진격 / 방어</dt><dd>대규모 작전의 아군 전차와 지원 병력에 전술 지시</dd>
-          <dt>선형 / 비선형 전선</dt><dd>대규모 작전 설정에서 순차 전선과 분기 목표망 전환</dd>
-          <dt>작전 구역 확보</dt><dd>보병, 아군 전차 또는 플레이어 전차가 적이 제거된 구역을 점령</dd>
-          <dt>수리</dt><dd>정지 상태에서 길게 누르는 동안 수리</dd>
+          <dt>왼쪽 패드</dt><dd>이동 · 차체 회전</dd>
+          <dt>오른쪽 드래그</dt><dd>포탑 조준</dd>
+          <dt>발사</dt><dd>주포 발사</dd>
+          <dt>목표 고정</dt><dd>조준점에 가까운 적 고정</dd>
+          <dt>수리</dt><dd>정지 상태에서 길게 누르기</dd>
           <dt>조준 확대</dt><dd>확대 보기 전환</dd>
-          <dt>일시정지</dt><dd>전투를 멈추고 메뉴 표시</dd>
-          <dt>자주포 화살표</dt><dd>곡사 관측 화면 이동 · 전차는 정지</dd>
-          <dt>자주포 − / ＋</dt><dd>곡사 관측 화면 축소·확대</dd>
-          <dt>자주포 항공지원</dt><dd>곡사 관측 화면 중앙에 급강하 폭격 요청</dd>
-          <dt>직사</dt><dd>일반 모바일 전차 조작으로 전환</dd>
+          <dt>일시정지</dt><dd>전투 메뉴 열기</dd>
         </dl>
       </section>
     </div>
-    <div class="modalActions">
-      <button id="helpCloseBtn" type="button">확인</button>
-    </div>
+    <details class="advancedControls">
+      <summary>자주포 · 작전 지휘 조작</summary>
+      <div class="advancedControlGrid">
+        <dl class="controlList">
+          <dt>Q</dt><dd>조준 지점에 항공 지원 요청</dd>
+          <dt>G</dt><dd>집결 · 진격 · 방어 명령 전환</dd>
+          <dt>⛶</dt><dd>전체 화면 전환</dd>
+          <dt>R</dt><dd>결과 화면에서 재전투</dd>
+        </dl>
+        <dl class="controlList">
+          <dt>이동 키 · 화살표</dt><dd>자주포 관측점 이동</dd>
+          <dt>마우스 휠 · − · ＋</dt><dd>관측 화면 확대 · 축소</dd>
+          <dt>T</dt><dd>관측점과 가까운 목표 고정</dd>
+          <dt>V · 직사</dt><dd>일반 전차 조작으로 전환</dd>
+        </dl>
+      </div>
+      <p>자주포는 곡사 관측 화면으로 시작합니다. 일반 전차처럼 조작하려면 V 또는 직사를 누르세요.</p>
+    </details>
   </div>
 </div>
 
@@ -3693,8 +4178,8 @@
 <div id="resultOverlay" class="hidden">
   <div id="resultTitle"></div>
   <div id="resultBody"></div>
-  <button id="resultMenuBtn" class="resultBtn" type="button">전투 설정으로</button>
-  <button id="resultRestartBtn" class="resultBtn" type="button">다시 전투</button>
+  <button id="resultMenuBtn" class="resultBtn" type="button">로비로</button>
+  <button id="resultRestartBtn" class="resultBtn" type="button">같은 조건으로 재전투</button>
 </div>
 
 <div id="combatLog"></div>
@@ -4663,12 +5148,12 @@ function formatSeconds(v) {
 
 function mapTacticText(name) {
   return {
-    "평지":"평지: 장거리 교전과 측면 우회가 중요합니다. 구축전차와 중전차가 강합니다.",
-    "사막":"사막: 엄폐가 적고 기동전이 강합니다. 경전차와 중형전차가 유리합니다.",
-    "언덕":"언덕: 고지와 능선을 잡으면 시야와 사격각이 좋아집니다.",
-    "산악":"산악: 좁은 통로와 바위 엄폐가 많습니다. 매복과 근거리 교전이 많습니다.",
-    "늪지":"늪지: 기동력이 크게 줄고 시야도 좁아집니다. 무리한 돌파가 위험합니다.",
-    "시가전":"시가전: 건물이 시야와 포탄을 막습니다. 골목 기습, 측후면 공격이 중요합니다."
+    "평지":"장거리 교전 · 측면 우회에 유리",
+    "사막":"엄폐가 적어 빠른 기동이 중요",
+    "언덕":"능선을 점령하면 시야와 사격각 확보",
+    "산악":"좁은 통로와 바위를 이용한 매복에 유리",
+    "늪지":"기동과 시야가 제한되므로 무리한 돌파 주의",
+    "시가전":"건물 엄폐를 이용해 측후면 공격"
   }[name] || "";
 }
 
@@ -4706,7 +5191,7 @@ const techTree = {
 };
 
 const tierRoman = ["", "I", "II", "III"];
-const tierNames = ["", "1티어", "2티어", "3티어"];
+const tierNames = ["", "1단계", "2단계", "3단계"];
 const nationColors = {
   "독일":"#4b5358", "영국":"#8a6f45", "소련":"#2f4a32", "미국":"#66633e",
   "폴란드":"#6f7468", "프랑스":"#596b7c", "유고슬라비아":"#6d7059", "이탈리아":"#77715a", "루마니아":"#656b52"
@@ -8771,7 +9256,7 @@ function renderGarage() {
       <div class="detailGrid">
         <div class="detailBox">
           <b>${selectedTank.name} ${tierRoman[selectedTank.tier]}</b> · 커스텀 전투 사용 가능<br>
-          <span class="small">해금되지 않은 전차지만 커스텀 전투에서는 플레이어와 인공지능 편제에 넣을 수 있습니다.</span><br>
+          <span class="small">해금 전 전차도 직접 편성에서는 내 전차와 양측 부대에 배치할 수 있습니다.</span><br>
           <span class="small">내구도 ${eff.hp} · 재장전 ${eff.reload}초 · 탄속 ${eff.shell} · 관통 ${eff.pen} · 피해 ${eff.dmg}</span><br>
           <span class="small">장갑 전/측/후 ${eff.armor.front}/${eff.armor.side}/${eff.armor.rear} mm · 공칭 최고속도 ${selectedTank.speedKph || "-"} km/h</span>
         </div>
@@ -8836,9 +9321,6 @@ function renderGarage() {
     <div class="economy">
       <div><b>보유 자금</b>: ${Math.round(saveData.money)} · <b>${selectedTank.name} 경험치</b>: ${Math.round(p.xp)}</div>
       <div>
-        <button onclick="exportSave()">저장 내보내기</button>
-        <button onclick="importSave()">저장 불러오기</button>
-        <button onclick="showUnlockedList()">해금 목록</button>
         <button class="dangerBtn" onclick="resetProgress()">진행도 초기화</button>
       </div>
     </div>
@@ -9051,11 +9533,11 @@ function renderCustomBattleSetup() {
   renderCustomRows("enemies");
   const allyTotal = customTotal("allies");
   const enemyTotal = customTotal("enemies");
-  if (customAllyTotal) customAllyTotal.textContent = `플레이어 1대 + 아군 인공지능 ${allyTotal}대`;
-  if (customEnemyTotal) customEnemyTotal.textContent = `적군 인공지능 ${enemyTotal}대`;
+  if (customAllyTotal) customAllyTotal.textContent = `내 전차 1대 · 아군 ${allyTotal}대`;
+  if (customEnemyTotal) customEnemyTotal.textContent = `적군 ${enemyTotal}대`;
   const problems = [];
   if (customBattleConfig.allies.length > MAX_CUSTOM_ROWS_PER_TEAM || customBattleConfig.enemies.length > MAX_CUSTOM_ROWS_PER_TEAM) problems.push(`팀별 편제는 ${MAX_CUSTOM_ROWS_PER_TEAM}행까지 가능합니다.`);
-  if (allyTotal > MAX_CUSTOM_TANKS_PER_TEAM || enemyTotal > MAX_CUSTOM_TANKS_PER_TEAM) problems.push(`팀별 인공지능 전차는 ${MAX_CUSTOM_TANKS_PER_TEAM}대까지 가능합니다.`);
+  if (allyTotal > MAX_CUSTOM_TANKS_PER_TEAM || enemyTotal > MAX_CUSTOM_TANKS_PER_TEAM) problems.push(`팀마다 전차를 ${MAX_CUSTOM_TANKS_PER_TEAM}대까지 배치할 수 있습니다.`);
   if (enemyTotal <= 0) problems.push("적군 전차를 1대 이상 추가하세요.");
   if (customLimitMessage) customLimitMessage.textContent = problems.join(" ");
   if (setupStartBtn) setupStartBtn.disabled = problems.length > 0;
@@ -9119,7 +9601,7 @@ function validateCustomBattleConfig() {
     return false;
   }
   if (customTotal("allies") > MAX_CUSTOM_TANKS_PER_TEAM || customTotal("enemies") > MAX_CUSTOM_TANKS_PER_TEAM) {
-    alert(`팀별 인공지능 전차는 ${MAX_CUSTOM_TANKS_PER_TEAM}대까지 배치할 수 있습니다.`);
+    alert(`팀마다 전차를 ${MAX_CUSTOM_TANKS_PER_TEAM}대까지 배치할 수 있습니다.`);
     return false;
   }
   selectedTank = playerTank;
@@ -9158,7 +9640,7 @@ function handleStartBattleClick() {
 function renderCampaignPanel() {
   if (!campaignMissionInput || !campaignPanel) return;
   if (isCustomBattleMode()) {
-    campaignPanel.innerHTML = "커스텀 전투 선택 중입니다. 전투 시작을 누르면 별도 편제 설정창이 열립니다.";
+    campaignPanel.innerHTML = "직접 편성에서는 아군과 적군 전차를 원하는 대로 구성할 수 있습니다.";
     return;
   }
 
@@ -9279,9 +9761,15 @@ function syncLobbyTankInfo() {
   if (lobbyTankMeta) lobbyTankMeta.textContent = `${selectedTank.nation} · ${selectedTank.cls} · ${tierNames[selectedTank.tier]} · ${selectedTank.role}`;
   if (lobbyTankStats) {
     lobbyTankStats.innerHTML = `
-      내구도 ${eff.hp} · 공칭 최고속도 ${selectedTank.speedKph || "-"} km/h<br>
-      장갑 전/측/후 ${eff.armor.front}/${eff.armor.side}/${eff.armor.rear} mm<br>
-      관통 ${eff.pen} · 피해 ${eff.dmg} · 재장전 ${eff.reload}초${selectedTank.serviceYear ? `<br>기준 형식 연도 ${selectedTank.serviceYear}년` : ""}
+      <div class="tankStatGrid">
+        <span><small>내구도</small><b>${eff.hp}</b></span>
+        <span><small>최고 속도</small><b>${selectedTank.speedKph || "-"} km/h</b></span>
+        <span><small>전면 장갑</small><b>${eff.armor.front} mm</b></span>
+        <span><small>관통력</small><b>${eff.pen}</b></span>
+        <span><small>공격 피해</small><b>${eff.dmg}</b></span>
+        <span><small>재장전</small><b>${eff.reload}초</b></span>
+      </div>
+      <div class="tankStatNote">측면 ${eff.armor.side} mm · 후면 ${eff.armor.rear} mm${selectedTank.serviceYear ? ` · ${selectedTank.serviceYear}년형` : ""}</div>
     `;
   }
 }
@@ -9291,7 +9779,7 @@ function renderBattleSetup() {
   if (setupStartBtn) setupStartBtn.disabled = false;
   if (customLimitMessage) customLimitMessage.textContent = "";
   if (battleSetupTitle) {
-    battleSetupTitle.textContent = scope === "campaign" ? "역사적 캠페인 설정" : scope === "custom" ? "커스텀 전투 설정" : "자유 전투 설정";
+    battleSetupTitle.textContent = scope === "campaign" ? "역사적 캠페인 준비" : scope === "custom" ? "직접 편성 준비" : "자유 전투 준비";
   }
   if (freeSetupPanel) freeSetupPanel.classList.toggle("hidden", scope !== "free");
   if (campaignSetupPanel) campaignSetupPanel.classList.toggle("hidden", scope !== "campaign");
@@ -9341,7 +9829,7 @@ function renderMenu() {
   if (lobbyBgInput) lobbyBgInput.value = selectedLobbyBg;
   if (tankDock) tankDock.classList.toggle("collapsed", !tankSelectorOpen);
   if (tankSelectorToggle) {
-    const selectorLabel = tankSelectorOpen ? "전차 목록 닫기" : "전차 목록 열기";
+    const selectorLabel = tankSelectorOpen ? "목록 닫기" : "전차 목록";
     tankSelectorToggle.textContent = selectorLabel;
     tankSelectorToggle.title = selectorLabel;
     tankSelectorToggle.setAttribute("aria-expanded", tankSelectorOpen ? "true" : "false");
@@ -9406,7 +9894,7 @@ function renderMenu() {
     card.setAttribute("aria-pressed", selectedTank.name === t.name ? "true" : "false");
     card.setAttribute("aria-disabled", locked ? "true" : "false");
     card.setAttribute("aria-label", `${t.name}, ${t.nation} ${t.cls}, ${locked ? "잠김" : "선택 가능"}`);
-    const status = locked ? "잠김" : customLoan ? `커스텀 사용 가능 · ${tierNames[t.tier]}` : campaignLoan ? `캠페인 지급 · ${tierNames[t.tier]}` : eff.upgradeText;
+    const status = locked ? "잠김" : customLoan ? `직접 편성 가능 · ${tierNames[t.tier]}` : campaignLoan ? `캠페인 지급 · ${tierNames[t.tier]}` : eff.upgradeText;
     card.innerHTML = `
       <div class="tankName">${t.name} <span class="tierBadge">${tierRoman[t.tier]}</span></div>
       <div class="small">${t.nation} · ${t.cls} · ${tierNames[t.tier]} · ${t.role}</div>
@@ -9436,11 +9924,6 @@ function renderMenuPreserveScroll() {
 }
 
 renderMenu();
-setTimeout(() => {
-  try {
-    if (!localStorage.getItem("steelFront1944TutorialSeen")) openDialog(helpOverlay, helpCloseBtn);
-  } catch (_) {}
-}, 0);
 [classFilterInput, tierFilterInput, unlockFilterInput].forEach(el => {
   if (el) el.onchange = renderMenuPreserveScroll;
 });
@@ -13431,8 +13914,14 @@ function showStartBriefing(mission) {
   const title = mission ? `${mission.year}년 · ${mission.title}` : `${game.mapName} 자유 전투`;
   const objective = mission ? (mission.briefing || "") : `${modeLabel(game.mode)} · ${modeBriefingText(game.mode)}`;
   const controls = mobileInput.enabled ? "왼쪽 이동 · 오른쪽 드래그 조준 · 수리는 길게 누르기" : "WASD 이동 · 마우스 조준 · T 목표 고정 · F 길게 수리 · Esc 일시정지";
+  const bonus = (game.secondaryObjectives || []).map(item => item.label).join(" · ");
   startBriefingTitle.textContent = title;
-  startBriefingBody.innerHTML = `${objective}<br><span class="secondaryLine">${mapTacticText(game.mapName)}</span><br><span class="secondaryLine">${controls}</span><br><span class="secondaryLine">${secondaryObjectivesStatusText().replace("<br>","")}</span>`;
+  startBriefingBody.innerHTML = `
+    <div class="briefingObjective">${objective}</div>
+    <div class="briefingTip">전장 정보 · ${mapTacticText(game.mapName)}</div>
+    <div class="briefingControls">${controls}</div>
+    ${bonus ? `<div class="briefingBonus">보너스 · ${bonus}</div>` : ""}
+  `;
   startBriefingOverlay.classList.remove("hidden");
   game.briefingUntil = game.time + 4.0;
 }
@@ -14392,7 +14881,7 @@ function startBattle() {
   } else if (customMode) {
     addRadio(`커스텀 전투 개시. 아군 ${game.allies.length}대 / 적군 ${game.enemies.length}대`, "neutral");
   } else {
-    addRadio("교전 개시. 적 전차를 제압하십시오.", "neutral");
+    addRadio("교전 개시.", "neutral");
   }
   if (operationMode) setupOperationBattle();
   else setupAdditionalBattleMode();
@@ -18275,12 +18764,12 @@ function drawHUD() {
       ? ` · ${game.artillery?.direct ? "직사" : "곡사"} · 탄종 ${game.artillery?.direct ? "철갑/고폭/연막" : "고폭/연막"}`
       : "";
     setHtmlIfChanged(topLeft, `
-      <span class="hudPrimary"><b>${p.t.name} ${p.t.tierRoman || tierRoman[p.t.tier] || ""}</b> · ${ammo.label} (${game.currentAmmo})${artilleryInfo} · 수리키트 ${p.repairKits}${repairInfo}</span>
-      <span class="hudDetail"><br>${p.t.nation} ${p.t.cls} · 지형 ${terr.name} · 기동 ${Math.round(Math.hypot(p.vx,p.vy))}<br>
+      <span class="hudPrimary"><b>${p.t.name} ${p.t.tierRoman || tierRoman[p.t.tier] || ""}</b> · ${ammo.label} (${game.currentAmmo})${artilleryInfo} · 수리 키트 ${p.repairKits}${repairInfo}</span>
+      <span class="hudDetail"><br>${p.t.nation} ${p.t.cls} · ${terr.name} · 속도 ${Math.round(Math.hypot(p.vx,p.vy))}<br>
       장갑 전/측/후 ${p.t.armor.front}/${p.t.armor.side}/${p.t.armor.rear} mm · 관통 ${p.t.pen}<br>
-      지원 ${airInfo}<br>부위 ${game.damageMode === "module" ? moduleSummary(p) : "체력바 모드"}</span>
+      ${airInfo} · 상태 ${game.damageMode === "module" ? moduleSummary(p) : "정상"}</span>
     `);
-    const capText = objectiveStatusText() + campaignObjectiveStatusText() + operationStatusText() + secondaryObjectivesStatusText();
+    const capText = objectiveStatusText() + campaignObjectiveStatusText() + operationStatusText();
     const timeText = game.settings?.battleTime ? ` · 남은 시간 ${formatSeconds(game.settings.battleTime - game.time)}` : "";
     setHtmlIfChanged(topRight, `
       <span class="hudPrimary">${game.campaignMission ? `${game.campaignMission.year} ${game.campaignMission.title}<br>` : ""}${game.mapName} · ${modeLabel(game.mode)}${timeText}<br>
