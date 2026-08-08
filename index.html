@@ -2417,6 +2417,11 @@
   #artilleryFireBtn:hover:not(:disabled) {
     background:#bd534a;
   }
+  #artilleryAirBtn.ready {
+    border-color:var(--ui-blue-bright);
+    background:#285978;
+    color:#fff;
+  }
 
   /* 모바일 조작: 우측 명령 패널 안에서 기능별로 정렬 */
   #mobileMovePad {
@@ -3541,6 +3546,7 @@
     <div class="desktopArtilleryRow"><kbd>WASD / 방향키</kbd><span>관측 화면 이동</span></div>
     <div class="desktopArtilleryRow"><kbd>T</kbd><span>목표 고정·해제</span></div>
     <div class="desktopArtilleryRow"><kbd>스페이스 / 클릭</kbd><span>현재 조준점 포격</span></div>
+    <div class="desktopArtilleryRow"><kbd>Q</kbd><span>현재 조준점 항공지원</span></div>
     <div class="desktopArtilleryRow"><kbd>마우스 휠</kbd><span>관측 화면 확대·축소</span></div>
     <div class="desktopArtilleryRow"><kbd>V</kbd><span>곡사·직사 전환</span></div>
     <div class="desktopArtilleryRow"><kbd>Esc</kbd><span>일시정지 메뉴</span></div>
@@ -3562,6 +3568,7 @@
     <div id="artilleryActionRow">
       <button id="artilleryLockBtn" class="artilleryActionButton" type="button">목표 고정</button>
       <button id="artilleryFireBtn" class="artilleryActionButton" type="button">포격</button>
+      <button id="artilleryAirBtn" class="artilleryActionButton" type="button">항공지원</button>
       <button id="artilleryDirectBtn" class="artilleryActionButton" type="button">직사</button>
     </div>
   </div>
@@ -3634,6 +3641,7 @@
           <dt>자주포 마우스 휠</dt><dd>곡사 관측 화면 축소·확대</dd>
           <dt>자주포 T</dt><dd>화면 중앙 조준점에 가장 가까운 목표 고정·해제</dd>
           <dt>자주포 스페이스 / 클릭</dt><dd>고정 없이도 현재 화면 중앙 조준점에 포격</dd>
+          <dt>자주포 Q / 항공지원</dt><dd>곡사 관측 화면 중앙에 항공지원 요청</dd>
           <dt>자주포 V</dt><dd>기존 전차식 직사 조작으로 전환</dd>
         </dl>
       </section>
@@ -3649,6 +3657,7 @@
           <dt>일시정지</dt><dd>전투를 멈추고 메뉴 표시</dd>
           <dt>자주포 화살표</dt><dd>곡사 관측 화면 이동 · 전차는 정지</dd>
           <dt>자주포 − / ＋</dt><dd>곡사 관측 화면 축소·확대</dd>
+          <dt>자주포 항공지원</dt><dd>곡사 관측 화면 중앙에 급강하 폭격 요청</dd>
           <dt>직사</dt><dd>일반 모바일 전차 조작으로 전환</dd>
         </dl>
       </section>
@@ -3837,6 +3846,7 @@ const artilleryControlsEl = document.getElementById("artilleryControls");
 const artilleryModeLabel = document.getElementById("artilleryModeLabel");
 const artilleryLockBtn = document.getElementById("artilleryLockBtn");
 const artilleryFireBtn = document.getElementById("artilleryFireBtn");
+const artilleryAirBtn = document.getElementById("artilleryAirBtn");
 const artilleryDirectBtn = document.getElementById("artilleryDirectBtn");
 const artilleryActionRow = document.getElementById("artilleryActionRow");
 const mobileUtilityRow = document.getElementById("mobileUtilityRow");
@@ -10194,6 +10204,12 @@ function updateArtilleryHUD() {
     artilleryFireBtn.classList.toggle("ready", ready);
     artilleryFireBtn.textContent = game.player.reload > 0 ? `${Math.ceil(game.player.reload)}초` : "포격";
   }
+  if (artilleryAirBtn) {
+    const ready = (game.airSupportCooldown || 0) <= 0;
+    artilleryAirBtn.classList.toggle("ready", ready);
+    artilleryAirBtn.textContent = ready ? "항공지원" : `항공 ${Math.ceil(game.airSupportCooldown)}초`;
+    artilleryAirBtn.disabled = !visible;
+  }
   for (const btn of artilleryAmmoButtons) {
     const ammoKey = btn.getAttribute("data-artillery-ammo");
     btn.disabled = !direct && ammoKey === "AP";
@@ -10397,6 +10413,11 @@ function bindArtilleryControls() {
     e.preventDefault();
     e.stopPropagation();
     requestPlayerArtilleryMission();
+  });
+  artilleryAirBtn?.addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    requestPlayerAirSupport();
   });
   artilleryDirectBtn?.addEventListener("click", e => {
     e.preventDefault();
@@ -11009,7 +11030,9 @@ function makeAntiTankGun(raw, team="enemy") {
 
 function makeFortress(raw, team="enemy") {
   const friendly = isFriendlyTeam(team);
-  const hpValue = raw.hp ?? 460;
+  // 요새는 전차 몇 발에 사라지는 진지가 아니라 작전 최종 목표다.
+  // 기존 460 전후의 내구도를 세 배 이상 높여 집중 사격과 항공·자주포 지원이 필요하게 한다.
+  const hpValue = raw.hp ?? 1650;
   const facing = raw.angle ?? (friendly ? 0 : Math.PI);
   return {
     isBaseTurret:true,
@@ -11029,11 +11052,12 @@ function makeFortress(raw, team="enemy") {
     visibleMemory:999,
     spotted:true,
     lastHit:"",
+    machineGun:makeHeavyMachineGunState(raw, facing, "fortress"),
     t:{
       name:friendly ? "아군 요새" : "요새",
       nation:"",
       cls:"요새",
-      role:"콘크리트 대전차 화점",
+      role:"콘크리트 대전차 화점 · 측면 중기관총",
       size:[96,76],
       color:friendly ? "#576d73" : "#6d665a",
       // 정면 콘크리트는 웬만한 전차포를 막지만 측후면과 사격구는 취약하다.
@@ -11044,6 +11068,71 @@ function makeFortress(raw, team="enemy") {
       reload:raw.reload ?? 6.4,
       turret:raw.turret ?? 0.42,
       gunArc:raw.gunArc ?? 0.72,
+      speed:0,
+      reverse:0,
+      accel:0,
+      turn:0
+    }
+  };
+}
+
+function makeHeavyMachineGunState(raw, facing, mount="fortress") {
+  const pillbox = mount === "pillbox";
+  return {
+    angle:facing,
+    reload:rand(0.08, 0.42),
+    burstRemaining:pillbox ? 6 : 8,
+    range:raw.mgRange ?? (pillbox ? 590 : 720),
+    pen:raw.mgPen ?? (pillbox ? 31 : 35),
+    dmg:raw.mgDmg ?? (pillbox ? 0.65 : 0.85),
+    shell:raw.mgShell ?? (pillbox ? 1040 : 1120),
+    fireInterval:raw.mgFireInterval ?? (pillbox ? 0.25 : 0.22),
+    burstSize:raw.mgBurstSize ?? (pillbox ? 6 : 8),
+    burstPause:raw.mgBurstPause ?? (pillbox ? 1.25 : 1.05),
+    gunArc:raw.mgGunArc ?? (pillbox ? 1.12 : 1.36),
+    turn:raw.mgTurn ?? (pillbox ? 1.55 : 1.85),
+    side:raw.mgSide ?? (Math.random() < 0.5 ? -1 : 1),
+    mount
+  };
+}
+
+function makePillbox(raw, team="enemy") {
+  const friendly = isFriendlyTeam(team);
+  const hpValue = raw.hp ?? 250;
+  const facing = raw.angle ?? (friendly ? 0 : Math.PI);
+  return {
+    isBaseTurret:true,
+    isPillbox:true,
+    team,
+    x:raw.x,
+    y:raw.y,
+    vx:0,
+    vy:0,
+    angle:facing,
+    turretAngle:facing,
+    hp:hpValue,
+    maxHp:hpValue,
+    reload:999,
+    alive:true,
+    fireReveal:0,
+    visibleMemory:raw.hidden ? 0 : 999,
+    spotted:!raw.hidden,
+    lastHit:"",
+    machineGun:makeHeavyMachineGunState(raw, facing, "pillbox"),
+    t:{
+      name:friendly ? "아군 소형 토치카" : "소형 토치카",
+      nation:"",
+      cls:"토치카",
+      role:"은폐 중기관총 화점",
+      size:[62,50],
+      color:friendly ? "#5f7774" : "#68645b",
+      armor:{front:118, side:62, rear:42},
+      pen:0,
+      dmg:0,
+      shell:0,
+      reload:999,
+      turret:0,
+      gunArc:raw.mgGunArc ?? 1.12,
       speed:0,
       reverse:0,
       accel:0,
@@ -11147,6 +11236,10 @@ function operationPlacementPenalty(point, radius, ignore=null, clearance=20) {
   if (point.y < edge) penalty += (edge-point.y) * 120;
   if (point.x > WORLD_W-edge) penalty += (point.x-(WORLD_W-edge)) * 120;
   if (point.y > WORLD_H-edge) penalty += (point.y-(WORLD_H-edge)) * 120;
+
+  const river = riverInfoAtPoint(game.map,point.x,point.y);
+  // 부대와 고정 화기가 깊은 물속에서 생성되는 것은 막되 교량·여울 배치는 허용한다.
+  if (river?.kind === "deep") penalty += 9000;
 
   for (const obstacle of (game.map?.obstacles || [])) {
     if (!obstacleBlocksMovement(obstacle)) continue;
@@ -11255,11 +11348,12 @@ function spawnOperationEnemySupport(index, zone) {
   lineup.forEach((kind, slot) => {
     const side = slot % 2 ? 1 : -1;
     const row = Math.floor(slot / 2);
+    const point=operationDefensePoint(index,120+row*85,side*(170+row*115));
     const unit = makeOperationSupportUnit(
       kind,
       "enemy",
-      zone.x + 120 + row*85,
-      zone.y + side*(170 + row*115),
+      point.x,
+      point.y,
       index,
       slot
     );
@@ -11275,11 +11369,13 @@ function spawnOperationFriendlyGunLine(zone, stage) {
   if (!game || !zone || game.operation?.friendlyGunStages?.[stage]) return;
   if (game.operation) game.operation.friendlyGunStages[stage] = true;
   const offsets = stage === 0 ? [-300] : [-260, 270];
-  for (const yOffset of offsets) {
+  const g=operationApproachGeometry(Math.min(stage,operationCombatZones().length-1));
+  for (const lateral of offsets) {
+    const point={x:zone.x-g.fx*430+g.sx*lateral,y:zone.y-g.fy*430+g.sy*lateral};
     const gun = makeAntiTankGun({
-      x:clamp(zone.x-430, 180, WORLD_W-180),
-      y:clamp(zone.y+yOffset, 140, WORLD_H-140),
-      angle:0,
+      x:clamp(point.x, 180, WORLD_W-180),
+      y:clamp(point.y, 140, WORLD_H-140),
+      angle:g.attackAngle,
       hidden:false,
       pen:170 + stage*9,
       dmg:37 + stage*2,
@@ -11318,10 +11414,13 @@ function operationSupportGoal(unit) {
   const op = game?.operation;
   const zone = operationCurrentZone() || game.map.enemySpawn;
   const lane = ((unit.supportSlot || 0)%5)-2;
+  const stage=Math.min(op?.currentSector || 0,Math.max(0,operationCombatZones().length-1));
+  const g=operationApproachGeometry(stage);
   if (!isFriendlyTeam(unit.team)) {
+    const depth=90+Math.floor((unit.supportSlot||0)/2)*70;
     return {
-      x:clamp(zone.x + 90 + Math.floor((unit.supportSlot||0)/2)*70, 80, WORLD_W-80),
-      y:clamp(zone.y + lane*145, 100, WORLD_H-100)
+      x:clamp(zone.x+g.fx*depth+g.sx*lane*145,80,WORLD_W-80),
+      y:clamp(zone.y+g.fy*depth+g.sy*lane*145,100,WORLD_H-100)
     };
   }
 
@@ -11346,14 +11445,19 @@ function operationSupportGoal(unit) {
 
   const lead = unit.supportKind === "recon" ? 170 : unit.supportKind === "motorized" ? -65 : 35;
   const armoredUnits = [game.player,...game.allies].filter(armor => armor.alive && !armor.isSupportUnit);
-  const spearhead = armoredUnits.sort((a,b) => b.x-a.x)[0] || game.player;
+  const progress=entity => (entity.x-g.previous.x)*g.fx+(entity.y-g.previous.y)*g.fy;
+  const spearhead = armoredUnits.sort((a,b) => progress(b)-progress(a))[0] || game.player;
   const screenGap = unit.supportKind === "recon" ? 230 : unit.supportKind === "motorized" ? 90 : 125;
-  const desiredX = zone.x + lead;
-  const screenedX = Math.min(desiredX,spearhead.x+screenGap);
-  const followingArmor = screenedX < desiredX-5;
+  const zoneProgress=progress(zone);
+  const desiredProgress=zoneProgress+lead;
+  const screenedProgress=Math.min(desiredProgress,progress(spearhead)+screenGap);
+  const followingArmor=screenedProgress<desiredProgress-5;
+  const lateralAnchor=followingArmor?spearhead:zone;
+  const lateral=(lateralAnchor.x-g.previous.x)*g.sx+(lateralAnchor.y-g.previous.y)*g.sy;
+  const spacing=unit.supportKind === "recon" ? 170 : 115;
   return {
-    x:clamp(screenedX, 80, WORLD_W-80),
-    y:clamp((followingArmor ? spearhead.y : zone.y) + lane*(unit.supportKind === "recon" ? 170 : 115), 100, WORLD_H-100)
+    x:clamp(g.previous.x+g.fx*screenedProgress+g.sx*(lateral+lane*spacing),80,WORLD_W-80),
+    y:clamp(g.previous.y+g.fy*screenedProgress+g.sy*(lateral+lane*spacing),100,WORLD_H-100)
   };
 }
 
@@ -11434,16 +11538,98 @@ function turretTargetsFor(turret) {
   const pool = isFriendlyTeam(turret.team)
     ? game.enemies.filter(t => t.alive)
     : [game.player, ...game.allies].filter(t => t.alive);
-  const range = turret.isFortress ? 1040 : turret.isAntiTankGun ? 920 : 680;
+  const range = turret.isFortress ? 1040 : turret.isPillbox ? (turret.machineGun?.range || 590) : turret.isAntiTankGun ? 920 : 680;
   return pool
     .filter(t => Math.hypot(t.x - turret.x, t.y - turret.y) < range && hasLineOfSight(turret, t))
     .sort((a,b) => Math.hypot(a.x-turret.x,a.y-turret.y) - Math.hypot(b.x-turret.x,b.y-turret.y));
+}
+
+function heavyMachineGunTargetsFor(turret) {
+  if (!turret?.machineGun) return [];
+  const pool = isFriendlyTeam(turret.team)
+    ? game.enemies.filter(target => target.alive)
+    : [game.player, ...game.allies].filter(target => target.alive);
+  const mg = turret.machineGun;
+  return pool
+    .filter(target => {
+      const distance = Math.hypot(target.x-turret.x,target.y-turret.y);
+      if (distance > mg.range || !hasLineOfSight(turret,target)) return false;
+      const desired = angleTo(turret,target);
+      return Math.abs(normAng(desired-turret.angle)) <= mg.gunArc;
+    })
+    .sort((a,b) => {
+      const score = target => {
+        const distance = Math.hypot(target.x-turret.x,target.y-turret.y);
+        const exposed = target.isSupportUnit ? -85 : target.t?.cls === "경전차" ? -35 : 0;
+        return distance + exposed;
+      };
+      return score(a)-score(b);
+    });
+}
+
+function fireHeavyMachineGun(turret, target) {
+  if (!game || !turret?.alive || !turret.machineGun || !target?.alive) return false;
+  const mg = turret.machineGun;
+  const mountForward = turret.isPillbox ? 18 : 24;
+  const mountSide = turret.isPillbox ? 10 : 28;
+  const mountX = turret.x + Math.cos(turret.angle)*mountForward + Math.cos(turret.angle+Math.PI/2)*mountSide*mg.side;
+  const mountY = turret.y + Math.sin(turret.angle)*mountForward + Math.sin(turret.angle+Math.PI/2)*mountSide*mg.side;
+  let angle = Math.atan2(target.y-mountY,target.x-mountX) + rand(-0.014,0.014) * (game.difficulty?.enemySpread || 1);
+  const muzzle = {
+    x:mountX + Math.cos(angle)*(turret.isPillbox ? 24 : 30),
+    y:mountY + Math.sin(angle)*(turret.isPillbox ? 24 : 30)
+  };
+  const dmgScale = turret.team === "enemy" ? (game.difficulty?.enemyDmg || 1) : 1;
+  game.shells.push({
+    x:muzzle.x,y:muzzle.y,px:muzzle.x,py:muzzle.y,
+    vx:Math.cos(angle)*mg.shell,vy:Math.sin(angle)*mg.shell,
+    angle,shooter:turret,team:turret.team,age:0,range:0,maxRange:mg.range,
+    pen:mg.pen,dmg:mg.dmg*dmgScale,splash:0,caliber:"HMG",smoke:false
+  });
+  turret.fireReveal = Math.max(turret.fireReveal || 0,3.2);
+  turret.shots = (turret.shots || 0)+1;
+  game.effects.push({type:"smallMuzzle",x:muzzle.x,y:muzzle.y,age:0,life:0.07,angle});
+  if (!game.lastHeavyMachineGunSound || game.time-game.lastHeavyMachineGunSound > 0.12) {
+    playSound("rifle");
+    game.lastHeavyMachineGunSound = game.time;
+  }
+  return true;
+}
+
+function updateHeavyMachineGun(turret, dt) {
+  const mg = turret?.machineGun;
+  if (!mg || !turret.alive) return;
+  mg.reload = Math.max(0,(mg.reload || 0)-dt);
+  const target = heavyMachineGunTargetsFor(turret)[0] || null;
+  if (!target) {
+    mg.angle = moveAngle(mg.angle,turret.angle,mg.turn*0.35*dt);
+    return;
+  }
+  const distance = Math.hypot(target.x-turret.x,target.y-turret.y);
+  const flightTime = clamp(distance/Math.max(1,mg.shell),0,1.2);
+  const expected = aiLeadAimEnabledFor(turret.team)
+    ? {x:target.x+(target.vx || 0)*flightTime,y:target.y+(target.vy || 0)*flightTime}
+    : target;
+  const rawDesired = angleTo(turret,expected);
+  const desired = turret.angle + clamp(normAng(rawDesired-turret.angle),-mg.gunArc,mg.gunArc);
+  mg.angle = moveAngle(mg.angle,desired,mg.turn*dt);
+  if (Math.abs(normAng(mg.angle-desired)) > 0.065 || mg.reload > 0) return;
+  if (!fireHeavyMachineGun(turret,target)) return;
+  mg.burstRemaining = Math.max(0,(mg.burstRemaining || mg.burstSize)-1);
+  if (mg.burstRemaining <= 0) {
+    mg.burstRemaining = mg.burstSize;
+    mg.reload = mg.burstPause;
+  } else {
+    mg.reload = mg.fireInterval;
+  }
 }
 
 function updateBaseTurrets(dt) {
   if (!game || (game.mode !== "assault" && game.mode !== "operation") || !game.baseTurrets) return;
   for (const turret of game.baseTurrets) {
     if (!turret.alive) continue;
+    if (turret.machineGun) updateHeavyMachineGun(turret,dt);
+    if (turret.isPillbox) continue;
     turret.reload = Math.max(0, turret.reload - dt);
     const target = turretTargetsFor(turret)[0];
     if (!target) continue;
@@ -11524,7 +11710,7 @@ function cloneMapForBattle(baseMap, mission, mode=selectedBattleMode) {
   return map;
 }
 
-function cloneOperationMap(baseMap, mission) {
+function cloneOperationMapLegacy(baseMap, mission) {
   const sx = WORLD_W / BASE_WORLD_W, sy = WORLD_H / BASE_WORLD_H;
   const mid = WORLD_H * 0.50;
   const map = {
@@ -11591,6 +11777,453 @@ function cloneOperationMap(baseMap, mission) {
   map.terrain.push({x:3520,y:mid+690,r:390,type:"hill"});
   map.terrain.push({x:4580,y:mid-770,r:420,type:"hill"});
   map.terrain.push({x:5480,y:mid,r:460,type:"rock"});
+  return map;
+}
+
+const OPERATION_VARIANT_POOLS = {
+  "평지":["river_plain","plain_city","forest_open","open_encirclement"],
+  "늪지":["river_marsh","forest_open","open_encirclement"],
+  "시가전":["river_city","plain_city","urban_grid"],
+  "사막":["desert_hills","desert_open"],
+  "언덕":["hill_mountain","forest_open","open_encirclement"],
+  "산악":["hill_mountain","mountain_valley"]
+};
+
+const OPERATION_VARIANT_INFO = {
+  river_plain:{name:"강변 교두보",summary:"평야의 강을 교량 또는 남쪽 여울로 건너는 도하전"},
+  river_marsh:{name:"습지 도하로",summary:"늪과 강 사이의 교량·얕은 여울을 선택하는 도하전"},
+  river_city:{name:"도시 교량전",summary:"시가지 강변의 교량과 우회 여울을 두고 벌이는 근접전"},
+  plain_city:{name:"평야와 시가지",summary:"개활지 돌파 뒤 마을·철도 지구로 이어지는 혼합전"},
+  forest_open:{name:"숲과 개활지",summary:"은폐된 숲길과 넓은 기갑 전장을 번갈아 통과하는 작전"},
+  open_encirclement:{name:"개활지 양익 돌파",summary:"북·남 양쪽 진격로와 중앙 노출 지대를 선택하는 기동전"},
+  desert_hills:{name:"사막 구릉지",summary:"모래 능선과 언덕 사이의 굽은 진격 축을 이용하는 혼합전"},
+  desert_open:{name:"사막 측면기동",summary:"넓은 개활 사막에서 먼 우회로와 짧은 정면로를 선택하는 작전"},
+  hill_mountain:{name:"구릉과 산악 고개",summary:"언덕에서 협곡·고개로 올라가는 굽은 산악 작전"},
+  mountain_valley:{name:"산악 분지",summary:"좁은 협곡 뒤 넓은 분지에서 방어선을 포위하는 작전"},
+  urban_grid:{name:"도시 우회망",summary:"직선 대로와 골목 우회로가 교차하는 비선형 시가지 작전"}
+};
+
+let operationVariantOverride = "";
+const lastOperationVariantByMap = Object.create(null);
+
+function chooseOperationVariantId(mapName) {
+  const pool = OPERATION_VARIANT_POOLS[mapName] || OPERATION_VARIANT_POOLS["평지"];
+  if (operationVariantOverride && pool.includes(operationVariantOverride)) return operationVariantOverride;
+  const previous = lastOperationVariantByMap[mapName];
+  const candidates = pool.length > 1 ? pool.filter(id => id !== previous) : pool;
+  const id = choose(candidates.length ? candidates : pool);
+  lastOperationVariantByMap[mapName] = id;
+  return id;
+}
+
+function operationVariantLayout(id, mid) {
+  const W = WORLD_W, H = WORLD_H;
+  const finalX = W-250;
+  const layouts = {
+    river_plain:{
+      start:{x:390,y:mid+360},enemy:{x:W-430,y:mid+220},
+      points:[
+        {x:1120,y:mid+520,name:"서부 농촌 전초선"},
+        {x:2260,y:mid-420,name:"강 서안 마을"},
+        {x:3530,y:mid-420,name:"동부 교두보"},
+        {x:4540,y:mid+500,name:"갈대밭 우회로"},
+        {x:5480,y:mid-130,name:"동부 방어선"},
+        {x:finalX,y:mid+250,name:"후방 돌파 지점"}
+      ],
+      terrainKinds:["field","city","field","forest","fort"],
+      routes:[
+        [{x:0,y:mid+360},{x:1120,y:mid+520},{x:2260,y:mid-420},{x:3040,y:mid-420},{x:3530,y:mid-420},{x:4540,y:mid+500},{x:5480,y:mid-130},{x:W,y:mid+220}],
+        [{x:760,y:mid+870},{x:2120,y:mid+720},{x:3060,y:mid+650},{x:3900,y:mid+700},{x:4750,y:mid+500},{x:5600,y:mid+620}],
+        [{x:850,y:mid-880},{x:1900,y:mid-850},{x:2780,y:mid-850},{x:3900,y:mid-790},{x:5050,y:mid-820}]
+      ],
+      rivers:[{
+        id:"river-main",name:"작전 하천",width:350,
+        points:[{x:2960,y:-80},{x:3050,y:H*0.25},{x:3010,y:H*0.56},{x:3140,y:H+80}],
+        bridges:[{x:3035,y:mid-420,length:540,width:132,angle:0,name:"북부 교량"}],
+        fords:[{x:3060,y:mid+650,r:178,name:"남부 얕은 여울"}]
+      }],
+      pillboxes:{1:1,2:2,4:2},ambushStages:[2,3]
+    },
+    river_marsh:{
+      start:{x:390,y:mid-470},enemy:{x:W-430,y:mid+410},
+      points:[
+        {x:1080,y:mid-520,name:"서부 둑길"},
+        {x:2240,y:mid+360,name:"침수 농가"},
+        {x:3600,y:mid+360,name:"동쪽 교두보"},
+        {x:4550,y:mid-620,name:"버드나무 습지"},
+        {x:5480,y:mid+430,name:"제방 방어선"},
+        {x:finalX,y:mid+120,name:"후방 집결지"}
+      ],
+      terrainKinds:["swamp","field","swamp","forest","fort"],
+      routes:[
+        [{x:0,y:mid-470},{x:1080,y:mid-520},{x:2240,y:mid+360},{x:3180,y:mid+360},{x:3600,y:mid+360},{x:4550,y:mid-620},{x:5480,y:mid+430},{x:W,y:mid+120}],
+        [{x:620,y:mid-900},{x:1900,y:mid-760},{x:3160,y:mid-610},{x:3960,y:mid-650},{x:5000,y:mid-820}],
+        [{x:820,y:mid+900},{x:2100,y:mid+850},{x:3210,y:mid+810},{x:4250,y:mid+760},{x:5550,y:mid+820}]
+      ],
+      rivers:[{
+        id:"river-marsh",name:"습지 하천",width:390,
+        points:[{x:3070,y:-100},{x:3200,y:H*0.30},{x:3130,y:H*0.62},{x:3250,y:H+100}],
+        bridges:[{x:3180,y:mid+360,length:570,width:126,angle:0,name:"제방 교량"}],
+        fords:[{x:3160,y:mid-610,r:190,name:"북부 여울"},{x:3210,y:mid+810,r:165,name:"남부 여울"}]
+      }],
+      pillboxes:{0:1,2:2,3:1,4:2},ambushStages:[1,3]
+    },
+    river_city:{
+      start:{x:390,y:mid+650},enemy:{x:W-430,y:mid-540},
+      points:[
+        {x:1050,y:mid+650,name:"서부 외곽"},
+        {x:2250,y:mid,name:"강변 시가지"},
+        {x:3650,y:mid,name:"동부 교량광장"},
+        {x:4540,y:mid-700,name:"철도 지구"},
+        {x:5480,y:mid+420,name:"공장 방어선"},
+        {x:finalX,y:mid-350,name:"도시 출구"}
+      ],
+      terrainKinds:["city","city","city","city","fort"],
+      routes:[
+        [{x:0,y:mid+650},{x:1050,y:mid+650},{x:2250,y:mid},{x:3260,y:mid},{x:3650,y:mid},{x:4540,y:mid-700},{x:5480,y:mid+420},{x:W,y:mid-350}],
+        [{x:620,y:mid+1020},{x:2100,y:mid+850},{x:3280,y:mid+720},{x:4100,y:mid+690},{x:5300,y:mid+840}],
+        [{x:700,y:mid-900},{x:1900,y:mid-980},{x:2800,y:mid-820},{x:4100,y:mid-940},{x:5500,y:mid-760}]
+      ],
+      rivers:[{
+        id:"urban-river",name:"도시 하천",width:330,
+        points:[{x:3180,y:-80},{x:3290,y:H*0.34},{x:3230,y:H*0.68},{x:3340,y:H+80}],
+        bridges:[{x:3260,y:mid,length:530,width:146,angle:0,name:"중앙 교량"}],
+        fords:[{x:3280,y:mid+720,r:165,name:"남부 공사장 여울"}]
+      }],
+      pillboxes:{1:2,2:2,3:1,4:2},ambushStages:[1,3]
+    },
+    plain_city:{
+      start:{x:390,y:mid+520},enemy:{x:W-430,y:mid-320},
+      points:[
+        {x:1080,y:mid+620,name:"개활 농지"},
+        {x:2200,y:mid-600,name:"생울타리 교차로"},
+        {x:3300,y:mid+250,name:"중앙 마을"},
+        {x:4380,y:mid-520,name:"철도 적재장"},
+        {x:5480,y:mid+470,name:"도시 외곽 방어선"},
+        {x:finalX,y:mid-150,name:"동부 대로"}
+      ],
+      terrainKinds:["field","forest","city","city","fort"],
+      routes:[
+        [{x:0,y:mid+520},{x:1080,y:mid+620},{x:2200,y:mid-600},{x:3300,y:mid+250},{x:4380,y:mid-520},{x:5480,y:mid+470},{x:W,y:mid-150}],
+        [{x:650,y:mid-850},{x:1750,y:mid-930},{x:2950,y:mid-760},{x:4150,y:mid-940},{x:5550,y:mid-800}],
+        [{x:760,y:mid+950},{x:1900,y:mid+900},{x:3050,y:mid+820},{x:4300,y:mid+940},{x:5600,y:mid+880}]
+      ],
+      pillboxes:{1:1,2:2,4:2},ambushStages:[1,3]
+    },
+    forest_open:{
+      start:{x:390,y:mid-480},enemy:{x:W-430,y:mid+360},
+      points:[
+        {x:1100,y:mid-560,name:"서부 숲길"},
+        {x:2200,y:mid+720,name:"남쪽 벌목지"},
+        {x:3360,y:mid,name:"중앙 개활 분지"},
+        {x:4480,y:mid-760,name:"북부 숲 능선"},
+        {x:5480,y:mid+430,name:"동부 화력선"},
+        {x:finalX,y:mid+50,name:"후방 초지"}
+      ],
+      terrainKinds:["forest","forest","field","forest","fort"],
+      routes:[
+        [{x:0,y:mid-480},{x:1100,y:mid-560},{x:2200,y:mid+720},{x:3360,y:mid},{x:4480,y:mid-760},{x:5480,y:mid+430},{x:W,y:mid+50}],
+        [{x:600,y:mid+930},{x:1900,y:mid+980},{x:3300,y:mid+850},{x:4700,y:mid+920},{x:5600,y:mid+820}],
+        [{x:720,y:mid-960},{x:1900,y:mid-980},{x:3150,y:mid-880},{x:4480,y:mid-760},{x:5600,y:mid-900}]
+      ],
+      pillboxes:{0:1,1:1,3:2,4:2},ambushStages:[0,1,3]
+    },
+    open_encirclement:{
+      start:{x:390,y:mid},enemy:{x:W-430,y:mid},
+      points:[
+        {x:1120,y:mid,name:"전방 감시선"},
+        {x:2250,y:mid-720,name:"북부 기동로"},
+        {x:3360,y:mid+650,name:"남부 개활지"},
+        {x:4480,y:mid-580,name:"동부 고지"},
+        {x:5480,y:mid+100,name:"포위망 중심"},
+        {x:finalX,y:mid,name:"후방 돌파 지점"}
+      ],
+      terrainKinds:["field","hill","field","hill","fort"],
+      routes:[
+        [{x:0,y:mid},{x:1120,y:mid},{x:2250,y:mid-720},{x:3360,y:mid+650},{x:4480,y:mid-580},{x:5480,y:mid+100},{x:W,y:mid}],
+        [{x:520,y:mid-900},{x:1900,y:mid-970},{x:3300,y:mid-900},{x:4700,y:mid-920},{x:5600,y:mid-760}],
+        [{x:520,y:mid+900},{x:1900,y:mid+980},{x:3300,y:mid+900},{x:4700,y:mid+960},{x:5600,y:mid+760}]
+      ],
+      pillboxes:{2:1,4:2},ambushStages:[2,3]
+    },
+    desert_hills:{
+      start:{x:390,y:mid+650},enemy:{x:W-430,y:mid-450},
+      points:[
+        {x:1080,y:mid+680,name:"서부 모래평원"},
+        {x:2160,y:mid-520,name:"첫 모래 능선"},
+        {x:3350,y:mid+720,name:"남부 구릉"},
+        {x:4480,y:mid-650,name:"바위 고개"},
+        {x:5480,y:mid+240,name:"동부 방어진지"},
+        {x:finalX,y:mid-230,name:"사막 후방로"}
+      ],
+      terrainKinds:["field","dune","hill","rock","fort"],
+      routes:[
+        [{x:0,y:mid+650},{x:1080,y:mid+680},{x:2160,y:mid-520},{x:3350,y:mid+720},{x:4480,y:mid-650},{x:5480,y:mid+240},{x:W,y:mid-230}],
+        [{x:580,y:mid-850},{x:1900,y:mid-920},{x:3200,y:mid-840},{x:4600,y:mid-940},{x:5600,y:mid-760}],
+        [{x:650,y:mid+980},{x:1900,y:mid+980},{x:3200,y:mid+940},{x:4700,y:mid+970},{x:5600,y:mid+800}]
+      ],
+      pillboxes:{1:1,3:1,4:2},ambushStages:[1,3]
+    },
+    desert_open:{
+      start:{x:390,y:mid-350},enemy:{x:W-430,y:mid+300},
+      points:[
+        {x:1120,y:mid-300,name:"서부 집결 평원"},
+        {x:2250,y:mid+760,name:"남부 우회 능선"},
+        {x:3360,y:mid-620,name:"중앙 사구"},
+        {x:4480,y:mid+680,name:"동부 개활지"},
+        {x:5480,y:mid-120,name:"사막 요새선"},
+        {x:finalX,y:mid+260,name:"후방 보급로"}
+      ],
+      terrainKinds:["field","dune","dune","field","fort"],
+      routes:[
+        [{x:0,y:mid-350},{x:1120,y:mid-300},{x:2250,y:mid+760},{x:3360,y:mid-620},{x:4480,y:mid+680},{x:5480,y:mid-120},{x:W,y:mid+260}],
+        [{x:500,y:mid-1050},{x:1850,y:mid-980},{x:3200,y:mid-1050},{x:4700,y:mid-980},{x:5650,y:mid-850}],
+        [{x:600,y:mid+1050},{x:1900,y:mid+1030},{x:3300,y:mid+1000},{x:4700,y:mid+1040},{x:5650,y:mid+880}]
+      ],
+      pillboxes:{4:2},ambushStages:[2]
+    },
+    hill_mountain:{
+      start:{x:390,y:mid+760},enemy:{x:W-430,y:mid+500},
+      points:[
+        {x:1080,y:mid+720,name:"남서 구릉"},
+        {x:2140,y:mid+120,name:"비탈 교차로"},
+        {x:3200,y:mid-780,name:"북부 협곡"},
+        {x:4300,y:mid-250,name:"산악 고개"},
+        {x:5400,y:mid+650,name:"동부 분지 방어선"},
+        {x:finalX,y:mid+280,name:"산맥 후방로"}
+      ],
+      terrainKinds:["hill","hill","mountain","mountain","fort"],
+      routes:[
+        [{x:0,y:mid+760},{x:1080,y:mid+720},{x:2140,y:mid+120},{x:3200,y:mid-780},{x:4300,y:mid-250},{x:5400,y:mid+650},{x:W,y:mid+280}],
+        [{x:650,y:mid+1050},{x:1900,y:mid+960},{x:3000,y:mid+720},{x:4200,y:mid+850},{x:5550,y:mid+980}],
+        [{x:760,y:mid-900},{x:1880,y:mid-980},{x:3200,y:mid-780},{x:4400,y:mid-960},{x:5500,y:mid-820}]
+      ],
+      pillboxes:{1:1,3:2,4:2},ambushStages:[1,3]
+    },
+    mountain_valley:{
+      start:{x:390,y:mid-650},enemy:{x:W-430,y:mid-520},
+      points:[
+        {x:1050,y:mid-620,name:"서부 협곡 입구"},
+        {x:2100,y:mid+220,name:"남쪽 굽이"},
+        {x:3250,y:mid+760,name:"중앙 산악 분지"},
+        {x:4380,y:mid-120,name:"북동 고개"},
+        {x:5450,y:mid-680,name:"절벽 방어선"},
+        {x:finalX,y:mid-260,name:"후방 산길"}
+      ],
+      terrainKinds:["mountain","mountain","hill","mountain","fort"],
+      routes:[
+        [{x:0,y:mid-650},{x:1050,y:mid-620},{x:2100,y:mid+220},{x:3250,y:mid+760},{x:4380,y:mid-120},{x:5450,y:mid-680},{x:W,y:mid-260}],
+        [{x:620,y:mid+850},{x:1700,y:mid+950},{x:3100,y:mid+920},{x:4500,y:mid+850},{x:5600,y:mid+760}],
+        [{x:720,y:mid-980},{x:1900,y:mid-900},{x:3200,y:mid-1020},{x:4550,y:mid-930},{x:5600,y:mid-920}]
+      ],
+      pillboxes:{0:1,2:1,3:2,4:2},ambushStages:[0,3]
+    },
+    urban_grid:{
+      start:{x:390,y:mid+720},enemy:{x:W-430,y:mid-650},
+      points:[
+        {x:1050,y:mid+720,name:"남서 대로"},
+        {x:2180,y:mid-620,name:"북부 주택가"},
+        {x:3300,y:mid+520,name:"중앙 광장"},
+        {x:4420,y:mid-700,name:"철도 교차로"},
+        {x:5480,y:mid+300,name:"동부 공장지대"},
+        {x:finalX,y:mid-300,name:"도시 출구"}
+      ],
+      terrainKinds:["city","city","city","city","fort"],
+      routes:[
+        [{x:0,y:mid+720},{x:1050,y:mid+720},{x:2180,y:mid-620},{x:3300,y:mid+520},{x:4420,y:mid-700},{x:5480,y:mid+300},{x:W,y:mid-300}],
+        [{x:600,y:mid-980},{x:1800,y:mid-980},{x:3000,y:mid-980},{x:4300,y:mid-980},{x:5600,y:mid-900}],
+        [{x:600,y:mid+980},{x:1800,y:mid+980},{x:3000,y:mid+980},{x:4300,y:mid+980},{x:5600,y:mid+900}]
+      ],
+      pillboxes:{0:1,1:2,3:2,4:2},ambushStages:[1,3]
+    }
+  };
+  return layouts[id] || layouts.plain_city;
+}
+
+function operationTerrainColor(kind) {
+  if (kind === "city") return "rgba(80,80,80,.20)";
+  if (kind === "forest") return "rgba(43,88,53,.22)";
+  if (kind === "mountain") return "rgba(75,73,68,.22)";
+  if (kind === "hill") return "rgba(116,112,70,.17)";
+  if (kind === "dune") return "rgba(170,140,82,.17)";
+  if (kind === "swamp") return "rgba(37,72,62,.22)";
+  if (kind === "rock") return "rgba(95,83,68,.20)";
+  if (kind === "fort") return "rgba(110,70,58,.19)";
+  return "rgba(139,132,76,.12)";
+}
+
+function addOperationObstacle(map,type,x,y,r,solid=true,extra={}) {
+  map.obstacles.push({type,x:clamp(x,70,WORLD_W-70),y:clamp(y,70,WORLD_H-70),r,solid,block:solid,operation:true,...extra});
+}
+
+function addOperationTerrain(map,type,x,y,r) {
+  map.terrain.push({type,x:clamp(x,80,WORLD_W-80),y:clamp(y,80,WORLD_H-80),r,operation:true});
+}
+
+function populateOperationVariant(map,layout,id,mid) {
+  const combat = layout.points.slice(0,5);
+  // 모든 전장에 방어선 흔적은 남기되, 배치 간격과 방향은 매번 조금씩 달라진다.
+  combat.forEach((point,index) => {
+    const prev = index ? combat[index-1] : layout.start;
+    const attack = Math.atan2(point.y-prev.y,point.x-prev.x);
+    const side = attack+Math.PI/2;
+    for (const lateral of [-170,170]) {
+      addOperationObstacle(map,"sandbag",point.x+Math.cos(attack)*125+Math.cos(side)*(lateral+rand(-35,35)),point.y+Math.sin(attack)*125+Math.sin(side)*(lateral+rand(-35,35)),38+rand(-3,5),true);
+    }
+  });
+
+  const scatterTrees = (cx,cy,count,rx=520,ry=520) => {
+    for (let i=0;i<count;i++) addOperationObstacle(map,i%5===0?"log":"tree",cx+rand(-rx,rx),cy+rand(-ry,ry),rand(34,48),true);
+  };
+  const scatterRocks = (cx,cy,count,rx=520,ry=520) => {
+    for (let i=0;i<count;i++) addOperationObstacle(map,i%4===0?"duneRock":"boulder",cx+rand(-rx,rx),cy+rand(-ry,ry),rand(36,56),true);
+  };
+  const buildingBlock = (cx,cy,columns=4,rows=3,gapX=175,gapY=330) => {
+    for (let row=0;row<rows;row++) for (let col=0;col<columns;col++) {
+      // 중앙 도로와 교차로는 비워 차량이 건물 사이로 실제 통과할 수 있게 한다.
+      if ((col===Math.floor(columns/2) && row%2===0) || Math.random()<0.10) continue;
+      addOperationObstacle(map,Math.random()<0.18?"wreck":"building",cx+(col-(columns-1)/2)*gapX+rand(-24,24),cy+(row-(rows-1)/2)*gapY+rand(-22,22),Math.random()<0.18?44:rand(62,76),true);
+    }
+  };
+
+  if (id === "river_plain" || id === "river_marsh") {
+    scatterTrees(combat[0].x,combat[0].y,15,520,620);
+    scatterTrees(combat[3].x,combat[3].y,24,620,700);
+    buildingBlock(combat[1].x,combat[1].y,4,2,190,430);
+    addOperationTerrain(map,"swamp",3100,mid+650,520);
+    addOperationTerrain(map,"swamp",3000,mid-760,390);
+    if (id === "river_marsh") {
+      for (let i=0;i<7;i++) addOperationTerrain(map,"swamp",900+i*650,mid+(i%2?620:-650),rand(250,390));
+      for (let i=0;i<12;i++) addOperationObstacle(map,"marsh",700+i*430,mid+rand(-980,980),rand(35,62),false);
+    }
+  } else if (id === "river_city") {
+    buildingBlock(combat[1].x,combat[1].y,5,3,175,320);
+    buildingBlock(combat[2].x,combat[2].y,4,3,180,340);
+    buildingBlock(combat[3].x,combat[3].y,4,2,190,360);
+    for (let i=0;i<12;i++) addOperationObstacle(map,"wreck",1500+i*300,mid+rand(-720,720),rand(36,48),true);
+  } else if (id === "plain_city") {
+    scatterTrees(combat[0].x,combat[0].y,12,620,650);
+    scatterTrees(combat[1].x,combat[1].y,18,560,520);
+    buildingBlock(combat[2].x,combat[2].y,5,3,170,330);
+    buildingBlock(combat[3].x,combat[3].y,4,2,190,370);
+    buildingBlock(combat[4].x,combat[4].y,4,2,180,360);
+  } else if (id === "forest_open") {
+    scatterTrees(combat[0].x,combat[0].y,28,650,720);
+    scatterTrees(combat[1].x,combat[1].y,24,650,650);
+    scatterTrees(combat[3].x,combat[3].y,34,720,700);
+    // 중앙 개활지는 잔해와 낮은 엄폐물만 두어 장거리 교전이 가능하다.
+    for (let i=0;i<9;i++) addOperationObstacle(map,i%2?"wreck":"sandbag",combat[2].x+rand(-650,650),combat[2].y+rand(-520,520),rand(34,45),true);
+  } else if (id === "open_encirclement") {
+    for (let i=0;i<11;i++) addOperationObstacle(map,i%3?"wreck":"sandbag",900+i*430,mid+rand(-820,820),rand(34,48),true);
+    addOperationTerrain(map,"hill",combat[1].x,combat[1].y,420);
+    addOperationTerrain(map,"hill",combat[3].x,combat[3].y,460);
+  } else if (id === "desert_hills" || id === "desert_open") {
+    for (let i=0;i<10;i++) addOperationTerrain(map,"dune",720+i*520,mid+(i%2?rand(420,880):rand(-880,-420)),rand(230,390));
+    scatterRocks(combat[1].x,combat[1].y,10,620,520);
+    scatterRocks(combat[3].x,combat[3].y,9,650,520);
+    for (let i=0;i<8;i++) addOperationObstacle(map,"sandbag",1100+i*560,mid+rand(-720,720),rand(34,44),true);
+  } else if (id === "hill_mountain" || id === "mountain_valley") {
+    for (let i=0;i<8;i++) addOperationTerrain(map,i<3?"hill":"mountain",850+i*650,mid+(i%2?rand(500,930):rand(-930,-500)),rand(300,470));
+    scatterRocks(combat[1].x,combat[1].y,14,650,620);
+    scatterRocks(combat[2].x,combat[2].y,17,700,650);
+    scatterRocks(combat[3].x,combat[3].y,16,700,650);
+  } else if (id === "urban_grid") {
+    for (const point of combat.slice(0,4)) buildingBlock(point.x,point.y,5,3,170,330);
+    for (let i=0;i<14;i++) addOperationObstacle(map,"wreck",850+i*350,mid+rand(-820,820),rand(34,47),true);
+  }
+
+  addOperationTerrain(map,"hill",combat[0].x+260,combat[0].y-520,300);
+  addOperationTerrain(map,"rock",combat[4].x+140,combat[4].y,430);
+}
+
+function pointInRotatedRect(x,y,rect,padding=0) {
+  const dx=x-rect.x,dy=y-rect.y;
+  const ca=Math.cos(-(rect.angle || 0)),sa=Math.sin(-(rect.angle || 0));
+  const localX=dx*ca-dy*sa,localY=dx*sa+dy*ca;
+  return Math.abs(localX) <= (rect.length || rect.w || 0)/2+padding && Math.abs(localY) <= (rect.width || rect.h || 0)/2+padding;
+}
+
+function pointToSegmentDistance(x,y,a,b) {
+  const vx=b.x-a.x,vy=b.y-a.y;
+  const len2=vx*vx+vy*vy || 1;
+  const t=clamp(((x-a.x)*vx+(y-a.y)*vy)/len2,0,1);
+  const px=a.x+vx*t,py=a.y+vy*t;
+  return Math.hypot(x-px,y-py);
+}
+
+function riverInfoAtPoint(map,x,y) {
+  for (const river of (map?.rivers || [])) {
+    for (const bridge of (river.bridges || [])) {
+      if (pointInRotatedRect(x,y,bridge,4)) return {kind:"bridge",name:bridge.name || "교량",river,crossing:bridge,speed:0.96};
+    }
+    for (const ford of (river.fords || [])) {
+      if (Math.hypot(x-ford.x,y-ford.y) <= ford.r) return {kind:"ford",name:ford.name || "얕은 도하 지점",river,crossing:ford,speed:0.39};
+    }
+    let nearest=Infinity;
+    for (let i=1;i<(river.points || []).length;i++) nearest=Math.min(nearest,pointToSegmentDistance(x,y,river.points[i-1],river.points[i]));
+    if (nearest <= (river.width || 300)/2) return {kind:"deep",name:river.name || "강",river,speed:0.20};
+  }
+  return null;
+}
+
+function clearOperationCrossingAccess(map) {
+  map.obstacles = (map.obstacles || []).filter(obstacle => {
+    if (Math.hypot(obstacle.x-map.player.x,obstacle.y-map.player.y)<300) return false;
+    if (Math.hypot(obstacle.x-map.enemySpawn.x,obstacle.y-map.enemySpawn.y)<260) return false;
+    for (const river of (map.rivers || [])) {
+      for (const bridge of (river.bridges || [])) if (pointInRotatedRect(obstacle.x,obstacle.y,bridge,90+obstacle.r)) return false;
+      for (const ford of (river.fords || [])) if (Math.hypot(obstacle.x-ford.x,obstacle.y-ford.y)<ford.r+obstacle.r+95) return false;
+    }
+    return true;
+  });
+}
+
+function cloneOperationMap(baseMap, mission) {
+  const mid = WORLD_H*0.50;
+  const id = chooseOperationVariantId(selectedMap);
+  const info = OPERATION_VARIANT_INFO[id] || OPERATION_VARIANT_INFO.plain_city;
+  const layout = operationVariantLayout(id,mid);
+  const isDesert = id.startsWith("desert");
+  const isMountain = id === "hill_mountain" || id === "mountain_valley";
+  const map = {
+    ...baseMap,
+    bg:isDesert ? "#a88f5d" : isMountain ? "#59634f" : baseMap.bg || "#68704c",
+    grid:isDesert ? "#8d774d" : isMountain ? "#485142" : baseMap.grid || "#535b3b",
+    terrain:[],obstacles:[],
+    operationVariantId:id,
+    operationVariantName:info.name,
+    operationVariantSummary:info.summary,
+    operationPillboxStages:{...(layout.pillboxes || {})},
+    operationAmbushStages:[...(layout.ambushStages || [])],
+    operationAmbushSides:Object.fromEntries((layout.ambushStages || []).map(stage => [stage,Math.random()<0.5?-1:1])),
+    rivers:(layout.rivers || []).map(river => ({...river,points:river.points.map(point => ({...point})),bridges:(river.bridges || []).map(bridge => ({...bridge})),fords:(river.fords || []).map(ford => ({...ford}))})),
+    player:{...layout.start},enemySpawn:{...layout.enemy},
+    breakthrough:{...layout.points[5],r:285},
+    caps:layout.points.slice(0,5).map((point,index) => ({id:String.fromCharCode(65+index),x:point.x,y:point.y,r:220+index*9})),
+    strongholds:{
+      blue:{id:"아군 집결지",x:layout.start.x+200,y:layout.start.y,r:300},
+      red:{id:"최종 요새",x:layout.points[4].x+180,y:layout.points[4].y,r:370}
+    },
+    sectorZones:layout.points.slice(0,5).map((point,index) => ({
+      name:point.name,kind:layout.terrainKinds[index] || "field",
+      x:clamp(point.x-570,0,WORLD_W-1140),y:clamp(point.y-650,0,WORLD_H-1300),w:1140,h:1300,
+      color:operationTerrainColor(layout.terrainKinds[index]),terrain:layout.terrainKinds[index] || "field"
+    })),
+    operationRoutes:layout.routes.map((points,index) => ({
+      name:index===0?"주 진격로":index===1?"남부 우회로":"북부 우회로",
+      width:index===0?112:62,
+      color:index===0?"rgba(42,42,38,.48)":"rgba(53,51,44,.37)",
+      points:points.map(point => ({...point}))
+    })),
+    operationZones:layout.points.map((point,index) => ({
+      stage:index,name:point.name,x:point.x,y:point.y,
+      r:index===5?285:300+index*20,
+      message:index===5?"후방 돌파 지점 도달. 작전을 마무리하십시오.":`${point.name} 접근. 정찰과 엄폐를 활용해 방어선을 제압하십시오.`
+    }))
+  };
+  if (map.caps[1]) map.cap=map.caps[1];
+  populateOperationVariant(map,layout,id,mid);
+  clearOperationCrossingAccess(map);
   return map;
 }
 
@@ -11729,32 +12362,73 @@ function setupOperationBattle() {
   activateOperationSector(0);
   refreshOperationCommandPanel();
   addRadio("제병협동 작전 시작. 기갑부대가 돌파를 주도하고 보병·정찰·대전차포·공군이 자율 지원합니다.", "neutral");
+  addRadio(`전장 유형: ${game.map.operationVariantName}. ${game.map.operationVariantSummary}`, "neutral");
+}
+
+function operationApproachGeometry(index) {
+  const zones=operationCombatZones();
+  const zone=zones[index] || operationFinalZone() || game.map.enemySpawn;
+  const previous=index>0 ? zones[index-1] : game.map.player;
+  const dx=zone.x-previous.x,dy=zone.y-previous.y;
+  const length=Math.hypot(dx,dy) || 1;
+  const fx=dx/length,fy=dy/length;
+  return {zone,previous,fx,fy,sx:-fy,sy:fx,attackAngle:Math.atan2(fy,fx),defenseAngle:Math.atan2(fy,fx)+Math.PI};
+}
+
+function operationDefensePoint(index,depth=0,lateral=0) {
+  const g=operationApproachGeometry(index);
+  return {x:g.zone.x+g.fx*depth+g.sx*lateral,y:g.zone.y+g.fy*depth+g.sy*lateral};
 }
 
 function operationGunDefsFor(index) {
   const zone = operationCombatZones()[index];
   if (!zone) return [];
   const basePen = 168 + index*11;
+  const g=operationApproachGeometry(index);
+  const first=operationDefensePoint(index,115,-320);
+  const second=operationDefensePoint(index,210,315);
   const defs = [
-    {x:zone.x+115,y:zone.y-320,angle:Math.PI,hidden:true,pen:basePen,dmg:37+index*2},
-    {x:zone.x+210,y:zone.y+315,angle:Math.PI,hidden:true,pen:basePen,dmg:37+index*2}
+    {x:first.x,y:first.y,angle:g.defenseAngle,hidden:true,pen:basePen,dmg:37+index*2},
+    {x:second.x,y:second.y,angle:g.defenseAngle,hidden:true,pen:basePen,dmg:37+index*2}
   ];
-  if (index >= 3) defs.push({x:zone.x+330,y:zone.y+(index%2?-20:40),angle:Math.PI,hidden:index===3,pen:basePen+12,dmg:46+index,hp:54});
+  if (index >= 3) {
+    const heavy=operationDefensePoint(index,330,index%2?-25:45);
+    defs.push({x:heavy.x,y:heavy.y,angle:g.defenseAngle,hidden:index===3,pen:basePen+12,dmg:46+index,hp:54});
+  }
   return defs;
 }
 
 function operationFortressDefsFor(index) {
   const zone = operationCombatZones()[index];
   if (!zone || index !== 4) return [];
+  const g=operationApproachGeometry(index);
+  const point=operationDefensePoint(index,275,-35);
   return [{
-    x:zone.x+275,
-    y:zone.y-35,
-    angle:Math.PI,
-    hp:420,
+    x:point.x,
+    y:point.y,
+    angle:g.defenseAngle,
+    hp:2100,
     pen:205,
     dmg:56,
     reload:6.6
   }];
+}
+
+function operationPillboxDefsFor(index) {
+  const count=Number(game?.map?.operationPillboxStages?.[index] || 0);
+  if (!count) return [];
+  const g=operationApproachGeometry(index);
+  const defs=[];
+  for (let slot=0;slot<count;slot++) {
+    const side=slot%2===0?-1:1;
+    const row=Math.floor(slot/2);
+    const point=operationDefensePoint(index,55+row*115,side*(250+row*120));
+    defs.push({
+      x:point.x,y:point.y,angle:g.defenseAngle,hidden:index<4,
+      hp:235+index*12,mgRange:560+index*24,mgPen:29+index*2,mgDmg:0.60+index*0.05
+    });
+  }
+  return defs;
 }
 
 function operationCombatZones() {
@@ -11779,8 +12453,22 @@ function activateOperationSector(index) {
     ["중전차","중형전차","구축전차","자주포"],
     ["중전차","구축전차","중형전차","자주포"]
   ];
-  spawnOperationEnemyGroup(zone.x + Math.min(260, zone.r * 0.7), zone.y, game.operation.sectorStrength, classLists[index] || classLists[3], index);
+  const g=operationApproachGeometry(index);
+  const groupCenter=operationDefensePoint(index,Math.min(260,zone.r*0.7),0);
+  spawnOperationEnemyGroup(groupCenter.x,groupCenter.y,game.operation.sectorStrength,classLists[index] || classLists[3],index);
   spawnOperationEnemySupport(index, zone);
+  if (game.map.operationAmbushStages?.includes(index)) {
+    const side=game.map.operationAmbushSides?.[index] || 1;
+    const ambushPoint=operationDefensePoint(index,-60,side*(zone.r+260));
+    const before=game.enemies.length;
+    spawnOperationEnemyGroup(ambushPoint.x,ambushPoint.y,index>=3?2:1,["구축전차","경전차"],index);
+    for (const ambusher of game.enemies.slice(before)) {
+      ambusher.ambushUnit=true;
+      ambusher.spotted=false;
+      ambusher.visibleMemory=0;
+    }
+    addRadio("정찰 보고가 불완전합니다. 측면 은폐지의 매복 가능성을 주의하십시오.","bad");
+  }
   for (const raw of operationGunDefsFor(index)) {
     const gun = makeAntiTankGun(raw, "enemy");
     placeOperationEntitySafely(gun, {x:raw.x,y:raw.y}, {clearance:32,maxRadius:620});
@@ -11793,12 +12481,18 @@ function activateOperationSector(index) {
     fortress.operationSector = index;
     game.baseTurrets.push(fortress);
   }
+  for (const raw of operationPillboxDefsFor(index)) {
+    const pillbox=makePillbox(raw,"enemy");
+    placeOperationEntitySafely(pillbox,{x:raw.x,y:raw.y},{clearance:36,maxRadius:620});
+    pillbox.operationSector=index;
+    game.baseTurrets.push(pillbox);
+  }
   if (index === 2) {
-    callAirStrike("enemy", {x:zone.x-120,y:zone.y+rand(-160,160)}, "bomb");
+    callAirStrike("enemy", {x:zone.x-g.fx*120+g.sx*rand(-160,160),y:zone.y-g.fy*120+g.sy*rand(-160,160)}, "bomb");
     addRadio("적 전술기가 작전 구역을 수색합니다. 정지하지 마십시오.", "bad");
   }
   if (index === 4) {
-    callAirStrike("ally", {x:zone.x+120,y:zone.y}, "bomb");
+    callAirStrike("ally", {x:zone.x+g.fx*120,y:zone.y+g.fy*120}, "bomb");
     addRadio("최종 공격 준비사격. 아군 공격기가 요새 접근로로 진입합니다.", "good");
   }
   for (const tank of game.allies) tank.aiThink = 0;
@@ -11811,8 +12505,9 @@ function operationSectorHostiles(index) {
   const supports = mobile.filter(t => t.isSupportUnit);
   const fixed = (game.baseTurrets || []).filter(t => t.alive && !isFriendlyTeam(t.team) && t.operationSector === index);
   const fortresses = fixed.filter(t => t.isFortress);
-  const guns = fixed.filter(t => !t.isFortress);
-  return {tanks, supports, guns, fortresses, total:tanks.length + supports.length + guns.length + fortresses.length};
+  const pillboxes = fixed.filter(t => t.isPillbox);
+  const guns = fixed.filter(t => !t.isFortress && !t.isPillbox);
+  return {tanks, supports, guns, pillboxes, fortresses, total:tanks.length + supports.length + guns.length + pillboxes.length + fortresses.length};
 }
 
 function clearOperationSector(index) {
@@ -11824,10 +12519,15 @@ function clearOperationSector(index) {
   addRadio(`${zone?.name || `${index+1}구역`} 소탕 완료. 전선을 다음 구역 후방으로 이동합니다.`, "good");
   if (index < game.operation.maxSector) {
     const next = index + 1;
-    if (next === 2 || next === 4) spawnOperationAllyReinforcements(zone.x - 120, zone.y + rand(-150,150), 2);
+    const g=operationApproachGeometry(index);
+    const lateral=rand(-150,150);
+    const reinforcementPoint={x:zone.x-g.fx*120+g.sx*lateral,y:zone.y-g.fy*120+g.sy*lateral};
+    if (next === 2 || next === 4) spawnOperationAllyReinforcements(reinforcementPoint.x,reinforcementPoint.y,2);
     if ((next === 2 || next === 4)) spawnOperationFriendlyGunLine(zone, next);
     if (operationSupportUnits(true).length <= 2 && game.operation.supportReinforcements > 0) {
-      const reinforcement = makeOperationSupportUnit("motorized", "ally", zone.x-330, zone.y+rand(-180,180), null, game.allies.length);
+      const supportLateral=rand(-180,180);
+      const supportPoint={x:zone.x-g.fx*330+g.sx*supportLateral,y:zone.y-g.fy*330+g.sy*supportLateral};
+      const reinforcement = makeOperationSupportUnit("motorized", "ally", supportPoint.x,supportPoint.y,null,game.allies.length);
       placeOperationEntitySafely(reinforcement, {x:reinforcement.x,y:reinforcement.y}, {clearance:24,maxRadius:580});
       game.allies.push(reinforcement);
       initAIMission(reinforcement, game.allies.length-1);
@@ -11855,6 +12555,7 @@ function operationEnemyNation() {
 }
 
 function spawnOperationEnemyGroup(cx, cy, count, classList=["중형전차"], sector=game?.operation?.currentSector || 0) {
+  const facing=operationApproachGeometry(Math.min(sector,operationCombatZones().length-1)).defenseAngle;
   for (let i=0;i<count;i++) {
     const templates = game?.operation?.enemyTemplates || [];
     const reserved = templates.length ? templates[(sector * count + i) % templates.length] : null;
@@ -11862,8 +12563,10 @@ function spawnOperationEnemyGroup(cx, cy, count, classList=["중형전차"], sec
     const cls = classList[i % classList.length];
     const tier = Math.min(3, Math.max(1, selectedTank.tier + (i%2)));
     const temp = reserved || pickTankByTier(nation, cls, tier);
-    const p = clusterPoint({x:cx,y:cy}, i, 170, count, Math.PI);
+    const p = clusterPoint({x:cx,y:cy}, i, 170, count, facing);
     const tank = makeTank(getEffectiveTank(temp, false), clamp(p.x, 80, WORLD_W-80), clamp(p.y, 80, WORLD_H-80), "enemy");
+    tank.angle=facing;
+    tank.turretAngle=facing;
     placeOperationEntitySafely(tank, {x:p.x,y:p.y}, {clearance:28,maxRadius:760});
     tank.spotted = false;
     tank.visibleMemory = 0;
@@ -11874,15 +12577,41 @@ function spawnOperationEnemyGroup(cx, cy, count, classList=["중형전차"], sec
 }
 
 function spawnOperationAllyReinforcements(cx, cy, count=2) {
+  const facing=operationApproachGeometry(Math.min(game?.operation?.currentSector || 0,operationCombatZones().length-1)).attackAngle;
   for (let i=0;i<count;i++) {
     const cls = i % 2 ? "중형전차" : "구축전차";
     const tier = Math.min(selectedTank.tier || 1, highestUnlockedTier(selectedTank.nation, cls));
     const temp = pickTankByTier(selectedTank.nation, cls, tier);
-    const p = clusterPoint({x:cx,y:cy}, i, 145, count, 0);
+    const p = clusterPoint({x:cx,y:cy}, i, 145, count, facing);
     const tank = makeTank(getEffectiveTank(temp, false), clamp(p.x, 80, WORLD_W-80), clamp(p.y, 80, WORLD_H-80), "ally");
+    tank.angle=facing;
+    tank.turretAngle=facing;
     placeOperationEntitySafely(tank, {x:p.x,y:p.y}, {clearance:28,maxRadius:680});
     game.allies.push(tank);
     initAIMission(tank, game.allies.length - 1);
+  }
+}
+
+function updateOperationRiverState() {
+  if (!game?.operation || !game.map?.rivers?.length || !game.player?.alive) return;
+  const info=riverInfoAtPoint(game.map,game.player.x,game.player.y);
+  const state=info?.kind || "land";
+  if (!game.operation.riverNotices) game.operation.riverNotices={};
+  if (state !== game.operation.riverState) {
+    if (state === "bridge" && !game.operation.riverNotices.bridge) {
+      addRadio(`${info.name} 진입. 교량 위에서는 속도를 유지할 수 있지만 적 화력이 집중될 수 있습니다.`,"neutral");
+      game.operation.riverNotices.bridge=true;
+    } else if (state === "ford" && !game.operation.riverNotices.ford) {
+      addRadio(`${info.name} 도하 시작. 이동 속도가 크게 감소하므로 연막과 엄호 화력을 활용하십시오.`,"bad");
+      game.operation.riverNotices.ford=true;
+    } else if (state === "deep" && !game.operation.riverNotices.deep) {
+      addRadio(`깊은 강물에 진입했습니다. 직접 건널 수 있지만 기동력이 극도로 낮아집니다.`,"bad");
+      game.operation.riverNotices.deep=true;
+    } else if (state === "land" && ["bridge","ford","deep"].includes(game.operation.riverState) && !game.operation.riverNotices.completed) {
+      addRadio("도하 완료. 교두보를 넓히고 후속 부대의 통로를 확보하십시오.","good");
+      game.operation.riverNotices.completed=true;
+    }
+    game.operation.riverState=state;
   }
 }
 
@@ -11891,6 +12620,7 @@ function updateOperationBattle(dt) {
   const op = game.operation;
   const p = game.player;
   if (!p.alive) return;
+  updateOperationRiverState();
 
   if (!op.allSectorsCleared) {
     const hostiles = operationSectorHostiles(op.currentSector);
@@ -11905,7 +12635,7 @@ function updateOperationBattle(dt) {
       const playerNear = Math.hypot(p.x-zone.x,p.y-zone.y) < zone.r * 1.35;
       const revealLastStand = mobileHostiles === 0 || (playerNear && hostiles.total <= 2) || op.sectorElapsed >= 45;
       if (revealLastStand) {
-        for (const hostile of [...hostiles.tanks, ...hostiles.supports, ...hostiles.guns, ...hostiles.fortresses]) {
+        for (const hostile of [...hostiles.tanks, ...hostiles.supports, ...hostiles.guns, ...hostiles.pillboxes, ...hostiles.fortresses]) {
           hostile.spotted = true;
           hostile.visibleMemory = Math.max(hostile.visibleMemory || 0, 12);
           hostile.threatSeen = true;
@@ -12158,7 +12888,7 @@ function operationStatusText() {
   const current = game.operation.allSectorsCleared
     ? operationFinalZone()
     : zones[Math.min(game.operation.currentSector || 0, zones.length - 1)] || operationFinalZone();
-  const active = game.operation.allSectorsCleared ? {tanks:[],supports:[],guns:[],fortresses:[],total:0} : operationSectorHostiles(game.operation.currentSector || 0);
+  const active = game.operation.allSectorsCleared ? {tanks:[],supports:[],guns:[],pillboxes:[],fortresses:[],total:0} : operationSectorHostiles(game.operation.currentSector || 0);
   const d = current ? Math.round(Math.hypot(game.player.x-current.x, game.player.y-current.y)) : 0;
   const reserves = Math.max(0, game.operationRespawnsLeft || 0);
   const cleared = Object.keys(game.operation.cleared || {}).filter(k => game.operation.cleared[k]).length;
@@ -12166,7 +12896,7 @@ function operationStatusText() {
   const secure = active.total <= 0 && !game.operation.allSectorsCleared
     ? ` · ${game.operation.securingWithInfantry ? "보병 확보" : game.operation.securingWithPlayer ? "전차 단독 확보" : "구역 확보 대기"} ${game.operation.secureTimer.toFixed(1)}/${game.operation.secureRequired.toFixed(1)}`
     : "";
-  return `<br>작전 구역 ${Math.min(cleared+1, totalSectors)}/${totalSectors}: ${current ? current.name : "돌파"} · 거리 ${d}<br>적 기갑 ${active.tanks.length}대 / 지원 ${active.supports.length}개 / 대전차포 ${active.guns.length}문 / 요새 ${active.fortresses.length}개${secure}<br>아군 지원 ${friendlySupport}개 · 지시 ${operationOrderLabel(game.operation.supportOrder)} · 예비 전차 ${reserves}대`;
+  return `<br>전장 ${game.map.operationVariantName || "제병협동 작전"} · 구역 ${Math.min(cleared+1, totalSectors)}/${totalSectors}: ${current ? current.name : "돌파"} · 거리 ${d}<br>적 기갑 ${active.tanks.length}대 / 지원 ${active.supports.length}개 / 대전차포 ${active.guns.length}문 / 토치카 ${active.pillboxes.length}개 / 요새 ${active.fortresses.length}개${secure}<br>아군 지원 ${friendlySupport}개 · 지시 ${operationOrderLabel(game.operation.supportOrder)} · 예비 전차 ${reserves}대`;
 }
 
 function operationOrderLabel(order) {
@@ -13421,10 +14151,21 @@ function toggleMenu() {
 
 function terrainAt(x, y) {
   if (!game) return {speed:1, name:"평지", ballistic:1, cover:0};
+  const river = riverInfoAtPoint(game.map,x,y);
+  if (river) {
+    if (river.kind === "bridge") return {speed:river.speed,name:river.name,ballistic:1,cover:0.02,riverKind:"bridge"};
+    if (river.kind === "ford") return {speed:river.speed,name:river.name,ballistic:0.999,cover:0.03,riverKind:"ford"};
+    return {speed:river.speed,name:river.name,ballistic:0.999,cover:0.01,riverKind:"deep"};
+  }
   for (const s of (game.map.sectorZones || [])) {
     if (x >= s.x && x <= s.x + s.w && y >= s.y && y <= s.y + s.h) {
       if (s.terrain === "city") return {speed:0.76, name:"시가지", ballistic:0.998, cover:0.13};
       if (s.terrain === "forest") return {speed:0.72, name:"숲지대", ballistic:0.997, cover:0.16};
+      if (s.terrain === "swamp") return {speed:0.55, name:"습지", ballistic:0.998, cover:0.03};
+      if (s.terrain === "mountain") return {speed:0.68, name:"산악", ballistic:0.997, cover:0.12};
+      if (s.terrain === "hill") return {speed:0.82, name:"구릉", ballistic:0.998, cover:0.08};
+      if (s.terrain === "dune") return {speed:0.78, name:"모래 능선", ballistic:0.998, cover:0.04};
+      if (s.terrain === "rock") return {speed:0.72, name:"암석 고개", ballistic:0.997, cover:0.10};
       if (s.terrain === "fort") return {speed:0.82, name:"방어선", ballistic:0.997, cover:0.10};
       return {speed:1, name:s.name || "작전구역", ballistic:1, cover:0.02};
     }
@@ -13523,6 +14264,9 @@ function processRepair(tank, dt, active) {
 }
 function tankSightRange(tank) {
   if (tank?.isSupportUnit && Number.isFinite(tank.supportSight)) return tank.supportSight;
+  if (tank?.isFortress) return 1120;
+  if (tank?.isAntiTankGun) return 980;
+  if (tank?.isPillbox) return 720;
   const cls = tank.t.cls;
   const base = cls === "경전차" ? 900 : cls === "구축전차" ? 760 : cls === "중전차" ? 560 : cls === "자주포" ? 520 : 680;
   const terr = terrainAt(tank.x, tank.y);
@@ -13593,7 +14337,13 @@ function updateVisibility(dt) {
     }
     const seen = friendlies.some(f => hasLineOfSight(f,fixed)) ||
       (fixed.fireReveal > 0 && friendlies.some(f => Math.hypot(f.x-fixed.x,f.y-fixed.y) < 1050));
-    if (seen) fixed.visibleMemory = 4.0;
+    if (seen) {
+      if (!fixed.spotted && fixed.isPillbox && !fixed.threatSeen) {
+        fixed.threatSeen=true;
+        addRadio("은폐된 소형 토치카 발견. 중기관총 사격구를 우회하거나 고폭탄으로 제압하십시오.","bad");
+      }
+      fixed.visibleMemory = 4.0;
+    }
     fixed.visibleMemory = Math.max(0,(fixed.visibleMemory || 0)-dt);
     fixed.spotted = fixed.visibleMemory > 0;
   }
@@ -13605,9 +14355,11 @@ function operationRespawnPoint() {
     .sort((a,b) => a.stage-b.stage);
   const ref = cleared[cleared.length-1] || {...game.map.player,name:"기갑 집결지",r:260};
   const spread = Math.min(150, (ref.r || 260) * 0.42);
+  const geometry=Number.isFinite(ref.stage)?operationApproachGeometry(ref.stage):{fx:1,fy:0,sx:0,sy:1};
+  const lateral=rand(-spread,spread);
   const preferred = {
-    x:(ref.x || game.map.player.x) - Math.min(95, (ref.r || 260) * 0.28),
-    y:(ref.y || WORLD_H*0.5) + rand(-spread,spread)
+    x:(ref.x || game.map.player.x)-geometry.fx*Math.min(95,(ref.r || 260)*0.28)+geometry.sx*lateral,
+    y:(ref.y || WORLD_H*0.5)-geometry.fy*Math.min(95,(ref.r || 260)*0.28)+geometry.sy*lateral
   };
   const point = findSafeOperationPosition(preferred, operationEntityRadius(game.player), {
     ignore:game.player,
@@ -14037,6 +14789,7 @@ function artilleryTargetRoleScore(target) {
   const scores = {
     "자주포":390,
     "대전차포":330,
+    "토치카":180,
     "진지":275,
     "구축전차":220,
     "중전차":205,
@@ -14336,10 +15089,12 @@ function armorSide(target, incomingAngle) {
 
 function hitTank(shell, tank) {
   const smallArms = shell.caliber === "SMALL_ARMS";
+  const heavyMachineGun = shell.caliber === "HMG";
+  const rapidFire = smallArms || heavyMachineGun;
   const infantryTarget = tank.isSupportUnit && (tank.supportKind === "infantry" || tank.supportKind === "motorized");
   const antiTankGunTarget = !!tank.isAntiTankGun;
   const missionConvoyTarget = !!tank.isMissionConvoy;
-  const directGunHit = !smallArms && shell.caliber !== "SMOKE" && !shell.smoke;
+  const directGunHit = !rapidFire && shell.caliber !== "SMOKE" && !shell.smoke;
   const side = armorSide(tank, shell.angle);
   const armor = tank.t.armor[side];
   const rangePenalty = clamp(1 - shell.range / 2200, 0.55, 1);
@@ -14371,6 +15126,16 @@ function hitTank(shell, tank) {
     text = "도탄";
   }
 
+  // 요새·토치카의 중기관총은 얇은 장갑에는 관통 피해를 주고,
+  // 두꺼운 전차에도 관측장비·외부 부품을 긁는 낮은 누적 피해를 준다.
+  // 빠른 연사 때문에 한 발 피해는 작게 제한한다.
+  if (heavyMachineGun) {
+    const armorFactor = clamp(1-effectiveArmor/210,0.27,0.94);
+    dmg = Math.max(dmg,shell.dmg*armorFactor);
+    penetrated = overmatch > 0;
+    text = penetrated ? "중기관총 관통" : "중기관총 피해";
+  }
+
   // 보병 계열에는 장갑 관통식보다 주포 직격 자체가 치명적이다.
   // 소화기탄과 연막탄은 제외해 보병끼리의 교전은 낮은 피해를 유지한다.
   if (infantryTarget && directGunHit) {
@@ -14399,21 +15164,31 @@ function hitTank(shell, tank) {
 
   if (dmg > 0) {
     let modText = "";
-    if (penetrated && !smallArms) modText = applyModuleDamage(tank, side, shell, overmatch);
+    if (penetrated && !rapidFire) modText = applyModuleDamage(tank, side, shell, overmatch);
     const ammoRackBoom = modText.includes("유폭");
     if (ammoRackBoom) dmg = tank.maxHp * 2;
     tank.hp = Math.max(0, tank.hp - dmg);
-    tank.lastHit = smallArms ? `소화기 피해 · ${dmg.toFixed(1)}` : `${text}${modText} · 피해 ${Math.round(dmg)}`;
-    if (smallArms) game.effects.push({type:"smallHit", x:shell.x, y:shell.y, age:0, life:0.12});
+    tank.lastHit = smallArms
+      ? `소화기 피해 · ${dmg.toFixed(1)}`
+      : heavyMachineGun
+        ? `${text} · ${dmg.toFixed(1)}`
+        : `${text}${modText} · 피해 ${Math.round(dmg)}`;
+    if (rapidFire) game.effects.push({type:"smallHit", x:shell.x, y:shell.y, age:0, life:0.12});
     else impactFeedback(shell, tank, penetrated, ammoRackBoom, dmg, side);
-    if (tank.team === "player") game.playerReceivedDamage = (game.playerReceivedDamage || 0) + dmg;
+    if (tank.team === "player") {
+      game.playerReceivedDamage = (game.playerReceivedDamage || 0) + dmg;
+      if (heavyMachineGun && (!game.lastHeavyMachineGunHit || game.time-game.lastHeavyMachineGunHit > 0.34)) {
+        game.hitIndicator = {angle:angleTo(tank,shell),time:0.42,life:0.42,text:"중기관총"};
+        game.lastHeavyMachineGunHit = game.time;
+      }
+    }
     if (shell.shooter) shell.shooter.damageDone = (shell.shooter.damageDone || 0) + dmg;
     if (shell.shooter && shell.shooter.team === "player") {
       game.playerDamage = (game.playerDamage || 0) + dmg;
       if (tank.isBaseTurret) game.playerTurretDamage = (game.playerTurretDamage || 0) + dmg;
-      if (penetrated && !smallArms) game.playerPenetrations = (game.playerPenetrations || 0) + 1;
+      if (penetrated && !rapidFire) game.playerPenetrations = (game.playerPenetrations || 0) + 1;
     }
-    if (!smallArms) {
+    if (!rapidFire) {
       const logKind = shell.shooter && shell.shooter.team === "player" ? "good" : tank.team === "player" ? "bad" : "neutral";
       addLog(`${shooterName} → ${targetName}: ${tank.lastHit} · 유효장갑 ${Math.round(effectiveArmor)} / 관통 ${Math.round(currentPen)}`, logKind);
       playSound(penetrated || shell.caliber === "HE" ? "pen" : "bounce");
@@ -14421,10 +15196,10 @@ function hitTank(shell, tank) {
     }
     if (tank.hp <= 0) destroyTank(tank, shell);
   } else {
-    if (!smallArms) tank.lastHit = text;
+    if (!rapidFire) tank.lastHit = text;
     if (shell.shooter) shell.shooter.bounces = (shell.shooter.bounces || 0) + 1;
     if (shell.shooter && shell.shooter.team === "player") game.playerBounces = (game.playerBounces || 0) + 1;
-    if (smallArms) {
+    if (rapidFire) {
       game.effects.push({type:"smallHit", x:shell.x, y:shell.y, age:0, life:0.08});
     } else {
       const logKind = shell.shooter && shell.shooter.team === "player" ? "neutral" : tank.team === "player" ? "bad" : "neutral";
@@ -14434,7 +15209,7 @@ function hitTank(shell, tank) {
       impactFeedback(shell, tank, false, false, 0, side);
     }
   }
-  if (!smallArms) game.effects.push({type:"hitText", x:tank.x, y:tank.y-38, age:0, life:1.0, text:tank.lastHit});
+  if (!rapidFire) game.effects.push({type:"hitText", x:tank.x, y:tank.y-38, age:0, life:1.0, text:tank.lastHit});
 }
 
 function destroyTank(tank, shell) {
@@ -14758,21 +15533,24 @@ function assignedOperationObjectiveFor(tank) {
   if (isFriendlyTeam(tank.team)) {
     const idx = clamp(stage, 0, zones.length - 1);
     const base = zones[idx];
+    const g=operationApproachGeometry(Math.min(idx,operationCombatZones().length-1));
     const rearOffset = role === "자주포" ? 620 : role === "구축전차" ? 320 : role === "중전차" ? 230 : 130;
     return {
       ...base,
-      x:clamp(base.x - rearOffset, 100, WORLD_W - 100),
-      y:clamp(base.y + lane * (role === "자주포" ? 190 : 230), 140, WORLD_H-140),
+      x:clamp(base.x-g.fx*rearOffset+g.sx*lane*(role === "자주포" ? 190 : 230),100,WORLD_W-100),
+      y:clamp(base.y-g.fy*rearOffset+g.sy*lane*(role === "자주포" ? 190 : 230),140,WORLD_H-140),
       r:base.r || 220
     };
   }
 
   const enemyIdx = clamp(stage, 0, zones.length - 1);
   const base = zones[enemyIdx] || game.map.player;
+  const g=operationApproachGeometry(Math.min(enemyIdx,operationCombatZones().length-1));
+  const rearOffset=role === "자주포" ? 540 : 180;
   return {
     ...base,
-    x:base.x + (role === "자주포" ? 540 : 180),
-    y:clamp(base.y + lane * 240, 140, WORLD_H-140),
+    x:clamp(base.x+g.fx*rearOffset+g.sx*lane*240,100,WORLD_W-100),
+    y:clamp(base.y+g.fy*rearOffset+g.sy*lane*240,140,WORLD_H-140),
     r:base.r || 220
   };
 }
@@ -14894,6 +15672,15 @@ function pathCollisionScore(tank, angle, goal=null) {
     } else {
       const d = Math.hypot(o.x - end.x, o.y - end.y);
       if (d < rad + 40) score += (rad + 40 - d) * 4.0;
+    }
+  }
+
+  if (game.map.rivers?.length) {
+    for (let step=1;step<=8;step++) {
+      const t=step/8;
+      const water=riverInfoAtPoint(game.map,lerp(start.x,end.x,t),lerp(start.y,end.y,t));
+      if (water?.kind === "deep") score += 175;
+      else if (water?.kind === "ford") score += 8;
     }
   }
 
@@ -15649,13 +16436,18 @@ function drawObjectiveZones(map) {
       ctx.textAlign = "center";
       ctx.fillText(z.name, sp.x, sp.y + 6);
       if (active && z.stage <= (game.operation?.maxSector ?? 4)) {
-        const rear = worldToScreen(z.x - Math.min(420, z.r * 1.05), z.y);
+        const g=operationApproachGeometry(z.stage);
+        const rearDistance=Math.min(420,z.r*1.05);
+        const rearWorld={x:z.x-g.fx*rearDistance,y:z.y-g.fy*rearDistance};
+        const rearA=worldToScreen(rearWorld.x-g.sx*z.r*0.72,rearWorld.y-g.sy*z.r*0.72);
+        const rearB=worldToScreen(rearWorld.x+g.sx*z.r*0.72,rearWorld.y+g.sy*z.r*0.72);
+        const rear=worldToScreen(rearWorld.x,rearWorld.y);
         ctx.strokeStyle = "rgba(158,216,255,.72)";
         ctx.lineWidth = 2;
         ctx.setLineDash([8,7]);
         ctx.beginPath();
-        ctx.moveTo(rear.x, rear.y - rr * 0.72);
-        ctx.lineTo(rear.x, rear.y + rr * 0.72);
+        ctx.moveTo(rearA.x,rearA.y);
+        ctx.lineTo(rearB.x,rearB.y);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = "#bde1ff";
@@ -15719,6 +16511,64 @@ function drawObjectiveZones(map) {
   }
 }
 
+function drawOperationRivers() {
+  if (!game?.map?.rivers?.length) return;
+  const c=game.camera;
+  for (const river of game.map.rivers) {
+    if (!river.points?.length) continue;
+    const strokePath=() => {
+      ctx.beginPath();
+      river.points.forEach((point,index) => {
+        const p=worldToScreen(point.x,point.y);
+        if (index===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y);
+      });
+    };
+    ctx.save();
+    ctx.lineCap="round";ctx.lineJoin="round";
+    ctx.strokeStyle="rgba(39,49,39,.72)";
+    ctx.lineWidth=Math.max(8,(river.width+34)*c.zoom);
+    strokePath();ctx.stroke();
+    ctx.strokeStyle="rgba(37,91,111,.88)";
+    ctx.lineWidth=Math.max(7,river.width*c.zoom);
+    strokePath();ctx.stroke();
+    ctx.strokeStyle="rgba(112,174,187,.30)";
+    ctx.lineWidth=Math.max(2,river.width*c.zoom*0.50);
+    strokePath();ctx.stroke();
+    ctx.restore();
+
+    for (const ford of (river.fords || [])) {
+      const p=worldToScreen(ford.x,ford.y),r=ford.r*c.zoom;
+      ctx.save();
+      ctx.fillStyle="rgba(132,150,116,.36)";
+      ctx.strokeStyle="rgba(229,213,151,.80)";
+      ctx.lineWidth=Math.max(1.5,2*c.zoom);
+      ctx.setLineDash([8*c.zoom,7*c.zoom]);
+      ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*0.55,0,0,TAU);ctx.fill();ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle="#f2e0a7";ctx.font="bold 11px system-ui";ctx.textAlign="center";
+      ctx.fillText("얕은 도하",p.x,p.y+4);
+      ctx.restore();
+    }
+
+    for (const bridge of (river.bridges || [])) {
+      const p=worldToScreen(bridge.x,bridge.y),length=bridge.length*c.zoom,width=bridge.width*c.zoom;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(bridge.angle || 0);
+      ctx.fillStyle="#56544b";ctx.strokeStyle="#bbb18a";ctx.lineWidth=Math.max(1.3,2*c.zoom);
+      ctx.fillRect(-length/2,-width/2,length,width);ctx.strokeRect(-length/2,-width/2,length,width);
+      ctx.strokeStyle="rgba(26,26,24,.72)";ctx.lineWidth=Math.max(1,1.4*c.zoom);
+      const sleeperGap=Math.max(12,28*c.zoom);
+      for (let x=-length/2+sleeperGap;x<length/2;x+=sleeperGap) {
+        ctx.beginPath();ctx.moveTo(x,-width/2);ctx.lineTo(x,width/2);ctx.stroke();
+      }
+      ctx.strokeStyle="rgba(221,211,171,.72)";ctx.lineWidth=Math.max(1,1.5*c.zoom);
+      for (const side of [-1,1]) {
+        ctx.beginPath();ctx.moveTo(-length/2,side*width*0.38);ctx.lineTo(length/2,side*width*0.38);ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+}
+
 function drawTerrain() {
   const map = game.map;
   ctx.fillStyle = map.bg;
@@ -15747,6 +16597,7 @@ function drawTerrain() {
       ctx.textAlign = "center";
       ctx.fillText(s.name, p.x + s.w*c.zoom/2, p.y + 34);
     }
+    drawOperationRivers();
     // 작전 맵의 주 보급로와 우회 전차로. 구역마다 길이 휘어져 측면 기동이 가능하다.
     for (const route of (game.map.operationRoutes || [])) {
       if (!route.points || route.points.length < 2) continue;
@@ -15833,12 +16684,12 @@ function drawObstacle(o) {
 }
 
 function drawBaseTurret(turret) {
-  if (game?.mode === "operation" && turret.isAntiTankGun && !isFriendlyTeam(turret.team) && !turret.spotted) return;
+  if (game?.mode === "operation" && (turret.isAntiTankGun || turret.isPillbox) && !isFriendlyTeam(turret.team) && !turret.spotted) return;
   const c = game.camera;
   const s = worldToScreen(turret.x, turret.y);
   const friendly = isFriendlyTeam(turret.team);
   const outline = friendly ? "#b9d7ff" : "#ffc0b8";
-  const visualRadius = (turret.isFortress ? 49 : turret.isAntiTankGun ? 27 : 32) * c.zoom;
+  const visualRadius = (turret.isFortress ? 49 : turret.isPillbox ? 34 : turret.isAntiTankGun ? 27 : 32) * c.zoom;
 
   ctx.save();
   ctx.translate(s.x, s.y);
@@ -15881,6 +16732,25 @@ function drawBaseTurret(turret) {
     ctx.beginPath(); ctx.moveTo(w*0.18,-scale); ctx.lineTo(w*0.82,-scale); ctx.stroke();
     ctx.restore();
 
+    // 주포와 별개로 움직이는 측면 중기관총 총좌.
+    if (turret.machineGun) {
+      const mg = turret.machineGun;
+      ctx.save();
+      ctx.translate(w*0.04,h*0.31*mg.side);
+      ctx.rotate(normAng(mg.angle-turret.angle));
+      ctx.fillStyle = "#252724";
+      ctx.strokeStyle = outline;
+      ctx.lineWidth = Math.max(1,1.3*scale);
+      ctx.beginPath(); ctx.arc(0,0,5.5*scale,0,TAU); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = "#161716";
+      ctx.lineWidth = Math.max(2.4,3.6*scale);
+      ctx.beginPath(); ctx.moveTo(2*scale,0); ctx.lineTo(28*scale,0); ctx.stroke();
+      ctx.strokeStyle = "#8b8c83";
+      ctx.lineWidth = Math.max(0.8,1.2*scale);
+      ctx.beginPath(); ctx.moveTo(4*scale,-scale); ctx.lineTo(28*scale,-scale); ctx.stroke();
+      ctx.restore();
+    }
+
     if (!turret.alive) {
       ctx.strokeStyle = "#141414";
       ctx.lineWidth = Math.max(1.4,2*scale);
@@ -15888,6 +16758,40 @@ function drawBaseTurret(turret) {
       ctx.moveTo(-w*0.18,-h*0.42); ctx.lineTo(-w*0.05,-h*0.08); ctx.lineTo(-w*0.25,h*0.18);
       ctx.moveTo(w*0.08,h*0.42); ctx.lineTo(w*0.02,h*0.10); ctx.lineTo(w*0.24,-h*0.08);
       ctx.stroke();
+    }
+  } else if (turret.isPillbox) {
+    const scale = c.zoom;
+    const w = 64*scale,h = 48*scale;
+    ctx.rotate(turret.angle);
+    ctx.fillStyle = turret.alive ? (friendly ? "#58716f" : "#67645c") : "#30302d";
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = Math.max(1.3,1.9*scale);
+    ctx.beginPath();
+    ctx.moveTo(-w*0.50,h*0.34);
+    ctx.lineTo(-w*0.42,-h*0.12);
+    ctx.quadraticCurveTo(0,-h*0.64,w*0.42,-h*0.12);
+    ctx.lineTo(w*0.50,h*0.34);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    ctx.fillStyle = "rgba(20,21,20,.82)";
+    roundRect(ctx,w*0.10,-h*0.17,w*0.38,h*0.22,2*scale);ctx.fill();
+    if (turret.machineGun) {
+      ctx.save();
+      ctx.translate(w*0.24,-h*0.06);
+      ctx.rotate(normAng(turret.machineGun.angle-turret.angle));
+      ctx.fillStyle = "#232421";
+      ctx.beginPath();ctx.arc(0,0,4.5*scale,0,TAU);ctx.fill();
+      ctx.strokeStyle = "#171817";
+      ctx.lineWidth = Math.max(2.2,3.3*scale);
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(27*scale,0);ctx.stroke();
+      ctx.strokeStyle = "#8a8b82";
+      ctx.lineWidth = Math.max(0.8,1.1*scale);
+      ctx.beginPath();ctx.moveTo(3*scale,-scale);ctx.lineTo(27*scale,-scale);ctx.stroke();
+      ctx.restore();
+    }
+    if (!turret.alive) {
+      ctx.strokeStyle="#171715";
+      ctx.lineWidth=Math.max(1.2,1.8*scale);
+      ctx.beginPath();ctx.moveTo(-w*0.18,-h*0.35);ctx.lineTo(0,0);ctx.lineTo(-w*0.12,h*0.30);ctx.stroke();
     }
   } else if (turret.isAntiTankGun) {
     const scale = c.zoom;
@@ -15952,7 +16856,7 @@ function drawBaseTurret(turret) {
   }
   ctx.restore();
 
-  const barW = (turret.isFortress ? 104 : 78) * c.zoom, barH = 8;
+  const barW = (turret.isFortress ? 104 : turret.isPillbox ? 82 : 78) * c.zoom, barH = 8;
   const barY = s.y - visualRadius*1.52;
   ctx.fillStyle = "rgba(0,0,0,.65)";
   ctx.fillRect(s.x - barW/2, barY, barW, barH);
@@ -15963,6 +16867,8 @@ function drawBaseTurret(turret) {
   ctx.textAlign = "center";
   const label = turret.isFortress
     ? (friendly ? "아군 요새" : "요새")
+    : turret.isPillbox
+      ? (friendly ? "아군 소형 토치카" : "소형 토치카")
     : turret.isAntiTankGun
       ? (friendly ? "아군 대전차포" : "적 대전차포")
       : (friendly ? "아군 진지" : "적 진지");
@@ -16332,16 +17238,18 @@ function drawShells() {
     const a = worldToScreen(s.px, s.py);
     const b = worldToScreen(s.x, s.y);
     const smallArms = s.caliber === "SMALL_ARMS";
-    ctx.strokeStyle = smallArms ? "#e6cf9b" : s.caliber === "SMOKE" ? "#d9d9d0" : s.caliber === "HE" ? "#ffd37a" : s.caliber === "APCR" ? "#cfe9ff" : "#fff5cc";
-    ctx.lineWidth = smallArms ? Math.max(0.6, 0.85*c.zoom) : s.caliber === "HE" ? 3 : 2;
+    const heavyMachineGun = s.caliber === "HMG";
+    const rapidFire = smallArms || heavyMachineGun;
+    ctx.strokeStyle = smallArms ? "#e6cf9b" : heavyMachineGun ? "#ffd68c" : s.caliber === "SMOKE" ? "#d9d9d0" : s.caliber === "HE" ? "#ffd37a" : s.caliber === "APCR" ? "#cfe9ff" : "#fff5cc";
+    ctx.lineWidth = rapidFire ? Math.max(0.7, (heavyMachineGun ? 1.12 : 0.85)*c.zoom) : s.caliber === "HE" ? 3 : 2;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
     ctx.lineTo(b.x, b.y);
     ctx.stroke();
 
-    ctx.fillStyle = smallArms ? "#f0d6a0" : "#fff";
+    ctx.fillStyle = rapidFire ? (heavyMachineGun ? "#ffe0a0" : "#f0d6a0") : "#fff";
     ctx.beginPath();
-    ctx.arc(b.x, b.y, smallArms ? Math.max(0.65, 1.05*c.zoom) : Math.max(2, 3*c.zoom), 0, TAU);
+    ctx.arc(b.x, b.y, rapidFire ? Math.max(0.7, (heavyMachineGun ? 1.3 : 1.05)*c.zoom) : Math.max(2, 3*c.zoom), 0, TAU);
     ctx.fill();
   }
 }
@@ -16684,6 +17592,29 @@ function drawMinimap() {
   ctx.strokeRect(x,y,w,h);
   function mp(t) {
     return {x:x + t.x/WORLD_W*w, y:y + t.y/WORLD_H*h};
+  }
+  for (const river of (game.map.rivers || [])) {
+    if (!river.points?.length) continue;
+    ctx.strokeStyle="#3d8298";
+    ctx.lineWidth=Math.max(2,(river.width || 300)/WORLD_W*w);
+    ctx.lineCap="round";
+    ctx.beginPath();
+    river.points.forEach((point,index) => {
+      const rp=mp(point);
+      if (index===0) ctx.moveTo(rp.x,rp.y); else ctx.lineTo(rp.x,rp.y);
+    });
+    ctx.stroke();
+    ctx.lineCap="butt";
+    for (const bridge of (river.bridges || [])) {
+      const bp=mp(bridge);
+      ctx.fillStyle="#d2c79f";
+      ctx.fillRect(bp.x-4,bp.y-2,8,4);
+    }
+    for (const ford of (river.fords || [])) {
+      const fp=mp(ford);
+      ctx.strokeStyle="#ead791";ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(fp.x,fp.y,4,0,TAU);ctx.stroke();
+    }
   }
   for (const route of (game.map.operationRoutes || [])) {
     if (!route.points || route.points.length < 2) continue;
