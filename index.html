@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>강철 전선 1944 · 빌드 19</title>
+<title>강철 전선 1944 · 빌드 20</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -4691,7 +4691,7 @@
 <div id="menu" class="lobbyMenu">
   <div class="lobbyTopBar">
     <div class="lobbyBrand" aria-label="강철 전선 1944">
-      <span>전차전 지휘소 <i class="lobbyBuildBadge">빌드 19</i></span>
+      <span>전차전 지휘소 <i class="lobbyBuildBadge">빌드 20</i></span>
       <strong>강철 전선 <b>1944</b></strong>
     </div>
     <div id="battleTypeButtons" class="battleTabs">
@@ -5244,7 +5244,7 @@
           <section class="operationOptionBlock" aria-labelledby="realisticVariantTitle">
             <div class="operationOptionHeading">
               <h4 id="realisticVariantTitle">세부 전장</h4>
-              <span id="realisticOperationCatalogStatus" class="operationCatalogStatus">빌드 19</span>
+              <span id="realisticOperationCatalogStatus" class="operationCatalogStatus">빌드 20</span>
             </div>
             <p id="realisticOperationCatalogSummary">선택한 지형 안에서 실제 작전에 사용할 진격로와 교전 구역을 고릅니다.</p>
             <div id="realisticOperationVariantGrid" class="operationChoiceGrid" role="group" aria-label="리얼리스틱 세부 전장 선택"></div>
@@ -6597,18 +6597,63 @@ let WORLD_W = BASE_WORLD_W;
 let WORLD_H = BASE_WORLD_H;
 
 let W = 0, H = 0, DPR = 1;
-function resize() {
-  DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-  W = Math.floor(window.innerWidth);
-  H = Math.floor(window.innerHeight);
-  canvas.width = Math.floor(W * DPR);
-  canvas.height = Math.floor(H * DPR);
-  canvas.style.width = W + "px";
-  canvas.style.height = H + "px";
+function viewportCssSize() {
+  const root = document.documentElement;
+  return {
+    width: Math.max(1, Math.round(window.innerWidth || root.clientWidth || 1)),
+    height: Math.max(1, Math.round(window.innerHeight || root.clientHeight || 1))
+  };
+}
+function viewportPixelRatio() {
+  return Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+}
+function canvasViewportOutOfSync() {
+  const size = viewportCssSize();
+  const ratio = viewportPixelRatio();
+  return W !== size.width || H !== size.height || DPR !== ratio
+    || canvas.width !== Math.max(1, Math.round(size.width * ratio))
+    || canvas.height !== Math.max(1, Math.round(size.height * ratio));
+}
+function resize(force = false) {
+  const size = viewportCssSize();
+  const nextDpr = viewportPixelRatio();
+  const pixelWidth = Math.max(1, Math.round(size.width * nextDpr));
+  const pixelHeight = Math.max(1, Math.round(size.height * nextDpr));
+  const changed = force || W !== size.width || H !== size.height || DPR !== nextDpr
+    || canvas.width !== pixelWidth || canvas.height !== pixelHeight;
+  W = size.width;
+  H = size.height;
+  DPR = nextDpr;
+  if (changed) {
+    // backing store를 다시 만들면 이전 크기 바깥에 남던 프레임도 함께 제거된다.
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+  }
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
-window.addEventListener("resize", resize);
-resize();
+
+let viewportResizeFrame = 0;
+let viewportResizeTimer = 0;
+function scheduleViewportResize() {
+  if (viewportResizeFrame) cancelAnimationFrame(viewportResizeFrame);
+  viewportResizeFrame = requestAnimationFrame(() => {
+    viewportResizeFrame = 0;
+    resize();
+    // 전체 화면 전환은 이벤트 직후보다 다음 프레임에 실제 크기가 확정되는 브라우저가 있다.
+    requestAnimationFrame(() => resize());
+  });
+  if (viewportResizeTimer) clearTimeout(viewportResizeTimer);
+  viewportResizeTimer = setTimeout(() => {
+    viewportResizeTimer = 0;
+    resize();
+  }, 180);
+}
+window.addEventListener("resize", scheduleViewportResize, {passive:true});
+window.addEventListener("orientationchange", scheduleViewportResize, {passive:true});
+window.visualViewport?.addEventListener("resize", scheduleViewportResize, {passive:true});
+resize(true);
 
 function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 function lerp(a, b, t) { return a + (b - a) * t; }
@@ -13369,13 +13414,21 @@ async function toggleFullscreen() {
   } catch (error) {
     reportGameError("FULLSCREEN_ERROR", error);
   } finally {
+    resize();
+    scheduleViewportResize();
     fullscreenBtn?.blur();
   }
 }
 
+function handleFullscreenChange() {
+  syncFullscreenButton();
+  resize();
+  scheduleViewportResize();
+}
+
 if (fullscreenBtn) fullscreenBtn.addEventListener("click", toggleFullscreen);
-document.addEventListener("fullscreenchange", syncFullscreenButton);
-document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
+document.addEventListener("fullscreenchange", handleFullscreenChange);
+document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
 syncFullscreenButton();
 if (setupCancelBtn) setupCancelBtn.onclick = closeBattleSetup;
 if (setupSectionNav) setupSectionNav.addEventListener("click",event=>{
@@ -24782,6 +24835,8 @@ function drawHUD() {
 }
 
 function render() {
+  // resize/fullscreen 이벤트가 누락되거나 늦게 와도 오래된 화면 조각을 남기지 않는다.
+  if (canvasViewportOutOfSync()) resize();
   const lobbyVisible = menu && !menu.classList.contains("hidden");
   if (lobbyVisible) drawLobbyTankPreview(performance.now());
   ctx.clearRect(0,0,W,H);
