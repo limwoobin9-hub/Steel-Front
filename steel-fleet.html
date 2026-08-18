@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>강철 함대 1944 · 빌드 19</title>
+<title>강철 함대 1944</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10171c;color:#e7edf1;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif}button,select,input{font:inherit}button{min-height:38px;padding:8px 13px;border:1px solid #3a4853;border-radius:7px;background:#202a32;color:#e7edf1;font-weight:750;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.035),0 2px 7px rgba(4,8,11,.24)}button:hover:not(:disabled){background:#303c45;border-color:#556572;color:#fff}button.selected{background:#285978;border-color:#69a8ce;color:#fff;box-shadow:inset 0 -3px #69a8ce}button:disabled{opacity:.42;cursor:not-allowed}select,input{min-height:38px;border:1px solid #3a4853;border-radius:6px;background:#141b21;color:#e7edf1;padding:6px 9px}.hidden{display:none!important}.small{color:#99a6af;font-size:11px;line-height:1.45}.accent{color:#79b8da}.warn{color:#e0bd6e}.bad{color:#e78379}.good{color:#78c58b}
 #game{display:block;width:100vw;height:100vh;background:#10232c;cursor:crosshair}
@@ -29,8 +29,8 @@
 <body>
 <canvas id="game"></canvas>
 <div id="menu">
-  <div class="topbar">
-    <div class="brand"><span>2차 세계대전 해전 지휘소 <i class="build">빌드 19</i></span><strong>강철 함대 <b>1944</b></strong></div>
+  <div class="topbar lobbyTopBar">
+    <div class="brand lobbyBrand"><span>2차 세계대전 해전 지휘소</span><strong>강철 함대 <b>1944</b></strong></div>
     <div class="tabs battleTabs" id="tabs">
       <button class="tab battleTab selected" data-mode="arcade" type="button"><span>아케이드 전투</span><small>선행 조준 · 빠른 전투</small></button>
       <button class="tab battleTab" data-mode="historical" type="button"><span>역사적 캠페인</span><small>연대기 임무 · 축약 편성</small></button>
@@ -38,8 +38,26 @@
       <button class="tab battleTab" data-mode="realistic" type="button"><span>리얼리스틱 전투</span><small>수동 사격통제 · 대함대</small></button>
     </div>
     <div class="lobbyUtility">
-      <div class="tools lobbyTopTools" aria-label="로비 메뉴">
+      <label class="lobbyRightTools">
+        <span>지형</span>
+        <select id="lobbyBgInput" aria-label="로비 지형">
+          <option value="북대서양" selected>북대서양</option>
+          <option value="덴마크 해협">덴마크 해협</option>
+          <option value="솔로몬 제도">솔로몬 제도</option>
+          <option value="필리핀해">필리핀해</option>
+          <option value="지중해">지중해</option>
+          <option value="비스케이만">비스케이만</option>
+          <option value="노르웨이 피오르">노르웨이 피오르</option>
+          <option value="영국 해협">영국 해협</option>
+          <option value="알류샨 해역">알류샨 해역</option>
+          <option value="마리아나 해역">마리아나 해역</option>
+          <option value="레이테만">레이테만</option>
+          <option value="인도양">인도양</option>
+        </select>
+      </label>
+      <div class="lobbyTopTools" aria-label="로비 메뉴">
         <a class="seriesSwitchLink seriesSwitchFront" href="index.html" title="강철 전선으로 이동">강철 전선</a>
+        <button id="operationsBtn" class="lobbyOperationBtn" type="button">작전</button>
         <button id="recordsBtn" class="lobbyRecordBtn" type="button">기록실</button>
         <button id="trainingBtn" class="lobbyTrainingBtn" type="button">훈련</button>
         <button id="settingsBtn" class="lobbySettingsBtn" type="button">환경 설정</button>
@@ -93,7 +111,7 @@
   <div class="settingsRow"><label>화면 흔들림</label><select id="shakeSetting"><option value="0">끄기</option><option value="0.5">약하게</option><option value="1" selected>보통</option></select></div>
 </div></div></div></div>
 <div id="helpOverlay" class="overlay hidden"><div class="panel"><div class="panelTop"><div><h2>조작 안내</h2><div class="small">원본 전차 게임의 조작 철학을 해전용으로 옮겼습니다.</div></div><button data-close="helpOverlay">닫기</button></div><div class="panelBody"><div class="detailGrid"><div class="detailBox"><small>함정 조종</small><strong>W/S 출력 · A/D 조타</strong></div><div class="detailBox"><small>주포</small><strong>마우스 조준 · 클릭/스페이스 발사</strong></div><div class="detailBox"><small>탄종</small><strong>1 철갑탄 · 2 고폭탄</strong></div><div class="detailBox"><small>표적 고정</small><strong>T · 조준점 가까운 적</strong></div><div class="detailBox"><small>특수 무장</small><strong>Q · 어뢰 또는 함재기</strong></div><div class="detailBox"><small>피해통제</small><strong>R · 화재/침수/모듈 복구</strong></div><div class="detailBox"><small>시야</small><strong>마우스 휠 확대·축소</strong></div><div class="detailBox"><small>일시정지</small><strong>Esc</strong></div><div class="detailBox"><small>사격통제</small><strong>아케이드: 선행점 / 리얼리스틱: 거리·방위만</strong></div></div><div class="note">고증 원칙: 함정의 취역연도, 최고속력, 주포 문수·구경, 대표 장갑 두께, 어뢰·항공대 보유 여부는 실제 제원을 바탕으로 했습니다. 반면 20 km 이상 교전을 브라우저 2D 전장 안에서 처리하기 위해 세계 크기, 장전시간과 포탄 비행시간은 일정 비율로 압축했습니다. 미완성 함정은 역사적 전투에서 제외됩니다.</div></div></div></div>
-<div id="accountOverlay" class="overlay hidden"><div class="panel" style="width:min(520px,94vw)"><div class="panelTop"><div><h2>강철 함대 계정</h2><div class="small">현재 빌드는 서버 없이 로컬 프로필만 사용합니다.</div></div><button data-close="accountOverlay">닫기</button></div><div class="panelBody"><label class="setting"><span>함장 이름</span><input id="captainName" maxlength="20" placeholder="함장"></label><button id="saveCaptain" style="width:100%;margin-top:10px;border-color:#4f8db3;background:#285978">저장</button></div></div></div>
+<div id="accountOverlay" class="overlay hidden"><div class="panel" style="width:min(520px,94vw)"><div class="panelTop"><div><h2>강철 함대 계정</h2><div class="small">현재 버전은 서버 없이 로컬 프로필만 사용합니다.</div></div><button data-close="accountOverlay">닫기</button></div><div class="panelBody"><label class="setting"><span>함장 이름</span><input id="captainName" maxlength="20" placeholder="함장"></label><button id="saveCaptain" style="width:100%;margin-top:10px;border-color:#4f8db3;background:#285978">저장</button></div></div></div>
 
 <div id="hud" class="hidden"><div id="topLeft"></div><div id="topRight"></div><div id="targetInfo" class="targetInfo hidden"></div><div id="message"></div><div id="combatLog" class="combatLog"></div><div id="damagePanel" class="damagePanel"></div><canvas id="minimap" class="minimap" width="380" height="250"></canvas><div id="bottomHud"><div class="bar"><div id="hpFill" class="fill hpFill"></div><div id="hpText" class="barText"></div></div><div class="bar"><div id="reloadFill" class="fill reloadFill"></div><div id="reloadText" class="barText"></div></div></div><div class="weaponPanel"><button id="apBtn" class="weaponBtn selected">1 · AP</button><button id="heBtn" class="weaponBtn">2 · HE</button><button id="specialBtn" class="weaponBtn special">Q · 특수</button><button id="repairBtn" class="weaponBtn repair">R · 피해통제</button></div></div>
 <div id="mobileControls"><div id="movePad" class="movePad"><div id="moveKnob" class="knob"></div></div><div class="mobileActions"><button id="mobileFire" class="fire">발사</button><button id="mobileLock">표적</button><button id="mobileSpecial">특수</button><button id="mobileRepair">피해통제</button></div></div>
@@ -182,7 +200,7 @@ function renderNationButtons(){const root=$('nationButtons');root.innerHTML='';N
 function renderShipGrid(){const cls=$('classFilter').value,year=$('yearFilter').value,status=$('statusFilter').value;const root=$('shipGrid');root.innerHTML='';SHIPS.filter(s=>s.nation===selectedNation).filter(s=>cls==='전체'||s.cls===cls).filter(s=>year==='전체'||s.year<=+year).filter(s=>status==='전체'||(status==='실전'?s.real:!s.real)).forEach(s=>{const b=document.createElement('button');b.className='shipCard'+(s.id===selectedShip.id?' selected':'')+(!s.real?' locked':'');b.innerHTML=`<b>${s.name}<span class="badge">${s.year}</span></b><div class="line"><span class="classBadge">${s.cls}</span> · ${classRole[s.cls]}</div><div class="line">${s.speed}노트 · ${s.mainCount} × ${fmtCal(s.cal)} · 장갑대 ${s.belt} mm</div><div class="line">${s.torps?`어뢰 ${s.torps}문 · `:''}${s.aircraft?`함재기 ${s.aircraft}대 · `:''}${s.real?'실전 취역':'미완성/계획'}</div>`;b.onclick=()=>{selectedShip=s;renderLobby();$('shipDock').classList.add('hidden')};root.appendChild(b)})}
 function fmtCal(mm){return mm>=100?`${mm} mm`:`${mm} mm`}
 function renderLobby(){renderNationButtons();renderShipGrid();$('shipName').textContent=selectedShip.name;$('shipMeta').innerHTML=`${selectedShip.nation} · ${selectedShip.cls} · ${selectedShip.year}년 취역${selectedShip.real?'':' · <span class="warn">실전 미취역</span>'}<br>${classRole[selectedShip.cls]}`;$('shipStats').innerHTML=`<span><small>최고속력</small><b>${selectedShip.speed}노트</b></span><span><small>주포</small><b>${selectedShip.mainCount} × ${fmtCal(selectedShip.cal)}</b></span><span><small>장갑대</small><b>${selectedShip.belt} mm</b></span><span><small>갑판 장갑</small><b>${selectedShip.deck} mm</b></span><span><small>만재/대표 배수량</small><b>${selectedShip.disp.toLocaleString()} t</b></span><span><small>특수 무장</small><b>${selectedShip.aircraft?`함재기 ${selectedShip.aircraft}대`:selectedShip.torps?`어뢰 ${selectedShip.torps}문`:'중포 중심'}</b></span>`;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('selected',b.dataset.mode===selectedMode));}
-function drawPreview(t){const w=preview.width,h=preview.height;pctx.clearRect(0,0,w,h);const g=pctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#344c56');g.addColorStop(.44,'#253a43');g.addColorStop(.45,'#183943');g.addColorStop(1,'#122c35');pctx.fillStyle=g;pctx.fillRect(0,0,w,h);pctx.globalAlpha=.22;pctx.strokeStyle='#bcd5de';for(let y=h*.48;y<h;y+=24){pctx.beginPath();for(let x=0;x<w;x+=16){pctx.lineTo(x,y+Math.sin(x*.045+t*.001+y)*3)}pctx.stroke()}pctx.globalAlpha=1;pctx.save();pctx.translate(w*.52,h*.62);pctx.rotate(-.06+Math.sin(t*.00025)*.015);drawShipModel(pctx,selectedShip,0,0,0,1.95,'ally',1,false);pctx.restore();pctx.fillStyle='rgba(0,0,0,.28)';pctx.fillRect(0,h-62,w,62);pctx.fillStyle='#e7edf1';pctx.font='900 21px sans-serif';pctx.fillText(selectedShip.name,24,h-30);pctx.fillStyle='#a6b5bd';pctx.font='12px sans-serif';pctx.fillText(`${selectedShip.nation} · ${selectedShip.cls} · ${selectedShip.speed}노트 · ${selectedShip.mainCount} × ${selectedShip.cal} mm`,24,h-11)}
+function drawPreview(t){const w=preview.width,h=preview.height;pctx.clearRect(0,0,w,h);const g=pctx.createLinearGradient(0,0,0,h);g.addColorStop(0,'#344c56');g.addColorStop(.44,'#253a43');g.addColorStop(.45,'#183943');g.addColorStop(1,'#122c35');pctx.fillStyle=g;pctx.fillRect(0,0,w,h);pctx.globalAlpha=.22;pctx.strokeStyle='#bcd5de';for(let y=h*.48;y<h;y+=24){pctx.beginPath();for(let x=0;x<w;x+=16){pctx.lineTo(x,y+Math.sin(x*.045+t*.001+y)*3)}pctx.stroke()}pctx.globalAlpha=1;pctx.save();pctx.translate(w*.53,h*.50);pctx.rotate(-.08+Math.sin(t*.00025)*.015);drawShipModel(pctx,selectedShip,0,0,0,1.88,'ally',1,false);pctx.restore();pctx.fillStyle='rgba(0,0,0,.28)';pctx.fillRect(0,h-62,w,62);pctx.fillStyle='#e7edf1';pctx.font='900 21px sans-serif';pctx.fillText(selectedShip.name,24,h-30);pctx.fillStyle='#a6b5bd';pctx.font='12px sans-serif';pctx.fillText(`${selectedShip.nation} · ${selectedShip.cls} · ${selectedShip.speed}노트 · ${selectedShip.mainCount} × ${selectedShip.cal} mm`,24,h-11)}
 function detail(){const s=selectedShip;$('detailTitle').textContent=`${s.name} · 상세 정보`;$('detailBody').innerHTML=`<div class="detailGrid"><div class="detailBox"><small>취역</small><strong>${s.year}년</strong></div><div class="detailBox"><small>대표 배수량</small><strong>${s.disp.toLocaleString()} t</strong></div><div class="detailBox"><small>전장</small><strong>${s.length} m</strong></div><div class="detailBox"><small>최고속력</small><strong>${s.speed}노트</strong></div><div class="detailBox"><small>주포</small><strong>${s.mainCount} × ${s.cal} mm</strong></div><div class="detailBox"><small>역사 최대 사거리</small><strong>약 ${s.range} km</strong></div><div class="detailBox"><small>수선부 장갑대</small><strong>${s.belt} mm</strong></div><div class="detailBox"><small>장갑 갑판</small><strong>${s.deck} mm</strong></div><div class="detailBox"><small>주포탑 대표 장갑</small><strong>${s.turret} mm</strong></div><div class="detailBox"><small>어뢰 발사관</small><strong>${s.torps?s.torps+'문':'없음/미사용'}</strong></div><div class="detailBox"><small>함재기</small><strong>${s.aircraft?s.aircraft+'대':'주력 항공대 없음'}</strong></div><div class="detailBox"><small>게임 장전시간</small><strong>${effectiveReload(s).toFixed(1)}초</strong></div></div><div class="note"><b>고증 노트</b><br>${s.note||'대표 형식의 공개 제원을 바탕으로 속력·주포·방어력을 반영했습니다.'}<br><span class="small">자료 기준: ${s.source}. 내구도·피해량·전장 거리와 장전시간은 게임용 추상화 수치입니다.</span></div>`;setOverlay('detailOverlay')}
 function populateSetup(){const mode=selectedMode;$('setupTitle').textContent={arcade:'아케이드 전투 준비',historical:'역사적 전투 준비',custom:'커스텀 전투 준비',realistic:'리얼리스틱 전투 준비'}[mode];$('setupSub').textContent={arcade:'선행 조준과 상세 표적 정보가 제공됩니다.',historical:'실제 교전을 축약한 고정 편성으로 출격합니다.',custom:'전장, 함대 규모와 적 국가를 직접 고릅니다.',realistic:'선행점과 정확한 적 내구도 없이 거리·방위 정보만 사용합니다.'}[mode];$('mapInput').innerHTML=Object.keys(MAPS).map(x=>`<option>${x}</option>`).join('');$('playerShipInput').innerHTML=SHIPS.filter(s=>s.nation===selectedNation&&(mode!=='historical'||s.real)).map(s=>`<option value="${s.id}" ${s.id===selectedShip.id?'selected':''}>${s.name}</option>`).join('');$('enemyNation').innerHTML='<option value="랜덤">무작위 한 국가</option><option value="혼합">주요 국가 혼합</option>'+NATIONS.filter(n=>n!==selectedNation).map(n=>`<option>${n}</option>`).join('');const hist=HISTORY.filter(m=>m.sides[selectedNation]);$('historyMissionInput').innerHTML=hist.length?hist.map(m=>`<option value="${m.id}">${m.name}</option>`).join(''):'<option value="">해당 국가 전용 시나리오 없음</option>';$('historyMissionField').classList.toggle('hidden',mode!=='historical');['allyField','enemyField','enemyNationField'].forEach(id=>$(id).classList.toggle('hidden',mode==='historical'));$('battleObjective').disabled=mode==='historical';if(mode==='historical'&&hist[0]){$('mapInput').value=hist[0].map;$('mapInput').disabled=true;$('historyBrief').classList.remove('hidden');$('historyBrief').textContent=hist[0].brief}else{$('mapInput').disabled=false;$('historyBrief').classList.add('hidden')}
 const rules= mode==='realistic'?[['조준 보조','거리·방위만'],['적 내구도','정확값 숨김'],['함대 규모','7 대 8'],['탐지','날씨 영향 큼']]:mode==='historical'?[['편성','시나리오 고정'],['미완성 함정','사용 불가'],['전장','역사 교전 기반'],['목표','적 주력 격멸']]:mode==='custom'?[['함대 규모','직접 설정'],['적 국가','직접 설정'],['점령전','선택 가능'],['미완성 함정','사용 가능']]:[['조준 보조','선행점 표시'],['표적 정보','상세 표시'],['함대 규모','4 대 5'],['탐지','관대한 편']];$('modeRules').innerHTML=rules.map(r=>`<div class="rule"><small>${r[0]}</small><strong>${r[1]}</strong></div>`).join('');$('weatherGrid').innerHTML=Object.entries(WEATHER).map(([k,w])=>`<button class="weather ${k===selectedWeather?'selected':''}" data-weather="${k}"><b>${w.name}</b><small>${w.desc}</small></button>`).join('');document.querySelectorAll('[data-weather]').forEach(b=>b.onclick=()=>{selectedWeather=b.dataset.weather;populateSetup()});updateHistory();}
@@ -435,7 +453,7 @@ updateHUD=function(){if(!game||!game.player)return;const p=game.player,spd=Math.
 detail=function(){const s=selectedShip,crew=crewFor(s);$('detailTitle').textContent=`${s.name} · 상세 정보`;$('detailBody').innerHTML=`<div class="detailGrid"><div class="detailBox"><small>취역</small><strong>${s.year}년</strong></div><div class="detailBox"><small>대표 배수량</small><strong>${s.disp.toLocaleString()} t</strong></div><div class="detailBox"><small>최고속력</small><strong>${s.speed}노트</strong></div><div class="detailBox"><small>주포</small><strong>${s.mainCount} × ${s.cal} mm</strong></div><div class="detailBox"><small>수선부 장갑대</small><strong>${s.belt} mm</strong></div><div class="detailBox"><small>장갑 갑판</small><strong>${s.deck} mm</strong></div><div class="detailBox"><small>주포탑 장갑</small><strong>${s.turret} mm</strong></div><div class="detailBox"><small>전투 가용 승조원</small><strong>약 ${crew}명</strong></div><div class="detailBox"><small>근거리 AP 추정 관통</small><strong>약 ${Math.round(gunPen(s,2))} mm</strong></div><div class="detailBox"><small>15 km AP 추정 관통</small><strong>약 ${Math.round(gunPen(s,15))} mm</strong></div><div class="detailBox"><small>주포 장전</small><strong>${effectiveReload(s).toFixed(1)}초</strong></div><div class="detailBox"><small>특수 무장</small><strong>${s.aircraft?`함재기 ${s.aircraft}대`:s.torps?`어뢰 ${s.torps}문`:'없음'}</strong></div></div><div class="note"><b>피해 모델</b><br>선체 체력제를 사용하지 않습니다. 포탄은 거리별 관통력, 장갑 두께와 입사각을 거쳐 승조원·부력·기관·조타기·주포·사격지휘·배수펌프·탄약고·대공포에 영향을 줍니다. 피해통제는 화재·침수를 진압하고 파손 모듈을 응급복구하지만 승조원과 잃은 부력을 되돌리지 않습니다.<br><span class="small">고증 노트: ${s.note||'대표 형식의 공개 제원을 기반으로 모델링.'}</span></div>`;setOverlay('detailOverlay')};
 
 // 로비 표기와 빌드 번호 갱신
-const brandBuild=document.querySelector('.build');if(brandBuild)brandBuild.textContent=BUILD2_TAG;document.title='강철 함대 1944 · 빌드 2';
+const brandBuild=document.querySelector('.build');if(brandBuild)brandBuild.textContent=BUILD2_TAG;document.title='강철 함대 1944';
 $('startBtn').onclick=()=>{populateSetup();setOverlay('setupOverlay')};
 $('historyMissionInput').onchange=updateHistory;
 
@@ -1037,7 +1055,7 @@ const helpPanelB4=$('helpOverlay')?.querySelector('.panelBody');
 if(helpPanelB4)helpPanelB4.innerHTML=`<div class="detailGrid"><div class="detailBox"><small>함정 조종</small><strong>W/S 출력 · A/D 조타</strong></div><div class="detailBox"><small>주포</small><strong>마우스 조준 · 클릭/스페이스</strong></div><div class="detailBox"><small>부포</small><strong>포대별 독립 장전 · 근거리 자동 사격</strong></div><div class="detailBox"><small>탄종</small><strong>1 철갑탄 · 2 고폭탄</strong></div><div class="detailBox"><small>표적 고정</small><strong>T · 자동 추적/아케이드 선행점</strong></div><div class="detailBox"><small>어뢰</small><strong>Q · 고정 표적 선행점 · 7 ~ 10초 재장전</strong></div><div class="detailBox"><small>항모 편대</small><strong>3 전투기 · 4 뇌격기 · 5 급강하폭격기 · Q 출격</strong></div><div class="detailBox"><small>일본 항모</small><strong>6 카미카제 · 낮은 성공률 · 공격대 전손</strong></div><div class="detailBox"><small>피해통제</small><strong>R · 화재/침수/응급 모듈 복구</strong></div><div class="detailBox"><small>함선 충돌</small><strong>저속 밀림 · 고속 침수/기관·조타 손상</strong></div><div class="detailBox"><small>시야</small><strong>탐지하지 못한 적은 AI도 사격 불가</strong></div></div><div class="note">항공모함은 부포를 자동 운용하면서 함재전투기, 함재뇌격기, 급강하폭격기를 따로 운용합니다. 뇌격기는 수선하 침수와 기관 손상, 급강하폭격기는 갑판·비행갑판·상부구조와 화재에 특화됩니다.</div>`;
 
 
-const b3=document.querySelector('.build');if(b3)b3.textContent=BUILD4_TAG;document.title='강철 함대 1944 · 빌드 4';
+const b3=document.querySelector('.build');if(b3)b3.textContent=BUILD4_TAG;document.title='강철 함대 1944';
 
 
 renderLobby();
@@ -1244,7 +1262,7 @@ const _updateHUDB5Carrier=updateHUD;updateHUD=function(){_updateHUDB5Carrier();i
 
 // 도움말/빌드 표시.
 const hp5=$('helpOverlay')?.querySelector('.panelBody');if(hp5)hp5.innerHTML=`<div class="detailGrid"><div class="detailBox"><small>함정 조종</small><strong>W/S 출력 · A/D 조타</strong></div><div class="detailBox"><small>주포</small><strong>포탑별 독립 장전 · 순차 사격</strong></div><div class="detailBox"><small>표적 고정</small><strong>T · 리얼리스틱 외 자동 선행</strong></div><div class="detailBox"><small>AI 명중률</small><strong>아케이드 난이도 + 함정 사격통제 세대</strong></div><div class="detailBox"><small>부포</small><strong>포대별 독립 장전 · 자동 선행</strong></div><div class="detailBox"><small>어뢰</small><strong>Q · 7 ~ 10초 · 선행점 표시</strong></div><div class="detailBox"><small>항모 CAP</small><strong>함재전투기가 상공을 지속 초계하며 공격기 자동 요격</strong></div><div class="detailBox"><small>항모 타격</small><strong>4 뇌격기 · 5 급강하폭격기 · 일본 6 카미카제</strong></div><div class="detailBox"><small>해안</small><strong>접근 경고 · AI 자동 우회</strong></div><div class="detailBox"><small>충돌</small><strong>밀림·관성·선수 회전 · 고속 충돌 피해</strong></div></div><div class="note">전투 시간감각을 다시 조정해 함선은 이전보다 완만하게 움직이고, 15 km 주포 사격은 약 4 ~ 5초, 30 km는 약 8초대의 화면상 비행시간을 가집니다. AI는 한 함정에 과도하게 집중하지 않고 함종·위협·이미 교전 중인 아군 수를 고려해 표적을 분산합니다.</div>`;
-const buildEl=document.querySelector('.build');if(buildEl)buildEl.textContent=BUILD5_TAG;document.title='강철 함대 1944 · 빌드 5';
+const buildEl=document.querySelector('.build');if(buildEl)buildEl.textContent=BUILD5_TAG;document.title='강철 함대 1944';
 
 
 
@@ -1395,7 +1413,7 @@ updateHUD=function(){
 const _startBattleB6=startBattle;
 startBattle=function(cfg){_startBattleB6(cfg);if(!game)return;for(const u of game.ships){u.contactMemory=0;u.target=null;u.aiThink=rand(.4,1.4);u.targetCommit=0}updateSpotting();updateHUD()};
 
-const buildEl6=document.querySelector('.build');if(buildEl6)buildEl6.textContent=BUILD6_TAG;document.title='강철 함대 1944 · 빌드 6';
+const buildEl6=document.querySelector('.build');if(buildEl6)buildEl6.textContent=BUILD6_TAG;document.title='강철 함대 1944';
 
 // ==================== 빌드 7 · 전투 시스템 / 대공 / UI 개편 ====================
 const BUILD7_TAG='빌드 8';
@@ -1599,7 +1617,7 @@ startBattle=function(cfg){_startBattleB7(cfg);if(!game)return;secondaryModeB7='a
 
 // 도움말/빌드 표기
 const helpB7=$('helpOverlay')?.querySelector('.panelBody');if(helpB7)helpB7.innerHTML=`<div class="detailGrid"><div class="detailBox"><small>주포</small><strong>포탑별 독립 장전 · 1 AP / 2 HE</strong></div><div class="detailBox"><small>부포</small><strong>F · 자동 분산 / 고정표적 집중 / 사격 중지</strong></div><div class="detailBox"><small>사격해법</small><strong>T로 추적 · 시간과 협차로 정확도 상승</strong></div><div class="detailBox"><small>전함 특수</small><strong>E · 사격통제 집중 12초</strong></div><div class="detailBox"><small>대공포</small><strong>접근하는 공격기에 실제 탄막 사격 · 격추 표시</strong></div><div class="detailBox"><small>항모</small><strong>CAP 지속 초계 · 4 뇌격기 · 5 급강하 · 일본 6 카미카제</strong></div><div class="detailBox"><small>어뢰</small><strong>Q · 표적 고정 시 선행점 표시</strong></div><div class="detailBox"><small>피해통제</small><strong>R · 화재/침수/모듈 응급복구</strong></div></div><div class="note">부포 역시 플레이어 집중사격 제한을 독립적으로 적용합니다. 한 함정의 주포 표적과 부포 표적은 별도로 계산되며, 대공포는 공격기가 접근하는 동안 화면에 추적탄과 공중폭발을 표시하고 실제 편대 손실을 발생시킵니다.</div>`;
-const buildEl7=document.querySelector('.build');if(buildEl7)buildEl7.textContent=BUILD7_TAG;document.title='강철 함대 1944 · 빌드 8';document.documentElement.dataset.runtimeBuild='8';
+const buildEl7=document.querySelector('.build');if(buildEl7)buildEl7.textContent=BUILD7_TAG;document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='8';
 
 
 // ===== 강철 함대 1944 · 빌드 9: HUD 충돌 수정 + 사격지휘 생존성/현지조준 =====
@@ -1718,7 +1736,7 @@ updateHUD=function(){
 };
 
 const buildEl9=document.querySelector('.build');if(buildEl9)buildEl9.textContent=BUILD9_TAG;
-document.title='강철 함대 1944 · 빌드 9';document.documentElement.dataset.runtimeBuild='9';
+document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='9';
 
 
 renderLobby();configureControlMode();
@@ -1957,11 +1975,11 @@ updateHUD=function(){
 
 // 도움말도 현재 동작과 맞춘다.
 const helpBodyB10=$('helpOverlay')?.querySelector('.panelBody');if(helpBodyB10){
-  const box=document.createElement('div');box.className='note';box.innerHTML='<b>빌드 11 조작 변경</b><br>방향키: 전투 카메라 이동 · C: 본함으로 카메라 복귀 · 항모 뇌격기/급강하폭격기: 공격 후 본항모로 귀환하며 실제 생존기만 착함, 손실기는 항모에서 순차 보충됩니다. 카미카제 기능은 제거되었습니다.';helpBodyB10.appendChild(box);
+  const box=document.createElement('div');box.className='note';box.innerHTML='<b>조작 변경</b><br>방향키: 전투 카메라 이동 · C: 본함으로 카메라 복귀 · 항모 뇌격기/급강하폭격기: 공격 후 본항모로 귀환하며 실제 생존기만 착함, 손실기는 항모에서 순차 보충됩니다. 카미카제 기능은 제거되었습니다.';helpBodyB10.appendChild(box);
 }
 
 const buildEl10=document.querySelector('.build');if(buildEl10)buildEl10.textContent=BUILD10_TAG;
-document.title='강철 함대 1944 · 빌드 11';document.documentElement.dataset.runtimeBuild='11';
+document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='11';
 renderLobby();configureControlMode();
 </script>
 
@@ -2168,7 +2186,7 @@ const drawPreviewB12=function(t){
 drawPreview=drawPreviewB12;
 
 const build12El=document.querySelector('.build');if(build12El)build12El.textContent=BUILD12_TAG;
-document.title='강철 함대 1944 · 빌드 12';document.documentElement.dataset.runtimeBuild='12';
+document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='12';
 renderLobby();
 </script>
 
@@ -2257,7 +2275,7 @@ drawPreview=function(t){
 };
 
 const build13El=document.querySelector('.build');if(build13El)build13El.textContent=BUILD13_TAG;
-document.title='강철 함대 1944 · 빌드 13';document.documentElement.dataset.runtimeBuild='13';
+document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='13';
 renderLobby();
 </script>
 
@@ -2415,11 +2433,11 @@ updateAI=function(u,dt){refreshTeamContactB14();_updateAIB14(u,dt);if(!u?.alive|
 const _startBattleSearchB14=startBattle;startBattle=function(cfg){_startBattleSearchB14(cfg);if(game)game.lastContactB14={friendly:null,enemy:null}};
 
 // 도움말 갱신
-const helpB14=$('helpOverlay')?.querySelector('.panelBody');if(helpB14)helpB14.innerHTML=`<div class="detailGrid"><div class="detailBox"><small>함정 조종</small><strong>W/S 출력 · A/D 조타</strong></div><div class="detailBox"><small>전투 카메라</small><strong>방향키 이동 · C 본함 복귀</strong></div><div class="detailBox"><small>주포</small><strong>마우스 조준 · 클릭/스페이스</strong></div><div class="detailBox"><small>표적 고정</small><strong>T · 아케이드 예측 조준</strong></div><div class="detailBox"><small>부포 통제</small><strong>F · 자동/집중/사격중지</strong></div><div class="detailBox"><small>전함 특수</small><strong>E · 사격통제 집중</strong></div><div class="detailBox"><small>피해통제</small><strong>R</strong></div><div class="detailBox"><small>로비 복귀</small><strong>M · 즉시 로비</strong></div><div class="detailBox"><small>일시정지</small><strong>Esc</strong></div></div><div class="note">빌드 14부터 모바일 전투 조작 옵션은 제거했습니다. 로비의 함정 상세 화면에서 함정별 강화가 가능하고, 기록실과 훈련소 진행도는 로컬 프로필에 저장됩니다.</div>`;
+const helpB14=$('helpOverlay')?.querySelector('.panelBody');if(helpB14)helpB14.innerHTML=`<div class="detailGrid"><div class="detailBox"><small>함정 조종</small><strong>W/S 출력 · A/D 조타</strong></div><div class="detailBox"><small>전투 카메라</small><strong>방향키 이동 · C 본함 복귀</strong></div><div class="detailBox"><small>주포</small><strong>마우스 조준 · 클릭/스페이스</strong></div><div class="detailBox"><small>표적 고정</small><strong>T · 아케이드 예측 조준</strong></div><div class="detailBox"><small>부포 통제</small><strong>F · 자동/집중/사격중지</strong></div><div class="detailBox"><small>전함 특수</small><strong>E · 사격통제 집중</strong></div><div class="detailBox"><small>피해통제</small><strong>R</strong></div><div class="detailBox"><small>로비 복귀</small><strong>M · 즉시 로비</strong></div><div class="detailBox"><small>일시정지</small><strong>Esc</strong></div></div><div class="note">현재 버전에서는 모바일 전투 조작 옵션을 사용하지 않습니다. 로비의 함정 상세 화면에서 함정별 강화가 가능하고, 기록실과 훈련소 진행도는 로컬 프로필에 저장됩니다.</div>`;
 
 saveProfileB14();configureControlMode();renderLobby();
 const build14El=document.querySelector('.build');if(build14El)build14El.textContent=BUILD14_TAG;
-document.title='강철 함대 1944 · 빌드 14';document.documentElement.dataset.runtimeBuild='14';
+document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='14';
 </script>
 
 
@@ -2501,7 +2519,7 @@ const _endBattleB15=endBattle;endBattle=function(win,reason){const trainingId=ga
 const helpB15=$('helpOverlay')?.querySelector('.panelBody');if(helpB15)helpB15.innerHTML=`<div class="detailGrid"><div class="detailBox"><small>함정 조종</small><strong>W/S 출력 · A/D 조타</strong></div><div class="detailBox"><small>관측 카메라</small><strong>방향키 이동 · C 본함 복귀</strong></div><div class="detailBox"><small>전술 카메라</small><strong>T 고정 후 V · 본함과 적 동시 표시</strong></div><div class="detailBox"><small>주포</small><strong>마우스 조준 · 클릭/스페이스</strong></div><div class="detailBox"><small>표적 고정</small><strong>T · 아케이드 예측 조준</strong></div><div class="detailBox"><small>부포 통제</small><strong>F · 자동/집중/사격중지</strong></div><div class="detailBox"><small>전함 특수</small><strong>E · 사격통제 집중</strong></div><div class="detailBox"><small>피해통제</small><strong>R</strong></div><div class="detailBox"><small>로비 복귀</small><strong>M · 즉시 로비</strong></div><div class="detailBox"><small>일시정지</small><strong>Esc</strong></div></div><div class="note">로비에서는 주포가 자동으로 천천히 선회합니다. 선미 포탑은 평시 선미 방향을 유지하며 로비 시험사격 기능은 사용하지 않습니다.</div>`;
 
 const build15El=document.querySelector('.build');if(build15El)build15El.textContent=BUILD15_TAG;
-document.title='강철 함대 1944 · 빌드 17';document.documentElement.dataset.runtimeBuild='17';
+document.title='강철 함대 1944';document.documentElement.dataset.runtimeBuild='17';
 renderLobby();
 </script>
 
@@ -2565,7 +2583,7 @@ body:not(.mobile){}
 <script id="build18UiRuntime">
 (()=>{
   const badge=document.querySelector('.build');if(badge)badge.textContent='빌드 18';
-  document.title='강철 함대 1944 · 빌드 18';
+  document.title='강철 함대 1944';
   document.documentElement.dataset.runtimeBuild='18';
 })();
 </script>
@@ -3064,7 +3082,7 @@ select,input{border-radius:6px}
     if(title) title.textContent='역사적 캠페인';
     if(sub) sub.textContent='연대기 임무 · 축약 편성';
   }
-  document.title='강철 함대 1944 · 빌드 19';
+  document.title='강철 함대 1944';
   document.documentElement.dataset.runtimeBuild='19';
 })();
 </script>
@@ -3359,7 +3377,630 @@ select,input{border-radius:6px}
 
 
 <script id="steelFleetUnifiedUiRuntimeV2">
-(()=>{const b=document.querySelector('.build');if(b)b.textContent='빌드 20';document.title='강철 함대 1944 · 빌드 20';document.documentElement.dataset.runtimeBuild='20';})();
+(()=>{document.querySelectorAll('.build').forEach(el=>el.remove());document.title='강철 함대 1944';document.documentElement.removeAttribute('data-runtime-build');})();
 </script>
+
+<style id="steelFleetOperationAndLobbyBgPatch">
+#menu .build{display:none!important}
+#menu .lobbyRightTools{display:flex!important;align-items:center!important;gap:5px!important;white-space:nowrap!important}
+#menu .lobbyRightTools>span{color:#99a6af!important;font-size:10px!important;font-weight:800!important}
+#menu .lobbyRightTools select{width:90px!important;min-width:90px!important}
+#menu .lobbyOperationBtn{color:#dce7ed!important;font-weight:900!important}
+#fleetOperationsOverlay{z-index:820}
+#fleetOperationsOverlay .fleetOperationsPanel{width:min(900px,95vw);max-height:90dvh;overflow:auto}
+.fleetOperationGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.fleetOperationCard{display:flex;flex-direction:column;min-height:215px;padding:13px;border:1px solid #3a4853;border-radius:8px;background:#151d23}
+.fleetOperationCard .opTag{display:inline-block;align-self:flex-start;margin-bottom:8px;padding:2px 6px;border:1px solid #4e6877;border-radius:4px;background:#1a2a33;color:#82bfdc;font-size:9px;font-weight:900}
+.fleetOperationCard h3{margin:0 0 7px;color:#edf3f6;font-size:15px}
+.fleetOperationCard p{margin:0 0 10px;color:#9eabb3;font-size:11px;line-height:1.5}
+.fleetOperationMeta{display:grid;gap:5px;margin:auto 0 11px;color:#b9c4cb;font-size:10px}
+.fleetOperationMeta b{color:#e8edf0}
+.fleetOperationStart{width:100%;min-height:40px;border-color:#4f8db3!important;background:#285978!important;color:#fff!important;font-weight:900!important}
+.fleetOperationStart.hard{border-color:#d36a5f!important;background:#8f3f3a!important}
+@media(max-width:820px){.fleetOperationGrid{grid-template-columns:1fr}}
+@media(max-width:720px){#menu .lobbyRightTools{display:none!important}}
+</style>
+
+<div id="fleetOperationsOverlay" class="overlay hidden" aria-hidden="true">
+  <div class="panel fleetOperationsPanel">
+    <div class="panelTop"><div><h2>함대 작전</h2><div class="small">선택한 함정을 기함으로 편성해 짧은 작전에 바로 출격합니다.</div></div><button id="fleetOperationsClose" type="button">닫기</button></div>
+    <div class="panelBody">
+      <div class="fleetOperationGrid">
+        <article class="fleetOperationCard">
+          <span class="opTag">초계 작전</span><h3>해상 초계</h3>
+          <p>소규모 함대와 교전하는 기본 작전입니다. 현재 선택한 함정과 조작 체계를 그대로 사용합니다.</p>
+          <div class="fleetOperationMeta"><span>전장 <b>현재 로비 배경</b></span><span>편성 <b>아군 3척 · 적군 4척</b></span><span>날씨 <b>맑음</b></span></div>
+          <button class="fleetOperationStart" data-fleet-operation="patrol" type="button">작전 출격</button>
+        </article>
+        <article class="fleetOperationCard">
+          <span class="opTag">함대 작전</span><h3>주력함대 교전</h3>
+          <p>순양함과 주력함이 섞인 중규모 교전입니다. 적 함대가 조금 더 많고 날씨가 흐립니다.</p>
+          <div class="fleetOperationMeta"><span>전장 <b>현재 로비 배경</b></span><span>편성 <b>아군 4척 · 적군 6척</b></span><span>날씨 <b>흐림</b></span></div>
+          <button class="fleetOperationStart" data-fleet-operation="fleet" type="button">작전 출격</button>
+        </article>
+        <article class="fleetOperationCard">
+          <span class="opTag">고난도</span><h3>악천후 결전</h3>
+          <p>폭풍 속에서 수적 열세를 감수하는 고난도 작전입니다. 자동 선행 없이 리얼리스틱 사격통제를 사용합니다.</p>
+          <div class="fleetOperationMeta"><span>전장 <b>북대서양</b></span><span>편성 <b>아군 4척 · 적군 7척</b></span><span>날씨 <b>폭풍</b></span></div>
+          <button class="fleetOperationStart hard" data-fleet-operation="storm" type="button">작전 출격</button>
+        </article>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script id="steelFleetOperationAndLobbyBgRuntime">
+(()=>{
+  document.querySelectorAll('.build').forEach(el=>el.remove());
+  document.title='강철 함대 1944';
+  document.documentElement.removeAttribute('data-runtime-build');
+
+  // 추가 해역: 로비 지형 선택과 실제 전투 전장 모두에서 사용합니다.
+  Object.assign(MAPS,{
+    '노르웨이 피오르':{water:'#102f37',sky:'#53656b',islands:[{x:620,y:540,r:420},{x:620,y:2780,r:430},{x:4570,y:580,r:390},{x:4570,y:2740,r:410},{x:2550,y:280,r:180}],visibility:.82,wave:.28},
+    '영국 해협':{water:'#20414b',sky:'#6e8187',islands:[{x:520,y:400,r:330},{x:4700,y:2860,r:360},{x:4550,y:520,r:180}],visibility:.93,wave:.20},
+    '알류샨 해역':{water:'#18343b',sky:'#617075',islands:[{x:850,y:760,r:230},{x:1700,y:1320,r:190},{x:2750,y:850,r:250},{x:3800,y:1500,r:210},{x:4450,y:2350,r:240}],visibility:.68,wave:.33},
+    '마리아나 해역':{water:'#0f4b65',sky:'#78a5b2',islands:[{x:980,y:760,r:110},{x:4100,y:2450,r:130},{x:2850,y:500,r:85}],visibility:1.08,wave:.10},
+    '레이테만':{water:'#195567',sky:'#769a9b',islands:[{x:720,y:560,r:260},{x:1240,y:2640,r:300},{x:3920,y:650,r:260},{x:4540,y:2500,r:350},{x:2550,y:2780,r:170}],visibility:.96,wave:.14},
+    '인도양':{water:'#176277',sky:'#85afb6',islands:[{x:950,y:2450,r:120},{x:4300,y:700,r:140}],visibility:1.12,wave:.11}
+  });
+
+  // 새로 추가한 해역도 기존 불규칙 해안선/좌초 판정에 필요한 섬 메타데이터를 부여합니다.
+  Object.values(MAPS).forEach((m,mi)=>m.islands.forEach((i,idx)=>{
+    if(i.seed==null)i.seed=Math.floor((i.x*13+i.y*7+i.r*3+mi*97+idx*53)%9973);
+    if(i.reef==null)i.reef=(m===MAPS['솔로몬 제도']||m===MAPS['필리핀해']||m===MAPS['마리아나 해역']||m===MAPS['레이테만']||m===MAPS['인도양']);
+    if(i.port==null)i.port=false;
+  }));
+
+  const bgSelect=document.getElementById('lobbyBgInput');
+  let fleetLobbyBg=localStorage.getItem('steelFleetLobbyBg')||'북대서양';
+  if(!MAPS[fleetLobbyBg])fleetLobbyBg='북대서양';
+  if(bgSelect){bgSelect.value=fleetLobbyBg;bgSelect.addEventListener('change',()=>{fleetLobbyBg=bgSelect.value;localStorage.setItem('steelFleetLobbyBg',fleetLobbyBg);});}
+
+
+function drawFleetLobbyBackdrop(c,w,h,name,t){
+  // 함선을 위에서 내려다보는 렌더러와 시점을 맞춘 완전한 탑뷰 해역 배경.
+  const palette={
+    '북대서양':{water:'#173540',deep:'#102831',wave:'rgba(224,240,244,.24)',land:'#35433f',shore:'#77847a',reef:null},
+    '덴마크 해협':{water:'#193640',deep:'#122b34',wave:'rgba(225,239,241,.20)',land:'#4d5551',shore:'#8a948f',reef:'rgba(184,205,204,.13)'},
+    '솔로몬 제도':{water:'#176675',deep:'#104854',wave:'rgba(212,246,241,.18)',land:'#315c3a',shore:'#a9aa72',reef:'rgba(74,190,176,.31)'},
+    '필리핀해':{water:'#176b83',deep:'#0d5067',wave:'rgba(218,246,250,.16)',land:'#416647',shore:'#c4b67b',reef:'rgba(70,188,188,.24)'},
+    '지중해':{water:'#216f86',deep:'#16556b',wave:'rgba(229,247,247,.16)',land:'#7d7252',shore:'#c7b483',reef:'rgba(86,181,188,.20)'},
+    '비스케이만':{water:'#173e49',deep:'#102e38',wave:'rgba(229,242,245,.26)',land:'#454d47',shore:'#8b8877',reef:null},
+    '노르웨이 피오르':{water:'#143e49',deep:'#0d2c34',wave:'rgba(222,241,243,.18)',land:'#35443e',shore:'#78827a',reef:null},
+    '영국 해협':{water:'#28505a',deep:'#1b3c47',wave:'rgba(230,243,244,.18)',land:'#5a6455',shore:'#c4c0a2',reef:null},
+    '알류샨 해역':{water:'#1a3b43',deep:'#122d34',wave:'rgba(229,240,241,.25)',land:'#414944',shore:'#787d74',reef:null},
+    '마리아나 해역':{water:'#105977',deep:'#093f5d',wave:'rgba(218,247,250,.14)',land:'#42634a',shore:'#c2b47a',reef:'rgba(50,198,194,.34)'},
+    '레이테만':{water:'#1c6576',deep:'#124b5a',wave:'rgba(215,246,241,.17)',land:'#365f3e',shore:'#b9aa74',reef:'rgba(68,190,173,.28)'},
+    '인도양':{water:'#1b7185',deep:'#11566c',wave:'rgba(222,248,248,.14)',land:'#587052',shore:'#cbb879',reef:'rgba(68,199,194,.24)'}
+  };
+  const p=palette[name]||palette['북대서양'];
+  const g=c.createLinearGradient(0,0,w,h);g.addColorStop(0,p.water);g.addColorStop(1,p.deep);c.fillStyle=g;c.fillRect(0,0,w,h);
+  c.save();
+  c.globalAlpha=.75;
+  for(let band=0;band<9;band++){
+    const y=(band+.45)*h/9;
+    c.strokeStyle=p.wave;c.lineWidth=1.1+(band%3)*.25;c.beginPath();
+    for(let x=-30;x<=w+30;x+=22){const yy=y+Math.sin(x*.025+band*1.7+t*.00055)*3.2+Math.sin(x*.008-band)*2.1;if(x<-20)c.moveTo(x,yy);else c.lineTo(x,yy)}
+    c.stroke();
+  }
+  c.globalAlpha=1;
+  for(let i=0;i<46;i++){
+    const seed=i*73.17,x=(Math.sin(seed*1.7)*.5+.5)*w,y=(Math.sin(seed*2.31+1.4)*.5+.5)*h,drift=(t*.012+i*19)%58;
+    c.strokeStyle=p.wave;c.globalAlpha=.16+(i%4)*.025;c.lineWidth=.8+(i%3)*.35;c.beginPath();c.moveTo(x-12+drift*.18,y);c.lineTo(x+5+drift*.18,y+Math.sin(seed)*2);c.stroke();
+  }
+  c.globalAlpha=1;
+  const island=(x,y,rx,ry,rot=0,reef=!!p.reef)=>{
+    c.save();c.translate(x,y);c.rotate(rot);
+    if(reef&&p.reef){c.fillStyle=p.reef;c.beginPath();c.ellipse(0,0,rx*1.32,ry*1.34,0,0,TAU);c.fill()}
+    c.fillStyle=p.shore;c.beginPath();c.ellipse(0,0,rx*1.08,ry*1.09,0,0,TAU);c.fill();
+    c.fillStyle=p.land;c.beginPath();const pts=18;for(let k=0;k<pts;k++){const a=k/pts*TAU,mod=.88+.12*Math.sin(k*2.7+rx*.01)+.06*Math.sin(k*5.1+ry*.02),px=Math.cos(a)*rx*mod,py=Math.sin(a)*ry*mod;k?c.lineTo(px,py):c.moveTo(px,py)}c.closePath();c.fill();
+    c.fillStyle='rgba(255,255,255,.055)';c.beginPath();c.ellipse(-rx*.18,-ry*.22,rx*.42,ry*.28,-.25,0,TAU);c.fill();c.restore();
+  };
+  const coast=(side,depth,land,shore)=>{
+    c.save();c.fillStyle=shore;c.beginPath();
+    if(side==='left'){c.moveTo(0,0);c.lineTo(depth*.86,0);c.lineTo(depth*.62,h*.18);c.lineTo(depth*.95,h*.34);c.lineTo(depth*.55,h*.52);c.lineTo(depth*.82,h*.68);c.lineTo(depth*.48,h*.84);c.lineTo(depth*.70,h);c.lineTo(0,h)}
+    else{c.moveTo(w,0);c.lineTo(w-depth*.72,0);c.lineTo(w-depth*.52,h*.17);c.lineTo(w-depth*.88,h*.31);c.lineTo(w-depth*.56,h*.49);c.lineTo(w-depth*.92,h*.67);c.lineTo(w-depth*.50,h*.84);c.lineTo(w-depth*.68,h);c.lineTo(w,h)}
+    c.closePath();c.fill();c.fillStyle=land;c.translate(side==='left'?-7:7,0);c.fill();c.restore();
+  };
+  if(name==='덴마크 해협'){
+    coast('left',w*.22,p.land,p.shore);island(w*.82,h*.18,w*.085,h*.12,-.25,false);c.fillStyle='rgba(220,232,231,.16)';for(let i=0;i<11;i++){c.beginPath();c.ellipse(w*(.35+(i%5)*.11),h*(.12+Math.floor(i/5)*.18),18+(i%3)*9,9+(i%2)*6,.4,0,TAU);c.fill()}
+  }else if(name==='솔로몬 제도'){
+    island(w*.13,h*.20,w*.11,h*.15,-.45,true);island(w*.82,h*.22,w*.09,h*.13,.35,true);island(w*.17,h*.79,w*.07,h*.11,.2,true);island(w*.88,h*.73,w*.13,h*.17,-.35,true);
+  }else if(name==='필리핀해'){
+    island(w*.12,h*.19,w*.035,h*.055,.2,true);island(w*.86,h*.76,w*.028,h*.045,-.2,true);c.fillStyle='rgba(126,207,212,.075)';c.beginPath();c.ellipse(w*.70,h*.30,w*.16,h*.09,.15,0,TAU);c.fill();
+  }else if(name==='지중해'){
+    island(w*.12,h*.22,w*.10,h*.14,-.35,false);island(w*.88,h*.70,w*.08,h*.12,.28,false);island(w*.76,h*.16,w*.035,h*.05,-.2,false);
+  }else if(name==='비스케이만'){
+    coast('left',w*.20,p.land,p.shore);island(w*.86,h*.18,w*.055,h*.075,.3,false);c.strokeStyle='rgba(240,247,248,.28)';c.lineWidth=2.2;for(let i=0;i<8;i++){const y=h*(.12+i*.11);c.beginPath();c.moveTo(w*.24,y);c.lineTo(w*.45+Math.sin(i)*w*.05,y+4);c.stroke()}
+  }else if(name==='노르웨이 피오르'){
+    coast('left',w*.29,p.land,p.shore);coast('right',w*.28,p.land,p.shore);island(w*.50,h*.10,w*.06,h*.09,.1,false);island(w*.48,h*.87,w*.05,h*.08,-.2,false);c.fillStyle='rgba(185,210,213,.08)';c.fillRect(w*.38,0,w*.24,h);
+  }else if(name==='영국 해협'){
+    coast('left',w*.15,p.land,p.shore);coast('right',w*.16,p.land,p.shore);c.strokeStyle='rgba(230,240,238,.14)';c.setLineDash([12,13]);c.beginPath();c.moveTo(w*.18,h*.68);c.lineTo(w*.82,h*.31);c.stroke();c.setLineDash([]);
+  }else if(name==='알류샨 해역'){
+    for(let i=0;i<6;i++)island(w*(.08+i*.17),h*(.30+Math.sin(i*1.5)*.18),w*(.035+(i%2)*.015),h*(.065+(i%3)*.012),i*.2,false);c.fillStyle='rgba(220,229,229,.065)';for(let i=0;i<5;i++){c.beginPath();c.ellipse(w*(.16+i*.19),h*(.18+(i%2)*.53),w*.12,h*.07,.1,0,TAU);c.fill()}
+  }else if(name==='마리아나 해역'){
+    island(w*.14,h*.19,w*.028,h*.05,.2,true);island(w*.82,h*.76,w*.025,h*.045,-.2,true);island(w*.72,h*.15,w*.018,h*.032,.3,true);c.strokeStyle='rgba(74,205,203,.18)';c.lineWidth=8;c.beginPath();c.arc(w*.32,h*.74,w*.09,0,TAU);c.stroke();
+  }else if(name==='레이테만'){
+    island(w*.10,h*.16,w*.10,h*.14,-.35,true);island(w*.89,h*.17,w*.09,h*.13,.25,true);island(w*.13,h*.80,w*.08,h*.12,.28,true);island(w*.86,h*.78,w*.12,h*.16,-.4,true);island(w*.72,h*.46,w*.035,h*.07,.1,true);
+  }else if(name==='인도양'){
+    island(w*.10,h*.78,w*.035,h*.055,.1,true);island(w*.88,h*.20,w*.028,h*.045,-.2,true);c.fillStyle='rgba(86,200,196,.11)';c.beginPath();c.ellipse(w*.72,h*.73,w*.16,h*.10,-.2,0,TAU);c.fill();
+  }else{
+    c.strokeStyle='rgba(238,246,247,.25)';c.lineWidth=2;for(let i=0;i<10;i++){const x=w*(.06+(i%5)*.20),y=h*(.17+Math.floor(i/5)*.58);c.beginPath();c.moveTo(x-20,y);c.lineTo(x+18,y+4);c.stroke()}
+  }
+  c.restore();
+}
+
+
+  // 로비 함선 미리보기: 강철 전선의 배경 선택과 같은 역할.
+  drawPreview=function(t){
+    const w=preview.width,h=preview.height;
+    pctx.clearRect(0,0,w,h);
+    drawFleetLobbyBackdrop(pctx,w,h,fleetLobbyBg,t);
+    pctx.save();pctx.translate(w*.52,h*.62);pctx.rotate(-.06+Math.sin(t*.00025)*.015);drawShipModel(pctx,selectedShip,0,0,0,1.95,'ally',1,false);pctx.restore();
+    pctx.fillStyle='rgba(0,0,0,.28)';pctx.fillRect(0,h-62,w,62);
+    pctx.fillStyle='#e7edf1';pctx.font='900 21px sans-serif';pctx.textAlign='left';pctx.fillText(typeof shipDisplayName==='function'?shipDisplayName(selectedShip):selectedShip.name,24,h-30);
+    pctx.fillStyle='#a6b5bd';pctx.font='12px sans-serif';const cls=typeof shipClassName==='function'?shipClassName(selectedShip):selectedShip.cls;pctx.fillText(`${selectedShip.nation} · ${cls} · ${selectedShip.speed}노트 · ${selectedShip.mainCount} × ${selectedShip.cal} mm`,24,h-11);
+  };
+
+  const opOverlay=document.getElementById('fleetOperationsOverlay');
+  const opBtn=document.getElementById('operationsBtn');
+  const closeBtn=document.getElementById('fleetOperationsClose');
+  const showOps=on=>{if(!opOverlay)return;opOverlay.classList.toggle('hidden',!on);opOverlay.setAttribute('aria-hidden',String(!on));};
+  if(opBtn)opBtn.addEventListener('click',()=>showOps(true));
+  if(closeBtn)closeBtn.addEventListener('click',()=>showOps(false));
+  if(opOverlay)opOverlay.addEventListener('click',e=>{if(e.target===opOverlay)showOps(false)});
+
+  const launchOperation=kind=>{
+    if(!selectedShip)return;
+    let cfg;
+    if(kind==='storm'){
+      selectedMode='realistic';
+      cfg={mode:'realistic',map:'북대서양',weather:'storm',objective:'annihilation',player:selectedShip,allies:4,enemies:7,enemyNation:'랜덤',apRatio:65};
+    }else if(kind==='fleet'){
+      selectedMode='arcade';
+      cfg={mode:'arcade',map:fleetLobbyBg,weather:'overcast',objective:'annihilation',player:selectedShip,allies:4,enemies:6,enemyNation:'랜덤',apRatio:65};
+    }else{
+      selectedMode='arcade';
+      cfg={mode:'arcade',map:fleetLobbyBg,weather:'clear',objective:'annihilation',player:selectedShip,allies:3,enemies:4,enemyNation:'랜덤',apRatio:65};
+    }
+    showOps(false);startBattle(cfg);
+  };
+  document.querySelectorAll('[data-fleet-operation]').forEach(btn=>btn.addEventListener('click',()=>launchOperation(btn.dataset.fleetOperation)));
+})();
+</script>
+
+
+<style id="steelSeriesHeaderSpacePatchFleet">
+/* 상단 메뉴 공간 확보: 버튼 이름을 줄임표로 자르지 않고 두 게임이 같은 시점에서 2단 헤더로 전환 */
+#menu .lobbyTopTools button,
+#menu .tools button{overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
+#menu .lobbyRightTools{overflow:visible!important;line-height:1.2!important}
+#menu .lobbyRightTools span{display:inline-block!important;min-width:24px!important;overflow:visible!important;white-space:nowrap!important}
+#menu .lobbyRightTools select{width:118px!important;min-width:118px!important;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+@media (min-width:1551px){
+  #menu .lobbyTopBar,#menu .topbar{grid-template-columns:200px minmax(500px,1fr) 640px!important}
+  #menu .lobbyUtility{min-width:640px!important;width:100%!important}
+}
+@media (max-width:1550px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{
+    height:126px!important;
+    min-height:126px!important;
+    grid-template-columns:190px minmax(0,1fr)!important;
+    grid-template-areas:"brand tools" "tabs tabs"!important;
+    grid-template-rows:48px 56px!important;
+    gap:6px 12px!important;
+    padding:8px 14px!important;
+    align-content:center!important;
+  }
+  #menu .lobbyBrand,#menu .brand{grid-area:brand!important}
+  #menu .lobbyUtility{grid-area:tools!important;justify-self:stretch!important;width:100%!important;min-width:0!important;display:flex!important;justify-content:flex-end!important}
+  #menu .lobbyTopTools,#menu .tools{flex:0 1 auto!important;min-width:0!important}
+  #menu .battleTabs,#menu .tabs{grid-area:tabs!important;width:100%!important;max-width:none!important;justify-self:stretch!important}
+  #menu .lobbyTopTools button,#menu .tools button{min-width:66px!important;padding-inline:8px!important;font-size:11px!important}
+  #menu .seriesSwitchLink{min-width:82px!important;padding-inline:9px!important;font-size:11px!important}
+  #menu .lobbyRightTools span{display:inline-block!important}
+  #menu .lobbyStage,#menu .stage{top:126px!important}
+  #menu #tankDock,#menu #shipDock{top:142px!important}
+}
+@media (max-width:980px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{height:136px!important;min-height:136px!important;grid-template-columns:150px minmax(0,1fr)!important;grid-template-rows:54px 62px!important}
+  #menu .lobbyTopTools button,#menu .tools button{min-width:58px!important;padding-inline:6px!important;font-size:10.5px!important}
+  #menu .seriesSwitchLink{min-width:72px!important;font-size:10.5px!important}
+  #menu .lobbyRightTools select{width:108px!important;min-width:108px!important}
+  #menu .lobbyStage,#menu .stage{top:136px!important}
+  #menu #tankDock,#menu #shipDock{top:150px!important}
+}
+</style>
+
+
+
+
+
+<style id="steelSeriesExactHeaderPatchV4">
+/* 강철 전선 / 강철 함대 상단 UI 최종 공통 규격 */
+#menu .lobbyUtility{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+  min-width:0!important;
+}
+#menu .lobbyRightTools{
+  order:0!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  color:#99a6af!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+#menu .lobbyRightTools>span{
+  display:inline-flex!important;
+  align-items:center!important;
+  height:36px!important;
+  min-width:24px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  white-space:nowrap!important;
+}
+#menu .lobbyRightTools select{
+  box-sizing:border-box!important;
+  width:118px!important;
+  min-width:118px!important;
+  max-width:118px!important;
+  height:36px!important;
+  min-height:36px!important;
+  margin:0!important;
+  padding:0 28px 0 8px!important;
+  border:1px solid #3a4853!important;
+  border-radius:6px!important;
+  background:#141b21!important;
+  color:#e7edf1!important;
+  font-size:11px!important;
+  font-weight:700!important;
+  line-height:34px!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+#menu .lobbyTopTools,
+#menu .tools{
+  order:1!important;
+  flex:0 1 auto!important;
+}
+
+/* 전투 모드 버튼의 작은 부가 설명 상단이 잘리지 않도록 실제 글줄 높이를 보장 */
+#menu .battleTabs,
+#menu .tabs{
+  overflow:visible!important;
+  align-items:stretch!important;
+}
+#menu .battleTab,
+#menu .tab{
+  height:48px!important;
+  min-height:48px!important;
+  padding:3px 8px 4px!important;
+  gap:2px!important;
+  overflow:visible!important;
+  line-height:1.2!important;
+}
+#menu .battleTab span,
+#menu .tab span{
+  display:block!important;
+  flex:0 0 auto!important;
+  line-height:1.25!important;
+  overflow:visible!important;
+}
+#menu .battleTab small,
+#menu .tab small{
+  display:block!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:1px 0 0!important;
+  line-height:1.3!important;
+  overflow:visible!important;
+  clip-path:none!important;
+}
+
+@media (min-width:1551px){
+  #menu .lobbyTopBar,#menu .topbar{grid-template-columns:200px minmax(500px,1fr) 650px!important}
+  #menu .lobbyUtility{min-width:650px!important;width:100%!important}
+}
+@media (max-width:1550px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{
+    height:128px!important;
+    min-height:128px!important;
+    grid-template-columns:190px minmax(0,1fr)!important;
+    grid-template-areas:"brand tools" "tabs tabs"!important;
+    grid-template-rows:48px 58px!important;
+    gap:6px 12px!important;
+    padding:8px 14px!important;
+  }
+  #menu .lobbyUtility{grid-area:tools!important;width:100%!important;min-width:0!important}
+  #menu .battleTabs,#menu .tabs{grid-area:tabs!important;width:100%!important;max-width:none!important}
+  #menu .lobbyStage,#menu .stage{top:128px!important}
+  #menu #tankDock,#menu #shipDock{top:144px!important}
+}
+@media (max-width:980px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{
+    height:140px!important;
+    min-height:140px!important;
+    grid-template-columns:150px minmax(0,1fr)!important;
+    grid-template-rows:56px 62px!important;
+  }
+  #menu .lobbyRightTools select{width:108px!important;min-width:108px!important;max-width:108px!important}
+  #menu .lobbyStage,#menu .stage{top:140px!important}
+  #menu #tankDock,#menu #shipDock{top:156px!important}
+}
+@media(max-width:720px){
+  #menu .lobbyRightTools{display:none!important}
+}
+</style>
+
+
+<style id="steelFleetHistoryLayoutFixV4">
+/* 역사적 캠페인 준비창: 긴 임무명이 select의 고유 폭을 키워 패널 밖으로 나가지 않게 제한 */
+#setupOverlay .setupGrid{min-width:0!important;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important}
+#setupOverlay .setupGrid>.setting,
+#setupOverlay #historyNationField,
+#setupOverlay #historyMissionField{min-width:0!important;max-width:100%!important;overflow:hidden!important}
+#setupOverlay .setupGrid select,
+#setupOverlay .setupGrid input{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+@media(max-width:980px){#setupOverlay .setupGrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:620px){#setupOverlay .setupGrid{grid-template-columns:1fr!important}}
+</style>
+<script id="steelFleetHistoryExpansionV4">
+(()=>{
+  /* 추가 전장 — 역사 캠페인과 로비 지형 선택 양쪽에 등록 */
+  const EXTRA_MAPS={
+    '라플라타 해역':{water:'#244852',sky:'#74858a',islands:[{x:650,y:2850,r:240},{x:4560,y:520,r:180}],visibility:1.04,wave:.14},
+    '바렌츠해':{water:'#16333c',sky:'#5d6b70',islands:[{x:820,y:520,r:210},{x:4420,y:2700,r:260}],visibility:.70,wave:.36},
+    '자바해':{water:'#19576a',sky:'#789b9c',islands:[{x:720,y:540,r:230},{x:1460,y:2700,r:190},{x:4050,y:650,r:260},{x:4550,y:2500,r:220}],visibility:.94,wave:.12},
+    '사보섬 해역':{water:'#123b49',sky:'#607f82',islands:[{x:1050,y:620,r:330},{x:4080,y:2450,r:340},{x:4350,y:620,r:180}],visibility:.72,wave:.16},
+    '수리가오 해협':{water:'#164652',sky:'#617f82',islands:[{x:580,y:450,r:410},{x:580,y:2820,r:430},{x:4620,y:520,r:390},{x:4600,y:2780,r:420}],visibility:.78,wave:.13},
+    '산타크루즈 해역':{water:'#15536a',sky:'#73949d',islands:[{x:900,y:680,r:140},{x:4320,y:2520,r:150},{x:3800,y:560,r:95}],visibility:.98,wave:.16}
+  };
+  Object.assign(MAPS,EXTRA_MAPS);
+  Object.values(EXTRA_MAPS).forEach((m,mi)=>m.islands.forEach((i,idx)=>{
+    if(i.seed==null)i.seed=Math.floor((i.x*13+i.y*7+i.r*3+mi*113+idx*61)%9973);
+    if(i.reef==null)i.reef=['자바해','사보섬 해역','산타크루즈 해역'].includes(Object.keys(EXTRA_MAPS)[mi]);
+    if(i.port==null)i.port=false;
+  }));
+
+  const bg=document.getElementById('lobbyBgInput');
+  if(bg){
+    Object.keys(EXTRA_MAPS).forEach(name=>{if(![...bg.options].some(o=>o.value===name)){const o=document.createElement('option');o.value=o.textContent=name;bg.appendChild(o)}});
+  }
+
+  /* 역사 전투에 필요한 주요 함정. 기존 데이터 구조와 같은 축약 제원. */
+  nationColor['네덜란드']='#66747b';
+  addExact({id:'graf_spee',nation:'독일',name:'아드미랄 그라프 슈페',cls:'중순양함',year:1936,length:186,beam:21.65,disp:16020,speed:28.5,mainCount:6,cal:283,reload:22,range:36.5,belt:100,deck:45,turret:140,torps:8,torpRange:12,torpSpeed:44,aa:48,note:'도이칠란트급 장갑함. 라플라타강 해전에서 영국 순양함대와 교전.',source:'해군사 대표 제원'});
+  addExact({id:'exeter',nation:'영국',name:'HMS 엑서터',cls:'중순양함',year:1929,length:175.3,beam:17.7,disp:10490,speed:32,mainCount:6,cal:203,reload:13,range:26.7,belt:76,deck:37,turret:25,torps:6,torpRange:10,torpSpeed:44,aa:45});
+  addExact({id:'ajax',nation:'영국',name:'HMS 에이잭스',cls:'경순양함',year:1935,length:169,beam:17,disp:9740,speed:32.5,mainCount:8,cal:152,reload:8,range:23.3,belt:76,deck:32,turret:25,torps:8,torpRange:10,torpSpeed:44,aa:48});
+  addVariant('ajax','achilles','HMS 아킬레스',{year:1933});
+  addExact({id:'glorious',nation:'영국',name:'HMS 글로리어스',cls:'항공모함',year:1917,length:240,beam:27.6,disp:26000,speed:30,mainCount:16,cal:120,reload:6,range:15,belt:76,deck:25,turret:25,aa:42,aircraft:48,airCooldown:49});
+  addVariant('tribal','acasta','HMS 아카스타',{year:1930,mainCount:4,cal:120,speed:35});
+  addVariant('tribal','ardent','HMS 아던트',{year:1930,mainCount:4,cal:120,speed:35});
+  addExact({id:'saltlake',nation:'미국',name:'USS 솔트레이크시티',cls:'중순양함',year:1929,length:178.5,beam:19.9,disp:13600,speed:32.7,mainCount:10,cal:203,reload:14,range:29,belt:64,deck:44,turret:64,aa:60});
+  addExact({id:'richmond',nation:'미국',name:'USS 리치먼드',cls:'경순양함',year:1923,length:169.3,beam:16.9,disp:9508,speed:34,mainCount:12,cal:152,reload:9,range:23,belt:76,deck:38,turret:25,aa:44});
+  addExact({id:'helena',nation:'미국',name:'USS 헬레나',cls:'경순양함',year:1939,length:185.4,beam:18.8,disp:13200,speed:32.5,mainCount:15,cal:152,reload:7,range:23.9,belt:127,deck:51,turret:165,aa:76});
+  addVariant('cleveland','montpelier','USS 몬트필리어',{year:1942});
+  addVariant('cleveland','columbia','USS 컬럼비아',{year:1942});
+  addVariant('cleveland','denver','USS 덴버',{year:1942});
+  addVariant('takao','chokai','초카이',{year:1932});
+  addExact({id:'aoba',nation:'일본',name:'아오바',cls:'중순양함',year:1927,length:185.2,beam:17.6,disp:11300,speed:33,mainCount:6,cal:203,reload:15,range:29,belt:76,deck:35,turret:25,torps:8,torpRange:20,torpSpeed:48,aa:45});
+  addExact({id:'furutaka',nation:'일본',name:'후루타카',cls:'중순양함',year:1926,length:185.2,beam:16.9,disp:11200,speed:33,mainCount:6,cal:203,reload:15,range:29,belt:76,deck:35,turret:25,torps:8,torpRange:20,torpSpeed:48,aa:38});
+  addExact({id:'nachi',nation:'일본',name:'나치',cls:'중순양함',year:1928,length:203.8,beam:19.5,disp:14980,speed:35.5,mainCount:10,cal:203,reload:15,range:29.4,belt:102,deck:35,turret:25,torps:12,torpRange:20,torpSpeed:48,aa:50});
+  addVariant('nachi','haguro','하구로',{year:1929});
+  addVariant('takao','maya','마야',{year:1932});
+  addExact({id:'sendai',nation:'일본',name:'센다이',cls:'경순양함',year:1924,length:152.4,beam:14.2,disp:7100,speed:35.3,mainCount:7,cal:140,reload:8,range:20,belt:64,deck:29,turret:20,torps:8,torpRange:20,torpSpeed:48,aa:42});
+  addExact({id:'de_ruyter',nation:'네덜란드',name:'HNLMS 데 루이터',cls:'경순양함',year:1936,length:170.8,beam:15.7,disp:7822,speed:32,mainCount:7,cal:150,reload:9,range:21,belt:50,deck:30,turret:30,torps:0,aa:50,color:'#66747b'});
+  addExact({id:'sydney',nation:'영국',name:'HMAS 시드니',cls:'경순양함',year:1935,length:171.4,beam:17.3,disp:8940,speed:32.5,mainCount:8,cal:152,reload:8,range:23.3,belt:76,deck:32,turret:25,torps:8,torpRange:10,torpSpeed:44,aa:52});
+  addExact({id:'colleoni',nation:'이탈리아',name:'바르톨로메오 콜레오니',cls:'경순양함',year:1932,length:169.3,beam:15.5,disp:6950,speed:36.5,mainCount:8,cal:152,reload:9,range:22,belt:24,deck:20,turret:23,torps:4,torpRange:12,torpSpeed:46,aa:38});
+  addVariant('colleoni','bandenere','조반니 델레 반데 네레',{year:1931});
+
+  const E=[
+    /* 미국 */
+    {nation:'미국',id:'us_cape_esperance_1942',year:1942,title:'에스페란스 곶 해전',map:'사보섬 해역',weather:'night',objectiveLabel:'일본 증원 함대의 야간 돌입 저지',playable:['sanfrancisco','saltlake','helena'],friendly:[['sanfrancisco','USS 샌프란시스코'],['saltlake','USS 솔트레이크시티'],['helena','USS 헬레나'],['fletcher','미 구축함']],enemy:[['aoba','아오바'],['furutaka','후루타카'],['kagero','일 구축함'],['kagero','일 구축함']],brief:'1942년 10월 11 ~ 12일. 미 순양함대가 과달카날 증원에 접근하던 일본 부대를 에스페란스 곶 부근에서 포착한 야간전입니다.'},
+    {nation:'미국',id:'us_komandorski_1943',year:1943,title:'코만도르스키 제도 해전',map:'알류샨 해역',weather:'overcast',objectiveLabel:'애투섬 보급부대 저지',playable:['saltlake','richmond'],friendly:[['saltlake','USS 솔트레이크시티'],['richmond','USS 리치먼드'],['fletcher','미 구축함'],['fletcher','미 구축함']],enemy:[['nachi','나치'],['maya','마야'],['kagero','일 구축함'],['kagero','일 구축함']],brief:'1943년 3월 26일. 항공 지원 없이 순수 수상함 포격전으로 벌어진 알류샨 전역의 대표적 해전입니다.'},
+    {nation:'미국',id:'us_empress_augusta_1943',year:1943,title:'엠프레스 오거스타만 해전',map:'솔로몬 제도',weather:'night',objectiveLabel:'부건빌 상륙부대 접근로 방어',playable:['montpelier','cleveland','columbia','denver'],friendly:[['montpelier','USS 몬트필리어'],['cleveland','USS 클리블랜드'],['columbia','USS 컬럼비아'],['denver','USS 덴버'],['fletcher','미 구축함']],enemy:[['sendai','센다이'],['haguro','하구로'],['nachi','묘코급 중순양함'],['kagero','일 구축함']],brief:'1943년 11월 2일. 미 제39기동부대가 부건빌 상륙을 저지하려던 일본 함대를 야간에 맞아 싸운 전투입니다.'},
+
+    /* 영국 */
+    {nation:'영국',id:'uk_river_plate_1939',year:1939,title:'라플라타강 해전',map:'라플라타 해역',weather:'clear',objectiveLabel:'그라프 슈페의 통상파괴 작전 종결',playable:['exeter','ajax','achilles'],friendly:[['exeter','HMS 엑서터'],['ajax','HMS 에이잭스'],['achilles','HMS 아킬레스']],enemy:[['graf_spee','아드미랄 그라프 슈페']],brief:'1939년 12월 13일. 영국 순양함 3척이 남대서양에서 독일 장갑함 아드미랄 그라프 슈페를 포착해 교전합니다.'},
+    {nation:'영국',id:'uk_calabria_1940',year:1940,title:'칼라브리아 해전',map:'지중해',weather:'clear',objectiveLabel:'이탈리아 전함대를 압박하고 수송로 확보',playable:['warspite','resolution'],friendly:[['warspite','HMS 워스파이트'],['resolution','영국 전함'],['belfast','영 순양함']],enemy:[['giuliocesare','줄리오 체사레'],['cavour','콘테 디 카보우르'],['abruzzi','이탈리아 경순양함']],brief:'1940년 7월 9일. 워스파이트를 중심으로 한 영국 지중해함대와 이탈리아 전함대가 장거리 포격전을 벌입니다.'},
+    {nation:'영국',id:'uk_java_sea_1942',year:1942,title:'자바해 해전',map:'자바해',weather:'overcast',objectiveLabel:'일본 수송선단의 자바 접근 지연',playable:['exeter'],friendly:[['exeter','HMS 엑서터'],['de_ruyter','HNLMS 데 루이터'],['tribal','연합군 구축함'],['tribal','연합군 구축함']],enemy:[['nachi','나치'],['haguro','하구로'],['kagero','일 구축함'],['kagero','일 구축함']],brief:'1942년 2월 27일. ABDA 연합 함대가 자바 침공을 엄호하던 일본 함대와 장시간 교전한 전투를 축약합니다.'},
+    {nation:'영국',id:'uk_barents_1942',year:1942,title:'바렌츠해 해전',map:'바렌츠해',weather:'storm',objectiveLabel:'JW 51B 수송선단 방어',playable:['sheffield','tribal'],friendly:[['sheffield','HMS 셰필드'],['tribal','영 구축함'],['tribal','영 구축함']],enemy:[['hipper','아드미랄 히퍼'],['lutzow','뤼초프'],['z23','독일 구축함'],['z23','독일 구축함']],brief:'1942년 12월 31일. 영국 수송선단 호위대가 독일 중순양함 중심 공격부대를 저지한 북극해 해전입니다.'},
+
+    /* 일본 */
+    {nation:'일본',id:'jp_java_sea_1942',year:1942,title:'자바해 해전',map:'자바해',weather:'overcast',objectiveLabel:'자바 침공 수송선단의 접근로 확보',playable:['nachi','haguro'],friendly:[['nachi','나치'],['haguro','하구로'],['kagero','일 구축함'],['kagero','일 구축함']],enemy:[['exeter','HMS 엑서터'],['de_ruyter','HNLMS 데 루이터'],['tribal','연합군 구축함'],['tribal','연합군 구축함']],brief:'1942년 2월 27일. 다카기 제독의 일본 순양함·구축함 부대가 ABDA 연합 함대를 격파한 자바해 해전입니다.'},
+    {nation:'일본',id:'jp_savo_1942',year:1942,title:'사보섬 해전',map:'사보섬 해역',weather:'night',objectiveLabel:'과달카날 상륙 함대의 순양함 호위 격파',playable:['chokai','aoba','furutaka'],friendly:[['chokai','초카이'],['aoba','아오바'],['furutaka','후루타카'],['kagero','일 구축함']],enemy:[['sanfrancisco','미 중순양함 대리'],['saltlake','미 중순양함 대리'],['sydney','연합군 순양함 대리'],['fletcher','미 구축함']],brief:'1942년 8월 8 ~ 9일 밤. 미카와 제8함대가 사보섬 부근의 연합군 순양함대를 기습한 대표적 야간전입니다.'},
+    {nation:'일본',id:'jp_cape_esperance_1942',year:1942,title:'에스페란스 곶 해전',map:'사보섬 해역',weather:'night',objectiveLabel:'과달카날 증원·포격 부대의 돌파',playable:['aoba','furutaka'],friendly:[['aoba','아오바'],['furutaka','후루타카'],['kagero','일 구축함']],enemy:[['sanfrancisco','USS 샌프란시스코'],['saltlake','USS 솔트레이크시티'],['helena','USS 헬레나'],['fletcher','미 구축함']],brief:'1942년 10월 11 ~ 12일. 일본 증원·포격부대가 에스페란스 곶에서 미 순양함대와 맞닥뜨린 야간전입니다.'},
+    {nation:'일본',id:'jp_tassafaronga_1942',year:1942,title:'타사파롱가 해전',map:'솔로몬 제도',weather:'night',objectiveLabel:'드럼통 수송 임무를 수행하며 미 순양함대 격퇴',playable:['kagero'],friendly:[['kagero','일 구축함'],['kagero','일 구축함'],['kagero','일 구축함'],['kagero','일 구축함']],enemy:[['saltlake','미 중순양함 대리'],['sanfrancisco','미 중순양함 대리'],['cleveland','미 경순양함 대리'],['fletcher','미 구축함']],brief:'1942년 11월 30일. 다나카 라이조의 구축함대가 미 순양함대에 장거리 산소어뢰로 큰 피해를 준 전투입니다.'},
+    {nation:'일본',id:'jp_komandorski_1943',year:1943,title:'코만도르스키 제도 해전',map:'알류샨 해역',weather:'overcast',objectiveLabel:'애투섬 보급선 보호',playable:['nachi','maya'],friendly:[['nachi','나치'],['maya','마야'],['kagero','일 구축함'],['kagero','일 구축함']],enemy:[['saltlake','USS 솔트레이크시티'],['richmond','USS 리치먼드'],['fletcher','미 구축함'],['fletcher','미 구축함']],brief:'1943년 3월 26일. 일본 북방함대가 애투섬 보급 중 미 함대와 조우한 장거리 수상전입니다.'},
+    {nation:'일본',id:'jp_empress_augusta_1943',year:1943,title:'엠프레스 오거스타만 해전',map:'솔로몬 제도',weather:'night',objectiveLabel:'부건빌 상륙 함대 공격',playable:['sendai','haguro','nachi'],friendly:[['sendai','센다이'],['haguro','하구로'],['nachi','묘코급 중순양함'],['kagero','일 구축함']],enemy:[['montpelier','USS 몬트필리어'],['cleveland','USS 클리블랜드'],['columbia','USS 컬럼비아'],['denver','USS 덴버']],brief:'1943년 11월 2일. 일본 순양함대가 부건빌 상륙부대를 공격하려다 미 순양함대와 야간전으로 맞붙습니다.'},
+
+    /* 독일 */
+    {nation:'독일',id:'de_river_plate_1939',year:1939,title:'라플라타강 해전',map:'라플라타 해역',weather:'clear',objectiveLabel:'영국 순양함대를 떼어내고 몬테비데오 접근',playable:['graf_spee'],friendly:[['graf_spee','아드미랄 그라프 슈페']],enemy:[['exeter','HMS 엑서터'],['ajax','HMS 에이잭스'],['achilles','HMS 아킬레스']],brief:'1939년 12월 13일. 통상파괴 임무 중이던 아드미랄 그라프 슈페가 영국 남미전대의 순양함 3척과 라플라타강 하구에서 교전합니다.'},
+    {nation:'독일',id:'de_juno_1940',year:1940,title:'유노 작전 · 글로리어스 격침',map:'노르웨이 피오르',weather:'overcast',objectiveLabel:'영국 항공모함과 호위 구축함 격멸',playable:['scharnhorst','gneisenau'],friendly:[['scharnhorst','샤른호르스트'],['gneisenau','그나이제나우']],enemy:[['glorious','HMS 글로리어스'],['acasta','HMS 아카스타'],['ardent','HMS 아던트']],brief:'1940년 6월 8일. 유노 작전 중 샤른호르스트와 그나이제나우가 철수 중이던 영국 항공모함 글로리어스와 호위 구축함을 포착한 전투입니다.'},
+
+    /* 이탈리아 */
+    {nation:'이탈리아',id:'it_cape_spada_1940',year:1940,title:'스파다 곶 해전',map:'지중해',weather:'clear',objectiveLabel:'연합군 순양함대를 따돌리고 함대 보존',playable:['colleoni','bandenere'],friendly:[['colleoni','바르톨로메오 콜레오니'],['bandenere','반데 네레']],enemy:[['sydney','HMAS 시드니'],['tribal','영 구축함'],['tribal','영 구축함']],brief:'1940년 7월 19일. 이탈리아 경순양함 2척이 에게해에서 호주 경순양함 시드니와 영국 구축함대에 추격당한 전투입니다.'},
+    {nation:'이탈리아',id:'it_duisburg_1941',year:1941,title:'뒤스부르크 수송선단 해전',map:'지중해',weather:'night',objectiveLabel:'북아프리카 수송선단 방어',playable:['abruzzi','soldati'],friendly:[['abruzzi','이탈리아 순양함 엄호'],['soldati','이탈리아 구축함'],['soldati','이탈리아 구축함']],enemy:[['cleopatra','영 경순양함 대리'],['tribal','영 구축함'],['tribal','영 구축함']],brief:'1941년 11월 8 ~ 9일 밤. 몰타의 영국 Force K가 북아프리카로 향하던 이탈리아 수송선단을 기습한 전투를 호위함 중심으로 재구성합니다.'},
+    {nation:'이탈리아',id:'it_cape_bon_1941',year:1941,title:'본 곶 해전',map:'지중해',weather:'night',objectiveLabel:'수송 임무 중 영국 구축함대의 기습에서 이탈',playable:['colleoni','bandenere'],friendly:[['colleoni','알베르토 디 주사노급 대리'],['bandenere','알베리코 다 바르비아노급 대리']],enemy:[['tribal','영 구축함'],['tribal','영 구축함'],['tribal','영 구축함']],brief:'1941년 12월 13일. 북아프리카로 보급품을 운반하던 이탈리아 경순양함들이 본 곶 부근에서 연합군 구축함대의 야간 기습을 받은 상황을 재구성합니다.'}
+  ];
+  const ids=new Set(HISTORY.map(x=>x.id));
+  for(const m of E)if(!ids.has(m.id)){HISTORY.push(m);ids.add(m.id)}
+
+  /* 기존 필리핀해 하나로 뭉쳤던 후기 전장을 가능한 경우 더 구체적인 해역으로 치환 */
+  const remap={us_surigao_1944:'수리가오 해협',jp_samar_1944:'레이테만',us_samar_1944:'레이테만',jp_sibuyan_1944:'레이테만'};
+  HISTORY.forEach(m=>{if(remap[m.id])m.map=remap[m.id]});
+
+  if(typeof renderLobby==='function')renderLobby();
+})();
+</script>
+
+
+<script id="steelFleetHistoryProgressionV6">
+(()=>{
+  /* ===== 어뢰 재장전: 모든 어뢰 탑재함 20초 고정 ===== */
+  SHIPS.forEach(s=>{if((s.torps||0)>0)s.torpReload=20});
+
+  /* ===== 역사 캠페인: 실제 역사상 패배 임무만 패배 진행 허용 =====
+     - 일반 역사 임무: 승리해야 다음 임무 해금.
+     - 실제 역사에서 해당 국가가 패배한 임무: 패배해도 다음 임무 해금.
+     - 어떤 임무든 게임에서 승리하면 별도 승리 기록 + 다음 임무 전승 보너스.
+     - 직전 버전에서 모든 패배를 진행 처리했던 기록은 승리 기록 또는 역사적 패배 임무만 남겨 정리한다. */
+  const historicalDefeatMissionsV6=new Set([
+    'uk_denmark_1941','uk_java_sea_1942',
+    'jp_guadalcanal2_1942','jp_philsea_1944','jp_sibuyan_1944','jp_samar_1944',
+    'jp_cape_esperance_1942','jp_komandorski_1943','jp_empress_augusta_1943',
+    'de_river_plate_1939','de_bismarckfinal_1941','de_barents_1942','de_northcape_1943',
+    'it_matapan_1941','it_cape_spada_1940','it_duisburg_1941','it_cape_bon_1941',
+    'fr_mers_1940','fr_casablanca_1942'
+  ]);
+
+  profile.historyComplete=Array.isArray(profile.historyComplete)?profile.historyComplete:[];
+  profile.historyVictories=Array.isArray(profile.historyVictories)?profile.historyVictories:[...profile.historyComplete];
+
+  function historyVictoryV6(id){return profile.historyVictories.includes(id)}
+  function historicalDefeatV6(id){return historicalDefeatMissionsV6.has(id)}
+
+  /* V5에서 패배만으로 잘못 진행된 일반 임무 기록 정리 */
+  profile.historyComplete=profile.historyComplete.filter(id=>historyVictoryV6(id)||historicalDefeatV6(id));
+
+  function historyProgressedV6(id){return profile.historyComplete.includes(id)}
+  function previousHistoryMissionV6(m){
+    if(!m)return null;
+    const list=historyList(m.nation),idx=list.findIndex(x=>x.id===m.id);
+    return idx>0?list[idx-1]:null;
+  }
+  function historyBonusForV6(m){
+    const prev=previousHistoryMissionV6(m);
+    return !!(prev&&historyVictoryV6(prev.id));
+  }
+
+  historyDone=function(id){return historyProgressedV6(id)};
+  historyUnlocked=function(m){
+    const list=historyList(m.nation),idx=list.findIndex(x=>x.id===m.id);
+    return idx<=0||historyProgressedV6(list[idx-1].id);
+  };
+
+  renderHistoryCampaign=function(){
+    const root=$('historyCampaignMap');if(!root)return;
+    const list=historyList(selectedNation),cur=currentHistoryMission();
+    root.classList.toggle('hidden',selectedMode!=='historical');
+    if(selectedMode!=='historical')return;
+    root.innerHTML=list.map((m,i)=>{
+      const progressed=historyProgressedV6(m.id),victory=historyVictoryV6(m.id),unlocked=historyUnlocked(m),histLoss=historicalDefeatV6(m.id);
+      const state=victory?'승리 완료':progressed&&histLoss?'역사적 패배 · 진행 완료':unlocked?(histLoss?'출격 가능 · 역사적 패배 허용':'출격 가능'):'이전 임무 완료 필요';
+      return `<div class="campaignNodeWrap">${i?'<span class="campaignNodeLine"></span>':''}<button type="button" class="campaignNode ${progressed?'completed':unlocked?'available':'locked'} ${cur?.id===m.id?'selected':''}" data-history-node="${m.id}" ${unlocked?'':'disabled'}><span>${m.year}</span><b>${m.title}</b><small>${state}</small></button></div>`;
+    }).join('');
+  };
+
+  const _setupHistoryMissionV6=setupHistoryMission;
+  setupHistoryMission=function(m){
+    _setupHistoryMissionV6(m);
+    if(!m||!$('historyBrief'))return;
+    const progressed=historyProgressedV6(m.id),victory=historyVictoryV6(m.id),histLoss=historicalDefeatV6(m.id),bonus=historyBonusForV6(m);
+    const status=victory?'승리 완료':progressed&&histLoss?'역사적 패배 · 진행 완료':historyUnlocked(m)?(histLoss?'진행 가능 · 패배해도 다음 작전 진행':'진행 가능'):'잠김';
+    const bonusHtml=bonus?'<div class="historyWinBonusV5"><b>전승 보너스</b> · 이전 해전 승리 효과<br><span>주포 재장전 10% 단축 · 주포 분산 10% 감소 · 피해통제 재정비 15% 단축</span></div>':'';
+    const first=$('historyBrief').querySelector('b');
+    if(first)first.nextSibling && (first.nextSibling.textContent=` · ${status}`);
+    $('historyBrief').insertAdjacentHTML('beforeend',bonusHtml);
+  };
+
+  const _startBattleV6=startBattle;
+  startBattle=function(cfg){
+    _startBattleV6(cfg);
+    if(!game||!cfg?.history)return;
+    game.historyVictoryBonusV5=historyBonusForV6(cfg.history);
+    if(game.historyVictoryBonusV5&&game.player){
+      game.player.reload=Math.min(game.player.reload,effectiveReload(game.player.def)*.20);
+      addLog('전승 보너스 적용 · 주포 장전/분산 및 피해통제 효율 향상','good');
+    }
+  };
+
+  const _salvoDispersionV6=salvoDispersion;
+  salvoDispersion=function(u,rangeKm){
+    let v=_salvoDispersionV6(u,rangeKm);
+    if(game?.historyVictoryBonusV5&&u===game.player)v*=.90;
+    return v;
+  };
+
+  const _fireMainV6=fireMain;
+  fireMain=function(u,aim,ammo){
+    const before=u?.shots||0;
+    _fireMainV6(u,aim,ammo);
+    if(game?.historyVictoryBonusV5&&u===game.player&&u.shots>before&&u.reload>0)u.reload*=.90;
+  };
+
+  const _damageControlV6=damageControl;
+  damageControl=function(u){
+    const before=u?.dcpActive||0;
+    _damageControlV6(u);
+    if(game?.historyVictoryBonusV5&&u===game.player&&u.dcpActive>before&&u.dcpCooldown>0)u.dcpCooldown*=.85;
+  };
+
+  const _endBattleV6=endBattle;
+  endBattle=function(win,reason){
+    if(!game||game.ended)return;
+    const m=game.cfg?.history||null;
+    let next=null,canAdvance=false,histLoss=false;
+    if(m){
+      histLoss=historicalDefeatV6(m.id);
+      canAdvance=win||histLoss;
+      if(canAdvance&&!historyProgressedV6(m.id))profile.historyComplete.push(m.id);
+      if(win&&!historyVictoryV6(m.id))profile.historyVictories.push(m.id);
+      const list=historyList(m.nation),idx=list.findIndex(x=>x.id===m.id);next=idx>=0?list[idx+1]||null:null;
+    }
+    _endBattleV6(win,reason);
+    if(m){
+      /* 아래쪽 구버전 endBattle이 승리 기록을 historyComplete에 추가하는 것은 정상이며,
+         일반 임무 패배를 추가하지 못하도록 현재 규칙으로 다시 정리한다. */
+      profile.historyComplete=profile.historyComplete.filter(id=>historyVictoryV6(id)||historicalDefeatV6(id));
+      saveJSON('steelFleetProfile',profile);
+      if($('resultText')){
+        let progressText='';
+        if(next){
+          if(win)progressText=`다음 해전 해금 · ${next.title} · 전승 보너스 적용`;
+          else if(histLoss)progressText=`역사적 패배 임무 · 다음 해전 해금 · ${next.title}`;
+          else progressText='패배 · 다음 해전은 해금되지 않았습니다';
+        }else{
+          progressText=win?'캠페인 최종 해전 승리':histLoss?'역사적 최종전 종료':'패배 · 최종 임무 미완료';
+        }
+        $('resultText').textContent=`${reason} · ${progressText}`;
+      }
+      if($('resultGrid')){
+        const label=win?'승리':histLoss?'역사적 패배 · 진행':'패배 · 미진행';
+        $('resultGrid').insertAdjacentHTML('beforeend',`<div><small>역사 캠페인</small><strong>${label}</strong></div>${next&&win?'<div><small>다음 해전</small><strong>전승 보너스</strong></div>':''}`);
+      }
+      renderHistoryCampaign();
+    }
+  };
+
+  if(typeof renderLobby==='function')renderLobby();
+  saveJSON('steelFleetProfile',profile);
+})();
+</script>
+<style id="steelFleetHistoryProgressionV5Style">
+.historyWinBonusV5{margin-top:10px;padding:9px 11px;border:1px solid #5e805f;border-left:4px solid #78c58b;border-radius:6px;background:#18271e;color:#d8eadb;font-size:11px;line-height:1.5}
+.historyWinBonusV5 b{color:#8fd49e}.historyWinBonusV5 span{color:#afc9b5;font-size:10px}
+</style>
+
 </body>
 </html>

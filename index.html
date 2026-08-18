@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
-<title>강철 전선 1944 · 빌드 36</title>
+<title>강철 전선 1944</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -4837,7 +4837,7 @@
 <div id="menu" class="lobbyMenu">
   <div class="lobbyTopBar">
     <div class="lobbyBrand" aria-label="강철 전선 1944">
-      <span>전차전 지휘소 <i class="lobbyBuildBadge">빌드 36</i></span>
+      <span>전차전 지휘소</span>
       <strong>강철 전선 <b>1944</b></strong>
     </div>
     <div id="battleTypeButtons" class="battleTabs">
@@ -4848,8 +4848,8 @@
     </div>
     <div class="lobbyUtility">
       <label class="lobbyRightTools">
-        <span>배경</span>
-        <select id="lobbyBgInput" aria-label="로비 배경">
+        <span>지형</span>
+        <select id="lobbyBgInput" aria-label="로비 지형">
           <option value="평지" selected>평지</option>
           <option value="사막">사막</option>
           <option value="언덕">언덕</option>
@@ -5412,7 +5412,7 @@
           <section class="operationOptionBlock" aria-labelledby="realisticVariantTitle">
             <div class="operationOptionHeading">
               <h4 id="realisticVariantTitle">세부 전장</h4>
-              <span id="realisticOperationCatalogStatus" class="operationCatalogStatus">빌드 29</span>
+              <span id="realisticOperationCatalogStatus" class="operationCatalogStatus">현재 편성</span>
             </div>
             <p id="realisticOperationCatalogSummary">선택한 지형 안에서 실제 작전에 사용할 진격로와 교전 구역을 고릅니다.</p>
             <div id="realisticOperationVariantGrid" class="operationChoiceGrid" role="group" aria-label="리얼리스틱 세부 전장 선택"></div>
@@ -15407,6 +15407,50 @@ function syncLobbyTankCanvasSize() {
   }
 }
 
+
+function drawFrontLobbyBackdrop(g,w,h,name,now=0){
+  const sx=w/900, sy=h/480, S=Math.min(sx,sy);
+  const grad=(a,b)=>{const q=g.createLinearGradient(0,0,0,h);q.addColorStop(0,a);q.addColorStop(1,b);g.fillStyle=q;g.fillRect(0,0,w,h)};
+  const ellipse=(x,y,rx,ry,fill,stroke=null,lw=1)=>{g.beginPath();g.ellipse(x*sx,y*sy,rx*sx,ry*sy,0,0,TAU);g.fillStyle=fill;g.fill();if(stroke){g.strokeStyle=stroke;g.lineWidth=lw*S;g.stroke()}};
+  const line=(x1,y1,x2,y2,color,lw=1,dash=null)=>{g.save();g.strokeStyle=color;g.lineWidth=lw*S;if(dash)g.setLineDash(dash.map(v=>v*S));g.beginPath();g.moveTo(x1*sx,y1*sy);g.lineTo(x2*sx,y2*sy);g.stroke();g.restore()};
+  if(name==='사막'){
+    grad('#b9a06b','#927a4d');
+    g.save();g.globalAlpha=.32;g.strokeStyle='#e2ca8a';g.lineWidth=2*S;
+    [[140,90,260,58],[520,138,330,72],[735,305,270,58],[250,350,320,70]].forEach(([x,y,rx,ry])=>{g.beginPath();g.ellipse(x*sx,y*sy,rx*sx,ry*sy,-.12,Math.PI*.08,Math.PI*.92);g.stroke()});g.restore();
+    ellipse(720,115,34,19,'#76654d');ellipse(150,330,25,14,'#75624a');ellipse(805,365,20,12,'#6e5c45');
+    line(40,390,860,280,'rgba(83,66,39,.24)',3);line(36,405,856,295,'rgba(83,66,39,.18)',2);
+  }else if(name==='언덕'){
+    grad('#718358','#50623f');
+    [[185,150,185,90],[530,135,245,105],[755,345,205,95],[260,365,240,100]].forEach(([x,y,rx,ry],i)=>{ellipse(x,y,rx,ry,i%2?'rgba(124,147,87,.42)':'rgba(102,126,72,.48)','rgba(57,76,48,.25)',1.3);ellipse(x,y,rx*.72,ry*.70,'rgba(0,0,0,0)','rgba(209,221,175,.10)',1)});
+    for(let i=0;i<18;i++){const x=45+(i*137)%830,y=70+(i*83)%330;ellipse(x,y,3.5,3.5,'rgba(44,73,43,.55)')}
+  }else if(name==='산악'){
+    grad('#626858','#414942');
+    g.save();g.globalAlpha=.58;g.fillStyle='#777a70';
+    [[40,310,185,105],[205,80,220,125],[590,55,255,145],[690,300,245,120]].forEach(([x,y,ww,hh])=>{g.beginPath();g.moveTo(x*sx,(y+hh)*sy);g.lineTo((x+ww*.26)*sx,(y+hh*.18)*sy);g.lineTo((x+ww*.47)*sx,(y+hh*.56)*sy);g.lineTo((x+ww*.68)*sx,y*sy);g.lineTo((x+ww)*sx,(y+hh)*sy);g.closePath();g.fill()});g.restore();
+    [[125,120,25,16],[405,340,34,19],[765,180,29,17],[825,355,20,13]].forEach(a=>ellipse(...a,'#343a37','rgba(197,202,193,.13)',1));
+    line(0,260,900,230,'rgba(20,25,24,.18)',4);
+  }else if(name==='늪지'){
+    grad('#465748','#2f4239');
+    [[150,130,150,70],[500,110,210,82],[720,325,175,70],[270,360,190,65]].forEach(([x,y,rx,ry],i)=>ellipse(x,y,rx,ry,i%2?'rgba(40,72,66,.55)':'rgba(36,64,58,.60)','rgba(108,142,119,.22)',1.2));
+    for(let i=0;i<28;i++){const x=25+(i*113)%860,y=80+(i*71)%330;line(x,y,x+3,y-13,'rgba(127,147,90,.50)',1.2)}
+    ellipse(800,90,35,15,'rgba(91,108,77,.35)');ellipse(75,340,28,12,'rgba(91,108,77,.30)');
+  }else if(name==='시가전'){
+    grad('#5b5e56','#444943');
+    g.fillStyle='rgba(42,45,45,.72)';g.fillRect(0,178*sy,w,115*sy);g.fillRect(390*sx,0,122*sx,h);
+    line(0,235,900,235,'rgba(205,198,166,.34)',2,[18,16]);line(451,0,451,480,'rgba(205,198,166,.30)',2,[18,16]);
+    const buildings=[[40,38,160,112],[238,35,130,116],[540,34,148,120],[724,42,135,110],[42,314,155,120],[232,325,138,108],[535,320,154,112],[730,310,132,122]];
+    buildings.forEach(([x,y,ww,hh],i)=>{g.fillStyle=i%2?'#6a6860':'#62645f';g.fillRect(x*sx,y*sy,ww*sx,hh*sy);g.strokeStyle='rgba(24,27,27,.42)';g.lineWidth=2*S;g.strokeRect(x*sx,y*sy,ww*sx,hh*sy);g.fillStyle='rgba(25,29,30,.35)';for(let yy=y+18;yy<y+hh-10;yy+=25)for(let xx=x+18;xx<x+ww-10;xx+=29)g.fillRect(xx*sx,yy*sy,7*sx,5*sy)});
+    ellipse(300,250,24,11,'rgba(36,34,32,.50)');ellipse(625,250,28,13,'rgba(36,34,32,.45)');
+  }else{
+    grad('#75805a','#566344');
+    g.save();g.globalAlpha=.20;g.fillStyle='#879363';[[115,120,210,68],[570,100,280,75],[710,330,240,75],[255,360,260,70]].forEach(([x,y,rx,ry])=>{g.beginPath();g.ellipse(x*sx,y*sy,rx*sx,ry*sy,-.08,0,TAU);g.fill()});g.restore();
+    line(30,385,865,285,'rgba(119,101,68,.25)',7);line(25,400,860,300,'rgba(205,191,139,.10)',2);
+    for(let i=0;i<24;i++){const x=32+(i*149)%840,y=58+(i*97)%350;ellipse(x,y,2.5,2.5,'rgba(48,78,39,.45)')}
+  }
+  // 배경별 질감을 남기되 전차 실루엣을 방해하지 않는 아주 약한 격자
+  g.save();g.globalAlpha=.07;g.strokeStyle='#e6eee7';g.lineWidth=1*S;for(let x=0;x<w;x+=90*sx){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke()}for(let y=0;y<h;y+=72*sy){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()}g.restore();
+}
+
 function drawLobbyTankPreview(now=0) {
   if (!lobbyTankCanvas || !selectedTank) return;
   syncLobbyTankCanvasSize();
@@ -15415,24 +15459,15 @@ function drawLobbyTankPreview(now=0) {
   const bg = maps[selectedLobbyBg] || maps["평지"];
 
   g.clearRect(0,0,w,h);
-  g.fillStyle = bg?.bg || "#252c30";
-  g.fillRect(0,0,w,h);
-
-  g.save();
-  g.globalAlpha = 0.18;
-  g.strokeStyle = bg?.grid || "#555";
-  g.lineWidth = 1;
+  drawFrontLobbyBackdrop(g,w,h,selectedLobbyBg,now);
   const previewScale=Math.min(w/900,h/480);
-  for (let x=-120*previewScale; x<w+120*previewScale; x+=80*previewScale) { g.beginPath(); g.moveTo(x, h*0.70); g.lineTo(x+240*previewScale, h); g.stroke(); }
-  for (let y=h*0.58; y<h; y+=36*previewScale) { g.beginPath(); g.moveTo(0,y); g.lineTo(w,y); g.stroke(); }
-  g.restore();
 
   const unlocked = isTankUnlocked(selectedTank) || isCustomBattleMode() || (isCampaignMode() && campaignTankAllowed(selectedTank));
   const t = getEffectiveTank(selectedTank, unlocked);
   const [len, wid] = t.size;
-  const zoom = Math.max(2.4,Math.min(6.0,w*.78/(Math.max(len,1)*1.55),h*.62/(Math.max(wid,1)*1.25)));
+  const zoom = Math.max(2.4,Math.min(6.0,w*.78/(Math.max(len,1)*1.55),h*.62/(Math.max(wid,1)*1.25))) * 0.40;
   const l = len * zoom, tw = wid * zoom;
-  const sx = w * 0.47, sy = h * 0.53;
+  const sx = w * 0.52, sy = h * 0.51;
   const hullAngle = -0.05;
   const turretAngle = hullAngle + Math.sin(now/1150) * 0.22;
   const baseColor = t.color || nationColors[selectedTank.nation] || "#666";
@@ -15533,6 +15568,24 @@ function drawLobbyTankPreview(now=0) {
     g.fillStyle="#151817";rr(-cL*.27,-cW*.31,cL*.44,cW*.62,4*zoom);g.fill();g.fillStyle="rgba(25,25,25,.68)";rr(cL*.14,-cW*.22,cL*.20,cW*.44,3*zoom);g.fill();
     const barrelLen=len*.70*zoom;g.strokeStyle="#151515";g.lineWidth=Math.max(4.5,5.5*zoom);g.beginPath();g.moveTo(cL*.20,0);g.lineTo(barrelLen,0);g.stroke();g.strokeStyle="#5f5f5f";g.lineWidth=Math.max(1.6,2*zoom);g.beginPath();g.moveTo(cL*.20,-1);g.lineTo(barrelLen,-1);g.stroke();g.fillStyle="#101010";g.fillRect(barrelLen-3*zoom,-3*zoom,7*zoom,6*zoom);g.restore();
   }
+
+  // 로비 미리보기 하단 정보: 강철 함대와 같은 위치·크기·형식.
+  const cssW=Math.max(1,lobbyTankCanvas.getBoundingClientRect().width);
+  const uiScale=w/cssW;
+  const footerH=62*uiScale;
+  g.fillStyle='rgba(0,0,0,.28)';
+  g.fillRect(0,h-footerH,w,footerH);
+  g.fillStyle='#e7edf1';
+  g.font=`900 ${21*uiScale}px system-ui, sans-serif`;
+  g.textAlign='left';
+  g.textBaseline='alphabetic';
+  const tierText=tierRoman[selectedTank.tier]?` ${tierRoman[selectedTank.tier]}`:'';
+  g.fillText(`${selectedTank.name}${tierText}`,24*uiScale,h-30*uiScale);
+  g.fillStyle='#a6b5bd';
+  g.font=`${12*uiScale}px system-ui, sans-serif`;
+  const frontArmor=t.armor?.front ?? 0;
+  const topSpeed=selectedTank.speedKph ?? Math.round(t.speed||0);
+  g.fillText(`${selectedTank.nation} · ${selectedTank.cls} · ${topSpeed} km/h · 관통 ${Math.round(t.pen||0)} mm · 전면 ${Math.round(frontArmor)} mm`,24*uiScale,h-11*uiScale);
 
 }
 
@@ -27429,8 +27482,8 @@ select,input{border-radius:6px}
 <script id="steelFrontUnifiedUiRuntime">
 (()=>{
   const badge=document.querySelector('.lobbyBuildBadge');
-  if(badge) badge.textContent='빌드 36';
-  document.title='강철 전선 1944 · 빌드 36';
+  if(badge) badge.remove();
+  document.title='강철 전선 1944';
   document.documentElement.dataset.runtimeBuild='36';
 })();
 </script>
@@ -27725,7 +27778,186 @@ select,input{border-radius:6px}
 
 
 <script id="steelFrontUnifiedUiRuntimeV2">
-(()=>{const b=document.querySelector('.lobbyBuildBadge');if(b)b.textContent='빌드 37';document.title='강철 전선 1944 · 빌드 37';document.documentElement.dataset.runtimeBuild='37';})();
+(()=>{const b=document.querySelector('.lobbyBuildBadge');if(b)b.remove();document.title='강철 전선 1944';document.documentElement.removeAttribute('data-runtime-build');})();
 </script>
+
+<style id="steelFrontNoBuildBadgePatch">
+#menu .lobbyBuildBadge{display:none!important}
+</style>
+<script id="steelFrontCleanIdentityPatch">
+(()=>{document.querySelectorAll('.lobbyBuildBadge').forEach(el=>el.remove());document.title='강철 전선 1944';document.documentElement.removeAttribute('data-runtime-build');})();
+</script>
+
+
+<style id="steelSeriesHeaderSpacePatch">
+/* 상단 메뉴 공간 확보: 버튼 이름을 줄임표로 자르지 않고 두 게임이 같은 시점에서 2단 헤더로 전환 */
+#menu .lobbyTopTools button,
+#menu .tools button{overflow:visible!important;text-overflow:clip!important;white-space:nowrap!important}
+#menu .lobbyRightTools{overflow:visible!important;line-height:1.2!important}
+#menu .lobbyRightTools span{display:inline-block!important;min-width:24px!important;overflow:visible!important;white-space:nowrap!important}
+#menu .lobbyRightTools select{width:118px!important;min-width:118px!important;max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+@media (min-width:1551px){
+  #menu .lobbyTopBar,#menu .topbar{grid-template-columns:200px minmax(500px,1fr) 640px!important}
+  #menu .lobbyUtility{min-width:640px!important;width:100%!important}
+}
+@media (max-width:1550px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{
+    height:126px!important;
+    min-height:126px!important;
+    grid-template-columns:190px minmax(0,1fr)!important;
+    grid-template-areas:"brand tools" "tabs tabs"!important;
+    grid-template-rows:48px 56px!important;
+    gap:6px 12px!important;
+    padding:8px 14px!important;
+    align-content:center!important;
+  }
+  #menu .lobbyBrand,#menu .brand{grid-area:brand!important}
+  #menu .lobbyUtility{grid-area:tools!important;justify-self:stretch!important;width:100%!important;min-width:0!important;display:flex!important;justify-content:flex-end!important}
+  #menu .lobbyTopTools,#menu .tools{flex:0 1 auto!important;min-width:0!important}
+  #menu .battleTabs,#menu .tabs{grid-area:tabs!important;width:100%!important;max-width:none!important;justify-self:stretch!important}
+  #menu .lobbyTopTools button,#menu .tools button{min-width:66px!important;padding-inline:8px!important;font-size:11px!important}
+  #menu .seriesSwitchLink{min-width:82px!important;padding-inline:9px!important;font-size:11px!important}
+  #menu .lobbyRightTools span{display:inline-block!important}
+  #menu .lobbyStage,#menu .stage{top:126px!important}
+  #menu #tankDock,#menu #shipDock{top:142px!important}
+}
+@media (max-width:980px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{height:136px!important;min-height:136px!important;grid-template-columns:150px minmax(0,1fr)!important;grid-template-rows:54px 62px!important}
+  #menu .lobbyTopTools button,#menu .tools button{min-width:58px!important;padding-inline:6px!important;font-size:10.5px!important}
+  #menu .seriesSwitchLink{min-width:72px!important;font-size:10.5px!important}
+  #menu .lobbyRightTools select{width:108px!important;min-width:108px!important}
+  #menu .lobbyStage,#menu .stage{top:136px!important}
+  #menu #tankDock,#menu #shipDock{top:150px!important}
+}
+</style>
+
+
+<style id="steelSeriesExactHeaderPatchV4">
+/* 강철 전선 / 강철 함대 상단 UI 최종 공통 규격 */
+#menu .lobbyUtility{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+  min-width:0!important;
+}
+#menu .lobbyRightTools{
+  order:0!important;
+  flex:0 0 auto!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  color:#99a6af!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  line-height:1!important;
+  white-space:nowrap!important;
+}
+#menu .lobbyRightTools>span{
+  display:inline-flex!important;
+  align-items:center!important;
+  height:36px!important;
+  min-width:24px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  white-space:nowrap!important;
+}
+#menu .lobbyRightTools select{
+  box-sizing:border-box!important;
+  width:118px!important;
+  min-width:118px!important;
+  max-width:118px!important;
+  height:36px!important;
+  min-height:36px!important;
+  margin:0!important;
+  padding:0 28px 0 8px!important;
+  border:1px solid #3a4853!important;
+  border-radius:6px!important;
+  background:#141b21!important;
+  color:#e7edf1!important;
+  font-size:11px!important;
+  font-weight:700!important;
+  line-height:34px!important;
+  text-overflow:ellipsis!important;
+  white-space:nowrap!important;
+}
+#menu .lobbyTopTools,
+#menu .tools{
+  order:1!important;
+  flex:0 1 auto!important;
+}
+
+/* 전투 모드 버튼의 작은 부가 설명 상단이 잘리지 않도록 실제 글줄 높이를 보장 */
+#menu .battleTabs,
+#menu .tabs{
+  overflow:visible!important;
+  align-items:stretch!important;
+}
+#menu .battleTab,
+#menu .tab{
+  height:48px!important;
+  min-height:48px!important;
+  padding:3px 8px 4px!important;
+  gap:2px!important;
+  overflow:visible!important;
+  line-height:1.2!important;
+}
+#menu .battleTab span,
+#menu .tab span{
+  display:block!important;
+  flex:0 0 auto!important;
+  line-height:1.25!important;
+  overflow:visible!important;
+}
+#menu .battleTab small,
+#menu .tab small{
+  display:block!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:1px 0 0!important;
+  line-height:1.3!important;
+  overflow:visible!important;
+  clip-path:none!important;
+}
+
+@media (min-width:1551px){
+  #menu .lobbyTopBar,#menu .topbar{grid-template-columns:200px minmax(500px,1fr) 650px!important}
+  #menu .lobbyUtility{min-width:650px!important;width:100%!important}
+}
+@media (max-width:1550px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{
+    height:128px!important;
+    min-height:128px!important;
+    grid-template-columns:190px minmax(0,1fr)!important;
+    grid-template-areas:"brand tools" "tabs tabs"!important;
+    grid-template-rows:48px 58px!important;
+    gap:6px 12px!important;
+    padding:8px 14px!important;
+  }
+  #menu .lobbyUtility{grid-area:tools!important;width:100%!important;min-width:0!important}
+  #menu .battleTabs,#menu .tabs{grid-area:tabs!important;width:100%!important;max-width:none!important}
+  #menu .lobbyStage,#menu .stage{top:128px!important}
+  #menu #tankDock,#menu #shipDock{top:144px!important}
+}
+@media (max-width:980px) and (min-width:721px){
+  #menu .lobbyTopBar,#menu .topbar{
+    height:140px!important;
+    min-height:140px!important;
+    grid-template-columns:150px minmax(0,1fr)!important;
+    grid-template-rows:56px 62px!important;
+  }
+  #menu .lobbyRightTools select{width:108px!important;min-width:108px!important;max-width:108px!important}
+  #menu .lobbyStage,#menu .stage{top:140px!important}
+  #menu #tankDock,#menu #shipDock{top:156px!important}
+}
+@media(max-width:720px){
+  #menu .lobbyRightTools{display:none!important}
+}
+</style>
+
 </body>
 </html>
